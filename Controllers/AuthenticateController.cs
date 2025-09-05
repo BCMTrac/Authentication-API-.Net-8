@@ -8,6 +8,7 @@ using AuthenticationAPI.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AuthenticationAPI.Controllers
 {
@@ -20,19 +21,25 @@ namespace AuthenticationAPI.Controllers
     private readonly IConfiguration _configuration;
     private readonly ApplicationDbContext _db;
     private readonly IRefreshTokenService _refreshTokenService;
+    private readonly IKeyRingService _keyRing;
+    private readonly ITotpService _totp;
 
         public AuthenticateController(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IConfiguration configuration,
             ApplicationDbContext db,
-            IRefreshTokenService refreshTokenService)
+            IRefreshTokenService refreshTokenService,
+            IKeyRingService keyRing,
+            ITotpService totp)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
             _db = db;
             _refreshTokenService = refreshTokenService;
+            _keyRing = keyRing;
+            _totp = totp;
         }
 
         [HttpPost]
@@ -40,52 +47,61 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             var user = await _userManager.FindByNameAsync(model.Username);
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password)) return Unauthorized();
+            if (user.MfaEnabled && string.IsNullOrWhiteSpace(model.MfaCode))
             {
-                var userRoles = await _userManager.GetRolesAsync(user);
-
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName!),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                }
-
-                // Add permission claims (scopes) aggregated from role permissions
-                var roleIds = await _roleManager.Roles
-                    .Where(r => userRoles.Contains(r.Name!))
-                    .Select(r => r.Id)
-                    .ToListAsync();
-
-                var permissions = await _db.RolePermissions
-                    .Where(rp => roleIds.Contains(rp.RoleId))
-                    .Include(rp => rp.Permission)
-                    .Select(rp => rp.Permission!.Name)
-                    .Distinct()
-                    .ToListAsync();
-
-                foreach (var perm in permissions)
-                {
-                    authClaims.Add(new Claim("scope", perm));
-                }
-
-                authClaims.Add(new Claim("token_version", user.TokenVersion.ToString()));
-                var token = GetToken(authClaims);
-                var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
-
-                return Ok(new
-                {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo,
-                    refreshToken,
-                    refreshTokenExpiration = refreshExp
-                });
+                return Ok(new { mfaRequired = true });
             }
-            return Unauthorized();
+            if (user.MfaEnabled)
+            {
+                if (string.IsNullOrWhiteSpace(user.MfaSecret) || !_totp.ValidateCode(user.MfaSecret, model.MfaCode!, out _))
+                {
+                    return Unauthorized(new { error = "Invalid MFA code" });
+                }
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            var authClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
+
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            // Add permission claims (scopes) aggregated from role permissions
+            var roleIds = await _roleManager.Roles
+                .Where(r => userRoles.Contains(r.Name!))
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            var permissions = await _db.RolePermissions
+                .Where(rp => roleIds.Contains(rp.RoleId))
+                .Include(rp => rp.Permission)
+                .Select(rp => rp.Permission!.Name)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var perm in permissions)
+            {
+                authClaims.Add(new Claim("scope", perm));
+            }
+
+            authClaims.Add(new Claim("token_version", user.TokenVersion.ToString()));
+            var token = GetToken(authClaims);
+            var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                expiration = token.ValidTo,
+                refreshToken,
+                refreshTokenExpiration = refreshExp
+            });
         }
 
         [HttpPost]
@@ -146,21 +162,19 @@ namespace AuthenticationAPI.Controllers
 
         private JwtSecurityToken GetToken(List<Claim> authClaims)
         {
-            var secret = _configuration["JWT:Secret"];
-            if (secret == null)
-            {
-                throw new InvalidOperationException("JWT secret not configured");
-            }
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-
+            var key = _keyRing.GetActiveSigningKeyAsync().GetAwaiter().GetResult();
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key.Secret));
+            var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+            var header = new JwtHeader(creds);
+            header["kid"] = key.Kid;
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
                 audience: _configuration["JWT:ValidAudience"],
-                expires: DateTime.Now.AddHours(3),
                 claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
-
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddHours(3),
+                signingCredentials: creds);
+            token.Header["kid"] = key.Kid;
             return token;
         }
 
@@ -202,6 +216,90 @@ namespace AuthenticationAPI.Controllers
             var ok = await _refreshTokenService.RevokeAsync(request.RefreshToken, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "manual");
             return ok ? Ok() : NotFound();
         }
+
+        [HttpPost("request-password-reset")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequestDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return Ok(); // do not reveal existence
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            // Placeholder: log token (would email in production)
+            Console.WriteLine($"Password reset token for {user.Email}: {token}");
+            return Ok();
+        }
+
+        [HttpPost("confirm-password-reset")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmPasswordReset([FromBody] PasswordResetConfirmDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return BadRequest();
+            var res = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!res.Succeeded) return BadRequest(new { errors = res.Errors.Select(e => e.Description) });
+            return Ok();
+        }
+
+        [HttpPost("request-email-confirm")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RequestEmailConfirm([FromBody] EmailRequestDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return Ok();
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            Console.WriteLine($"Email confirm token for {user.Email}: {token}");
+            return Ok();
+        }
+
+        [HttpPost("confirm-email")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return BadRequest();
+            var res = await _userManager.ConfirmEmailAsync(user, dto.Token);
+            if (!res.Succeeded) return BadRequest(new { errors = res.Errors.Select(e => e.Description) });
+            return Ok();
+        }
+
+        [HttpPost("mfa/enroll/start")]
+        [Authorize]
+        public async Task<IActionResult> MfaEnrollStart()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+            if (user.MfaEnabled) return BadRequest(new { error = "Already enabled" });
+            var secret = _totp.GenerateSecret();
+            user.MfaSecret = secret;
+            await _userManager.UpdateAsync(user);
+            var url = _totp.GetOtpAuthUrl(secret, user.Email ?? user.UserName!, "AuthAPI");
+            return Ok(new { secret, otpauthUrl = url });
+        }
+
+        [HttpPost("mfa/enroll/confirm")]
+        [Authorize]
+        public async Task<IActionResult> MfaEnrollConfirm([FromBody] MfaCodeDto dto)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+            if (string.IsNullOrWhiteSpace(user.MfaSecret)) return BadRequest(new { error = "No secret generated" });
+            if (!_totp.ValidateCode(user.MfaSecret, dto.Code, out _)) return BadRequest(new { error = "Invalid code" });
+            user.MfaEnabled = true;
+            await _userManager.UpdateAsync(user);
+            return Ok(new { enabled = true });
+        }
+
+        [HttpPost("mfa/disable")]
+        [Authorize]
+        public async Task<IActionResult> MfaDisable()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+            user.MfaEnabled = false;
+            user.MfaSecret = null;
+            await _userManager.UpdateAsync(user);
+            return Ok();
+        }
     }
 }
 
@@ -209,3 +307,10 @@ public class RefreshRequest
 {
     public string RefreshToken { get; set; } = null!;
 }
+
+public class PasswordResetRequestDto { public string Email { get; set; } = string.Empty; }
+public class PasswordResetConfirmDto { public string Email { get; set; } = string.Empty; public string Token { get; set; } = string.Empty; public string NewPassword { get; set; } = string.Empty; }
+public class EmailRequestDto { public string Email { get; set; } = string.Empty; }
+public class EmailConfirmDto { public string Email { get; set; } = string.Empty; public string Token { get; set; } = string.Empty; }
+public class MfaCodeDto { public string Code { get; set; } = string.Empty; }
+// Extend LoginModel to include MFA code (optional)

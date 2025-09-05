@@ -5,7 +5,6 @@ using AuthenticationAPI.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using AuthenticationAPI.Services;
 using AuthenticationAPI.Models.Options;
@@ -16,6 +15,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
+using AuthenticationAPI.Infrastructure.Security;
+using Microsoft.AspNetCore.Authorization;
+using AuthenticationAPI.Services.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -34,8 +36,8 @@ builder.Logging.AddJsonConsole(options =>
 builder.Services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
 
-// For Entity Framework
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
+// For Entity Framework (SQL Server)
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
 // For Identity (allow space in usernames for your scenario)
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -44,52 +46,19 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.User.AllowedUserNameCharacters += " ";
         }
-        // You can adjust password rules here if needed, e.g.:
-        // options.Password.RequireNonAlphanumeric = false;
+        // Adjust password rules here if needed
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Adding Authentication
+// Authentication (detailed options configured via IConfigureOptions implementation)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-});
-
-// Adding Jwt Bearer (using IOptions pattern)
-builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<IOptions<JwtOptions>>((o, jwtOptsAccessor) =>
-{
-    var jwt = jwtOptsAccessor.Value;
-    if (string.IsNullOrWhiteSpace(jwt.Secret))
-    {
-        throw new InvalidOperationException("JWT secret not configured. Provide via user-secrets or environment.");
-    }
-    o.SaveToken = true;
-    o.RequireHttpsMetadata = false; // set true in production with HTTPS
-    o.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidAudience = jwt.ValidAudience,
-        ValidIssuer = jwt.ValidIssuer,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret))
-    };
-    o.Events = new JwtBearerEvents
-    {
-        OnTokenValidated = async context =>
-        {
-            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
-            var user = await userManager.GetUserAsync(context.Principal!);
-            var versionClaim = context.Principal!.FindFirst("token_version")?.Value;
-            if (user == null || versionClaim == null || versionClaim != user.TokenVersion.ToString())
-            {
-                context.Fail("Token version mismatch (revoked)");
-            }
-        }
-    };
-});
+}).AddJwtBearer();
+builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 
 builder.Services.AddControllers();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -161,13 +130,16 @@ builder.Services.AddCors(policy =>
 builder.Services.AddHealthChecks().AddCheck<AuthenticationAPI.Infrastructure.Health.DatabaseHealthCheck>("db");
 
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+builder.Services.AddScoped<IKeyRingService, KeyRingService>();
+builder.Services.AddScoped<IClientAppService, ClientAppService>();
+builder.Services.AddSingleton<IMfaSecretProtector, MfaSecretProtector>();
+builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
+builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
+builder.Services.AddSingleton<ITotpService, TotpService>();
 
 // Authorization policies (example)
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("users.read", p => p.RequireClaim("scope", "users.read"));
-    options.AddPolicy("users.write", p => p.RequireClaim("scope", "users.write"));
-});
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 var app = builder.Build();
 
@@ -190,7 +162,6 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none';";
     await next();
 });
-
 app.UseGlobalExceptionHandling();
 app.UseCorrelationId();
 app.UseHttpsRedirection();
@@ -222,6 +193,18 @@ using (var scope = app.Services.CreateScope())
 {
     await Seed.SeedRoles(scope.ServiceProvider);
     await Seed.SeedPermissions(scope.ServiceProvider);
+    // Seed signing key if none
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    if (!db.SigningKeys.Any())
+    {
+        var keyRing = scope.ServiceProvider.GetRequiredService<IKeyRingService>();
+        await keyRing.RotateAsync();
+    }
+    // Warm key cache
+    var cache = scope.ServiceProvider.GetRequiredService<IKeyRingCache>();
+    var allKeys = await scope.ServiceProvider.GetRequiredService<IKeyRingService>().GetAllActiveKeysAsync();
+    cache.Set(allKeys);
+
 }
 
 app.Run();

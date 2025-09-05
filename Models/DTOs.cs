@@ -22,5 +22,6 @@ namespace AuthenticationAPI.Models
 
         [Required]
         public string Password { get; set; } = null!;
+    public string? MfaCode { get; set; }
     }
 }

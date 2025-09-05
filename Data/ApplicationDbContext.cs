@@ -13,6 +13,8 @@ namespace AuthenticationAPI.Data
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+        public DbSet<SigningKey> SigningKeys => Set<SigningKey>();
+        public DbSet<ClientApp> ClientApps => Set<ClientApp>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -31,6 +33,12 @@ namespace AuthenticationAPI.Data
 
             builder.Entity<IdempotencyRecord>()
                 .HasIndex(i => i.CreatedUtc);
+
+            builder.Entity<SigningKey>()
+                .HasIndex(k => k.Kid).IsUnique();
+
+            builder.Entity<ClientApp>()
+                .HasIndex(c => c.Name).IsUnique();
         }
     }
 }
