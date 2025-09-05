@@ -58,4 +58,53 @@ public static class Seed
             await context.SaveChangesAsync();
         }
     }
+
+    public static async Task SeedAdminUser(IServiceProvider serviceProvider, string email, string password)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        // Ensure Admin role exists
+        if (!await roleManager.RoleExistsAsync("Admin"))
+        {
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+        }
+
+        var admin = await userManager.FindByEmailAsync(email);
+        if (admin == null)
+        {
+            admin = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true
+            };
+            var createResult = await userManager.CreateAsync(admin, password);
+            if (!createResult.Succeeded)
+            {
+                throw new InvalidOperationException("Failed to create seed admin user: " + string.Join(",", createResult.Errors.Select(e => e.Description)));
+            }
+        }
+        if (!await userManager.IsInRoleAsync(admin, "Admin"))
+        {
+            await userManager.AddToRoleAsync(admin, "Admin");
+        }
+
+        // Ensure permissions assigned to role (reuse existing logic lightly)
+        var allPerms = await context.Permissions.ToListAsync();
+        var adminRole = await roleManager.FindByNameAsync("Admin");
+        if (adminRole != null)
+        {
+            foreach (var p in allPerms)
+            {
+                if (!await context.RolePermissions.AnyAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == p.Id))
+                {
+                    context.RolePermissions.Add(new RolePermission { RoleId = adminRole.Id, PermissionId = p.Id });
+                }
+            }
+            await context.SaveChangesAsync();
+        }
+    }
 }

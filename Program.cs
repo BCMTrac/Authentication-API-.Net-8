@@ -35,6 +35,7 @@ builder.Logging.AddJsonConsole(options =>
 // Strongly typed options
 builder.Services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
+builder.Services.Configure<KeyRotationOptions>(configuration.GetSection(KeyRotationOptions.SectionName));
 
 // For Entity Framework (SQL Server)
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
@@ -136,6 +137,7 @@ builder.Services.AddSingleton<IMfaSecretProtector, MfaSecretProtector>();
 builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
 builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
+builder.Services.AddHostedService<KeyRotationHostedService>();
 
 // Authorization policies (example)
 builder.Services.AddAuthorization();
@@ -193,6 +195,10 @@ using (var scope = app.Services.CreateScope())
 {
     await Seed.SeedRoles(scope.ServiceProvider);
     await Seed.SeedPermissions(scope.ServiceProvider);
+    // Admin user seed (dev only). Use strong password then rotate or remove for prod.
+    var adminEmail = configuration["SeedAdmin:Email"] ?? "brandon.vanvuuren60@gmail.com";
+    var adminPassword = configuration["SeedAdmin:Password"] ?? "Change_this_Admin1!"; // override via user-secrets/env in real use
+    await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail, adminPassword);
     // Seed signing key if none
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     if (!db.SigningKeys.Any())

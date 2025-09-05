@@ -23,8 +23,6 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
     public void Configure(JwtBearerOptions options)
     {
         var jwt = _jwt.Value;
-        if (string.IsNullOrWhiteSpace(jwt.Secret))
-            throw new InvalidOperationException("JWT secret not configured");
         options.SaveToken = true;
         options.RequireHttpsMetadata = false; // set true under TLS in prod
         options.TokenValidationParameters = new TokenValidationParameters
