@@ -145,7 +145,23 @@ builder.Services.AddScoped<IClientAppService, ClientAppService>();
 builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 builder.Services.AddHostedService<KeyRotationHostedService>();
-builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
+builder.Services.AddHttpClient();
+var mailtrapToken = configuration["Smtp:ApiToken"] ?? string.Empty;
+var mailFrom = configuration["Smtp:From"] ?? "noreply@localhost";
+var mailFromName = configuration["Smtp:FromName"] ?? "Auth API";
+if (!string.IsNullOrWhiteSpace(mailtrapToken))
+{
+    builder.Services.AddSingleton<IEmailSender>(sp =>
+        new AuthenticationAPI.Services.Email.MailtrapEmailSender(
+            sp.GetRequiredService<IHttpClientFactory>(),
+            mailtrapToken,
+            mailFrom,
+            mailFromName));
+}
+else
+{
+    builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
+}
 
 // Authorization policies (example)
 builder.Services.AddAuthorization();
