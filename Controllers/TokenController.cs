@@ -1,6 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using System.Security.Cryptography;
 using AuthenticationAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -29,17 +29,19 @@ public class TokenController : ControllerBase
         var requestedScopes = (req.Scope ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var app = await _clientApps.ValidateAsync(req.ClientId, req.ClientSecret, requestedScopes);
         if (app == null) return Unauthorized();
-        var key = await _keyRing.GetActiveSigningKeyAsync();
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key.Secret));
-        var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+    var key = await _keyRing.GetActiveSigningKeyAsync();
+    var rsa = RSA.Create();
+    rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(key.Secret), out _);
+    var creds = new SigningCredentials(new RsaSecurityKey(rsa) { KeyId = key.Kid }, SecurityAlgorithms.RsaSha256);
         var claims = new List<Claim> { new Claim("client_id", app.Id.ToString()) };
         foreach (var sc in requestedScopes) claims.Add(new Claim("scope", sc));
+        var tokenLifetimeMinutes = int.TryParse(_config["JWT:AccessTokenMinutes"], out var m) ? m : 60;
         var token = new JwtSecurityToken(
             issuer: _config["JWT:ValidIssuer"],
             audience: _config["JWT:ValidAudience"],
             claims: claims,
             notBefore: DateTime.UtcNow,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: DateTime.UtcNow.AddMinutes(tokenLifetimeMinutes),
             signingCredentials: creds);
         token.Header["kid"] = key.Kid;
         return Ok(new { access_token = new JwtSecurityTokenHandler().WriteToken(token), token_type = "bearer", expires = token.ValidTo });

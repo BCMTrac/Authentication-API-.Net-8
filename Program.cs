@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using AuthenticationAPI.Services;
+using AuthenticationAPI.Services.Email;
 using AuthenticationAPI.Models.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -17,7 +18,10 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using AuthenticationAPI.Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
-using AuthenticationAPI.Services.Email;
+using DotNetEnv;
+
+// Load .env if present (supports local dev and on-server env-file usage) BEFORE building configuration
+try { Env.Load(); } catch { /* optional */ }
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -47,10 +51,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.User.AllowedUserNameCharacters += " ";
         }
-        // Adjust password rules here if needed
+    // Allow the provided admin password (no digit required)
+    options.Password.RequireDigit = false;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+// Replace default password hasher with Argon2id implementation
+builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, AuthenticationAPI.Infrastructure.Security.Argon2PasswordHasher<ApplicationUser>>();
 
 // Authentication (detailed options configured via IConfigureOptions implementation)
 builder.Services.AddAuthentication(options =>
@@ -118,11 +126,11 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-// CORS (locked down placeholder)
 builder.Services.AddCors(policy =>
 {
+    var origins = (configuration["Cors:AllowedOrigins"] ?? "http://localhost:4200").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     policy.AddPolicy("Default", p => p
-        .WithOrigins("http://localhost:4200")
+        .WithOrigins(origins)
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
@@ -133,11 +141,11 @@ builder.Services.AddHealthChecks().AddCheck<AuthenticationAPI.Infrastructure.Hea
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IKeyRingService, KeyRingService>();
 builder.Services.AddScoped<IClientAppService, ClientAppService>();
-builder.Services.AddSingleton<IMfaSecretProtector, MfaSecretProtector>();
-builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
+// Removed unused MFA secret protector and email sender services
 builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 builder.Services.AddHostedService<KeyRotationHostedService>();
+builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
 
 // Authorization policies (example)
 builder.Services.AddAuthorization();
@@ -146,11 +154,9 @@ builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPol
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Enable Swagger in all environments for now (prod testing). Protect behind auth later if needed.
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // Security headers (basic set)
 app.Use(async (ctx, next) =>
@@ -195,10 +201,22 @@ using (var scope = app.Services.CreateScope())
 {
     await Seed.SeedRoles(scope.ServiceProvider);
     await Seed.SeedPermissions(scope.ServiceProvider);
-    // Admin user seed (dev only). Use strong password then rotate or remove for prod.
-    var adminEmail = configuration["SeedAdmin:Email"] ?? "brandon.vanvuuren60@gmail.com";
-    var adminPassword = configuration["SeedAdmin:Password"] ?? "Change_this_Admin1!"; // override via user-secrets/env in real use
-    await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail, adminPassword);
+    // Admin user seed. In non-Development, require env/user-secrets to provide credentials.
+    // Environment variables keys: SeedAdmin__Email and SeedAdmin__Password (double underscore)
+    var env = app.Environment;
+    var adminEmail = configuration["SeedAdmin:Email"];
+    var adminPassword = configuration["SeedAdmin:Password"];
+    if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+    {
+        if (!env.IsDevelopment())
+        {
+            throw new InvalidOperationException("Missing SeedAdmin__Email/SeedAdmin__Password. Set them via environment variables or user-secrets.");
+        }
+        // Development fallback
+        adminEmail ??= "admin@local";
+        adminPassword ??= "Change_this_Admin1!";
+    }
+    await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail!, adminPassword!);
     // Seed signing key if none
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     if (!db.SigningKeys.Any())

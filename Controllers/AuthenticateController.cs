@@ -8,7 +8,9 @@ using AuthenticationAPI.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
+using AuthenticationAPI.Services.Email;
 
 namespace AuthenticationAPI.Controllers
 {
@@ -23,6 +25,7 @@ namespace AuthenticationAPI.Controllers
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IKeyRingService _keyRing;
     private readonly ITotpService _totp;
+    private readonly IEmailSender _email;
 
         public AuthenticateController(
             UserManager<ApplicationUser> userManager,
@@ -31,7 +34,8 @@ namespace AuthenticationAPI.Controllers
             ApplicationDbContext db,
             IRefreshTokenService refreshTokenService,
             IKeyRingService keyRing,
-            ITotpService totp)
+            ITotpService totp,
+            IEmailSender email)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -40,6 +44,7 @@ namespace AuthenticationAPI.Controllers
             _refreshTokenService = refreshTokenService;
             _keyRing = keyRing;
             _totp = totp;
+            _email = email;
         }
 
         [HttpPost]
@@ -163,16 +168,16 @@ namespace AuthenticationAPI.Controllers
         private JwtSecurityToken GetToken(List<Claim> authClaims)
         {
             var key = _keyRing.GetActiveSigningKeyAsync().GetAwaiter().GetResult();
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key.Secret));
-            var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
-            var header = new JwtHeader(creds);
-            header["kid"] = key.Kid;
+            var rsa = RSA.Create();
+            rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(key.Secret), out _);
+            var creds = new SigningCredentials(new RsaSecurityKey(rsa) { KeyId = key.Kid }, SecurityAlgorithms.RsaSha256);
+            var tokenLifetimeMinutes = int.TryParse(_configuration["JWT:AccessTokenMinutes"], out var m) ? m : 180;
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
                 audience: _configuration["JWT:ValidAudience"],
                 claims: authClaims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddHours(3),
+                expires: DateTime.UtcNow.AddMinutes(tokenLifetimeMinutes),
                 signingCredentials: creds);
             token.Header["kid"] = key.Kid;
             return token;
@@ -224,8 +229,8 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok(); // do not reveal existence
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            // Placeholder: log token (would email in production)
-            Console.WriteLine($"Password reset token for {user.Email}: {token}");
+            await _email.SendAsync(user.Email!, "Password reset",
+                $"Use this token to reset your password: {token}");
             return Ok();
         }
 
@@ -247,7 +252,8 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok();
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            Console.WriteLine($"Email confirm token for {user.Email}: {token}");
+            await _email.SendAsync(user.Email!, "Email confirmation",
+                $"Use this token to confirm your email: {token}");
             return Ok();
         }
 

@@ -1,23 +1,8 @@
-using Microsoft.AspNetCore.DataProtection;
-
-namespace AuthenticationAPI.Services;
-
-public interface IMfaSecretProtector
+// Intentionally left blank. Legacy protector removed in RSA+Argon2-only system.
+namespace AuthenticationAPI.Services
 {
-    string Protect(string plain);
-    string Unprotect(string protectedValue);
-}
-
-public class MfaSecretProtector : IMfaSecretProtector
-{
-    private readonly IDataProtector _protector;
-    public MfaSecretProtector(IDataProtectionProvider provider)
+    internal static class MfaSecretProtector
     {
-        _protector = provider.CreateProtector("MFASecret.v1");
-    }
-    public string Protect(string plain) => _protector.Protect(plain);
-    public string Unprotect(string protectedValue)
-    {
-        try { return _protector.Unprotect(protectedValue); } catch { return string.Empty; }
+        // Placeholder to satisfy old references if any remain.
     }
 }

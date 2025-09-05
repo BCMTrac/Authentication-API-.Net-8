@@ -25,12 +25,15 @@ public class KeyRingService : IKeyRingService
 
     public async Task<SigningKey> RotateAsync()
     {
-        // Mark current active keys still active (overlap) but retire ones older than 2 rotations? Simplified for now.
+        using var rsa = RSA.Create(_rotationOptions.RsaKeySize);
+        var privateKey = rsa.ExportPkcs8PrivateKey();
+        var publicKey = rsa.ExportSubjectPublicKeyInfo();
         var newKey = new SigningKey
         {
             Kid = Guid.NewGuid().ToString("N").Substring(0, 16),
-            Algorithm = "HS256",
-            Secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(_rotationOptions.KeyBytes)),
+            Algorithm = "RS256",
+            Secret = Convert.ToBase64String(privateKey),
+            PublicKey = Convert.ToBase64String(publicKey),
             Active = true
         };
         _db.SigningKeys.Add(newKey);

@@ -65,6 +65,7 @@ public static class Seed
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
 
         // Ensure Admin role exists
         if (!await roleManager.RoleExistsAsync("Admin"))
@@ -72,7 +73,30 @@ public static class Seed
             await roleManager.CreateAsync(new IdentityRole("Admin"));
         }
 
-        var admin = await userManager.FindByEmailAsync(email);
+        // Handle duplicates gracefully: query directly to avoid SingleOrDefault in FindByEmailAsync
+        var normalizedEmail = normalizer.NormalizeEmail(email) ?? email.ToUpperInvariant();
+        var matches = await context.Users.Where(u => u.NormalizedEmail == normalizedEmail).ToListAsync();
+        ApplicationUser? admin = matches.FirstOrDefault();
+
+        if (matches.Count > 1)
+        {
+            // Deduplicate by renaming extras so future runs won't crash; keep the first match as the canonical admin
+            foreach (var dupe in matches.Skip(1))
+            {
+                try
+                {
+                    var at = (dupe.Email ?? email).IndexOf('@');
+                    var local = at >= 0 ? (dupe.Email ?? email).Substring(0, at) : (dupe.Email ?? email);
+                    var domain = at >= 0 ? (dupe.Email ?? email).Substring(at) : "";
+                    var newEmail = $"{local}+dupe-{Guid.NewGuid():N}{domain}";
+                    dupe.Email = newEmail;
+                    dupe.NormalizedEmail = normalizer.NormalizeEmail(newEmail);
+                }
+                catch { /* best-effort clean-up */ }
+            }
+            await context.SaveChangesAsync();
+        }
+
         if (admin == null)
         {
             admin = new ApplicationUser
@@ -86,6 +110,13 @@ public static class Seed
             {
                 throw new InvalidOperationException("Failed to create seed admin user: " + string.Join(",", createResult.Errors.Select(e => e.Description)));
             }
+        }
+        else
+        {
+            // Ensure the known password (dev-only); in prod, disable or use one-time reset
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(admin);
+            var reset = await userManager.ResetPasswordAsync(admin, resetToken, password);
+            // If password policy blocks it, the earlier Program.cs change loosens RequireDigit
         }
         if (!await userManager.IsInRoleAsync(admin, "Admin"))
         {
