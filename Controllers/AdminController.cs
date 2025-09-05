@@ -1,4 +1,6 @@
 using AuthenticationAPI.Models;
+using AuthenticationAPI.Services;
+using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -6,12 +8,18 @@ using Microsoft.AspNetCore.Mvc;
 namespace AuthenticationAPI.Controllers;
 
 [Route("api/admin")] 
+[Route("api/v1/admin")] 
 [ApiController]
 [Authorize(Roles = "Admin")] // Require Admin role
 public class AdminController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    public AdminController(UserManager<ApplicationUser> userManager) => _userManager = userManager;
+    private readonly AuthenticationAPI.Data.ApplicationDbContext _db;
+    private readonly ISessionService _sessions;
+    public AdminController(UserManager<ApplicationUser> userManager, AuthenticationAPI.Data.ApplicationDbContext db, ISessionService sessions)
+    {
+        _userManager = userManager; _db = db; _sessions = sessions;
+    }
 
     [HttpPost("users/{id}/bump-token-version")]
     public async Task<IActionResult> BumpTokenVersion(string id)
@@ -32,5 +40,45 @@ public class AdminController : ControllerBase
             return StatusCode(500, pd);
         }
         return Ok(new { user.Id, user.TokenVersion });
+    }
+
+    [HttpGet("users/{id}/sessions")]
+    public IActionResult ListSessions(string id)
+    {
+        var sessions = _db.Sessions.Where(s => s.UserId == id)
+            .OrderByDescending(s => s.CreatedUtc)
+            .Select(s => new { s.Id, s.CreatedUtc, s.LastSeenUtc, s.RevokedAtUtc, s.Ip, s.UserAgent })
+            .ToList();
+        return Ok(sessions);
+    }
+
+    [HttpPost("users/{id}/sessions/{sessionId}/revoke")]
+    public async Task<IActionResult> RevokeSession(string id, Guid sessionId)
+    {
+        var session = await _db.Sessions.FindAsync(sessionId);
+        if (session == null || session.UserId != id) return NotFound();
+        await _sessions.RevokeAsync(sessionId, "admin-revoke");
+        return Ok();
+    }
+
+    [HttpPost("users/{id}/lock")]
+    public async Task<IActionResult> LockUser(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+        user.LockoutEnabled = true;
+        user.LockoutEnd = DateTimeOffset.MaxValue;
+        var res = await _userManager.UpdateAsync(user);
+        return res.Succeeded ? Ok() : StatusCode(500, new { error = "Failed to lock user" });
+    }
+
+    [HttpPost("users/{id}/unlock")]
+    public async Task<IActionResult> UnlockUser(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+        user.LockoutEnd = null;
+        var res = await _userManager.UpdateAsync(user);
+        return res.Succeeded ? Ok() : StatusCode(500, new { error = "Failed to unlock user" });
     }
 }

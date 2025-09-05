@@ -175,3 +175,4 @@ C:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\Konsciou
 C:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\Konscious.Security.Cryptography.Blake2.dll
 C:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\DotNetEnv.dll
 C:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\Sprache.dll
+c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\QRCoder.dll

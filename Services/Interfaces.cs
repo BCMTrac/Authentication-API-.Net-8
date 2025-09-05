@@ -1,5 +1,4 @@
 using AuthenticationAPI.Models;
-using System.Security.Claims;
 
 namespace AuthenticationAPI.Services;
 
@@ -15,4 +14,10 @@ public interface ITotpService
     string GenerateSecret();
     string GetOtpAuthUrl(string secret, string userEmail, string issuer);
     bool ValidateCode(string secret, string code, out long timeStepMatched);
+}
+
+public interface IMfaSecretProtector
+{
+    string Protect(string plaintext);
+    string Unprotect(string protectedValue);
 }

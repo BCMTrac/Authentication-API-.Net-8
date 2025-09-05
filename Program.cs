@@ -1,4 +1,3 @@
-using System.Text;
 using AuthenticationAPI.Data;
 using AuthenticationAPI.Models;
 using AuthenticationAPI.Infrastructure.Middleware;
@@ -34,33 +33,31 @@ builder.Logging.AddJsonConsole(options =>
     options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
 });
 
-// Add services to the container.
-
-// Strongly typed options
+// Options
 builder.Services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
 builder.Services.Configure<KeyRotationOptions>(configuration.GetSection(KeyRotationOptions.SectionName));
 
-// For Entity Framework (SQL Server)
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-// For Identity (allow space in usernames for your scenario)
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         if (!options.User.AllowedUserNameCharacters.Contains(' '))
         {
             options.User.AllowedUserNameCharacters += " ";
         }
-    // Allow the provided admin password (no digit required)
-    options.Password.RequireDigit = false;
+        // Allow the provided admin password (no digit required)
+        options.Password.RequireDigit = false;
+        // Lockout policy
+        options.Lockout.AllowedForNewUsers = true;
+        options.Lockout.MaxFailedAccessAttempts = 10;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Replace default password hasher with Argon2id implementation
 builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, AuthenticationAPI.Infrastructure.Security.Argon2PasswordHasher<ApplicationUser>>();
 
-// Authentication (detailed options configured via IConfigureOptions implementation)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -124,6 +121,34 @@ builder.Services.AddRateLimiter(options =>
         opt.Window = TimeSpan.FromSeconds(rlOptions.WindowSeconds);
         opt.QueueLimit = rlOptions.QueueLimit;
     });
+    // Route-specific fixed window policies by IP
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+    options.AddPolicy("register", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 2,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+    options.AddPolicy("otp", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 builder.Services.AddCors(policy =>
@@ -135,16 +160,20 @@ builder.Services.AddCors(policy =>
         .AllowAnyMethod());
 });
 
-// Health checks (custom DB check)
-builder.Services.AddHealthChecks().AddCheck<AuthenticationAPI.Infrastructure.Health.DatabaseHealthCheck>("db");
+builder.Services.AddHealthChecks()
+    .AddCheck<AuthenticationAPI.Infrastructure.Health.DatabaseHealthCheck>("db")
+    .AddCheck<AuthenticationAPI.Infrastructure.Health.KeyRingHealthCheck>("keys");
 
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IKeyRingService, KeyRingService>();
 builder.Services.AddScoped<IClientAppService, ClientAppService>();
-// Removed unused MFA secret protector and email sender services
+builder.Services.AddScoped<IRecoveryCodeService, RecoveryCodeService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 builder.Services.AddHostedService<KeyRotationHostedService>();
+builder.Services.AddDataProtection();
+builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
 var mailtrapToken = configuration["Smtp:ApiToken"] ?? string.Empty;
 var mailFrom = configuration["Smtp:From"] ?? "noreply@localhost";
@@ -163,7 +192,6 @@ else
     builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
 }
 
-// Authorization policies (example)
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 

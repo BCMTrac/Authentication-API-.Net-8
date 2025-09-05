@@ -15,6 +15,8 @@ namespace AuthenticationAPI.Data
         public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
         public DbSet<SigningKey> SigningKeys => Set<SigningKey>();
         public DbSet<ClientApp> ClientApps => Set<ClientApp>();
+    public DbSet<UserRecoveryCode> UserRecoveryCodes => Set<UserRecoveryCode>();
+        public DbSet<Session> Sessions => Set<Session>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -39,6 +41,17 @@ namespace AuthenticationAPI.Data
 
             builder.Entity<ClientApp>()
                 .HasIndex(c => c.Name).IsUnique();
+
+            builder.Entity<UserRecoveryCode>()
+                .HasIndex(rc => new { rc.UserId, rc.CodeHash }).IsUnique();
+
+            builder.Entity<Session>()
+                .HasIndex(s => new { s.UserId, s.CreatedUtc });
+            builder.Entity<RefreshToken>()
+                .HasOne(r => r.Session)
+                .WithMany()
+                .HasForeignKey(r => r.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -39,6 +39,8 @@ public class RefreshToken
     public DateTime ExpiresUtc { get; set; }
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
     public string CreatedIp { get; set; } = "unknown";
+    public Guid? SessionId { get; set; }
+    public Session? Session { get; set; }
     public DateTime? RevokedUtc { get; set; }
     public string? RevokedReason { get; set; }
     public string? ReplacedByTokenHash { get; set; }
@@ -72,4 +74,22 @@ public class IdempotencyRecord
     public string ResponseBody { get; set; } = null!;
     public string ContentType { get; set; } = "application/json";
     public DateTime? ExpiresUtc { get; set; } // optional expiration
+}
+
+public class Session
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+    [Required]
+    public string UserId { get; set; } = null!;
+    public ApplicationUser? User { get; set; }
+    [MaxLength(64)]
+    public string? DeviceId { get; set; }
+    [MaxLength(64)]
+    public string? Ip { get; set; }
+    [MaxLength(256)]
+    public string? UserAgent { get; set; }
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+    public DateTime? LastSeenUtc { get; set; }
+    public DateTime? RevokedAtUtc { get; set; }
 }

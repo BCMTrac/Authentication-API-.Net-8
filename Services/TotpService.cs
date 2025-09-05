@@ -15,7 +15,7 @@ public class TotpService : ITotpService
     }
 
     public string GetOtpAuthUrl(string secret, string userEmail, string issuer)
-        => $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(userEmail)}?secret={secret}&issuer={Uri.EscapeDataString(issuer)}&digits=6&period=30";
+        => $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(userEmail)}?secret={secret}&issuer={Uri.EscapeDataString(issuer)}&digits=6&period=30&algorithm=SHA1";
 
     public bool ValidateCode(string secret, string code, out long timeStepMatched)
     {

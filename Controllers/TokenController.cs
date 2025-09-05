@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace AuthenticationAPI.Controllers;
 
 [Route("api/token")]
+[Route("api/v1/token")]
 [ApiController]
 public class TokenController : ControllerBase
 {
