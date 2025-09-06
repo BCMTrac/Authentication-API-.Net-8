@@ -50,15 +50,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.User.AllowedUserNameCharacters += " ";
         }
-        // Relax password policy in Development to ensure seeding works with env-provided credentials
-        if (builder.Environment.IsDevelopment())
-        {
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequiredLength = 4;
-        }
+    // Enforce strong password policy in all environments
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 8;
         // Lockout policy
         options.Lockout.AllowedForNewUsers = true;
         options.Lockout.MaxFailedAccessAttempts = 10;
@@ -208,22 +205,20 @@ if (dpStorage == "file")
 // Future options (placeholders): azureblob/keyvault can be plugged in here based on config
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
-var mailtrapToken = configuration["Smtp:ApiToken"] ?? string.Empty;
-var mailFrom = configuration["Smtp:From"] ?? "noreply@localhost";
-var mailFromName = configuration["Smtp:FromName"] ?? "Auth API";
-if (!string.IsNullOrWhiteSpace(mailtrapToken))
+// SendGrid email provider (exclusive)
+var sgApiKey = configuration["SendGrid:ApiKey"] ?? configuration["SENDGRID_API_KEY"] ?? string.Empty;
+var sgFrom = configuration["SendGrid:From"] ?? string.Empty;
+var sgFromName = configuration["SendGrid:FromName"] ?? string.Empty;
+if (string.IsNullOrWhiteSpace(sgApiKey) || string.IsNullOrWhiteSpace(sgFrom))
 {
-    builder.Services.AddSingleton<IEmailSender>(sp =>
-        new AuthenticationAPI.Services.Email.MailtrapEmailSender(
-            sp.GetRequiredService<IHttpClientFactory>(),
-            mailtrapToken,
-            mailFrom,
-            mailFromName));
+    throw new InvalidOperationException("Email is not configured. Set SendGrid:ApiKey and SendGrid:From (or SENDGRID_API_KEY env var).");
 }
-else
-{
-    builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
-}
+builder.Services.AddSingleton<IEmailSender>(sp =>
+    new SendGridEmailSender(
+        sp.GetRequiredService<IHttpClientFactory>(),
+        sgApiKey,
+        sgFrom,
+        string.IsNullOrWhiteSpace(sgFromName) ? "Authentication API" : sgFromName));
 
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();

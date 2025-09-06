@@ -30,6 +30,7 @@ namespace AuthenticationAPI.Controllers
     private readonly IMfaSecretProtector _protector;
     private readonly IRecoveryCodeService _recoveryCodes;
     private readonly ISessionService _sessions;
+    private readonly IHostEnvironment _env;
 
         public AuthenticateController(
             UserManager<ApplicationUser> userManager,
@@ -42,7 +43,8 @@ namespace AuthenticationAPI.Controllers
             IEmailSender email,
             IMfaSecretProtector protector,
             IRecoveryCodeService recoveryCodes,
-            ISessionService sessions)
+            ISessionService sessions,
+            IHostEnvironment env)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -55,6 +57,7 @@ namespace AuthenticationAPI.Controllers
             _protector = protector;
             _recoveryCodes = recoveryCodes;
             _sessions = sessions;
+            _env = env;
         }
 
         [HttpPost]
@@ -320,8 +323,15 @@ namespace AuthenticationAPI.Controllers
             if (existing != null) return BadRequest(new { error = "Email already in use" });
             var token = await _userManager.GenerateChangeEmailTokenAsync(user, dto.NewEmail);
             // Send to the new address to prove control
-            await _email.SendAsync(dto.NewEmail, "Confirm your new email", $"Use this token to confirm your new email: {token}");
-            return Ok();
+            try
+            {
+                await _email.SendAsync(dto.NewEmail, "Confirm your new email", $"Use this token to confirm your new email: {token}");
+                return Ok(new { sent = true });
+            }
+            catch
+            {
+                return Ok(new { sent = false, message = "Email dispatch failed. Please try again later." });
+            }
         }
 
         [HttpPost("change-email/confirm")]
@@ -376,9 +386,15 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok(); // do not reveal existence
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            await _email.SendAsync(user.Email!, "Password reset",
-                $"Use this token to reset your password: {token}");
-            return Ok();
+            try
+            {
+                await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
+                return Ok(new { sent = true });
+            }
+            catch
+            {
+                return Ok(new { sent = false, message = "Email dispatch failed. Please try again later." });
+            }
         }
 
         [HttpPost("confirm-password-reset")]
@@ -404,9 +420,17 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok();
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            await _email.SendAsync(user.Email!, "Email confirmation",
-                $"Use this token to confirm your email: {token}");
-            return Ok();
+            try
+            {
+                await _email.SendAsync(user.Email!, "Email confirmation",
+                    $"Use this token to confirm your email: {token}");
+                return Ok(new { sent = true });
+            }
+            catch (Exception)
+            {
+                // Do not fail the request with 500 — surface a clear signal for clients.
+                return Ok(new { sent = false, message = "Email dispatch failed. Please try again later." });
+            }
         }
 
         [HttpPost("confirm-email")]
@@ -415,10 +439,26 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return BadRequest();
-            var res = await _userManager.ConfirmEmailAsync(user, dto.Token);
-            if (!res.Succeeded) return BadRequest(new { errors = res.Errors.Select(e => e.Description) });
-            return Ok();
+            if (user == null) return BadRequest(new { error = "Invalid email" });
+            if (user.EmailConfirmed) return Ok(new { emailConfirmed = true });
+            try
+            {
+                var res = await _userManager.ConfirmEmailAsync(user, dto.Token);
+                if (!res.Succeeded)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid or expired confirmation token.",
+                        errors = res.Errors.Select(e => e.Description)
+                    });
+                }
+                return Ok(new { emailConfirmed = true });
+            }
+            catch (Exception)
+            {
+                // Normalize unexpected provider/store errors into a client-safe response
+                return BadRequest(new { message = "Email confirmation failed. Please request a new token and try again." });
+            }
         }
 
         [HttpPost("mfa/enroll/start")]
