@@ -11,12 +11,11 @@ using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using AuthenticationAPI.Services.Email;
 using Microsoft.AspNetCore.RateLimiting;
-using QRCoder;
+using QRCoder; // add QR code generator types
 
 namespace AuthenticationAPI.Controllers
 {
-    [Route("api/[controller]")]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/authenticate")]
     [ApiController]
     public class AuthenticateController : ControllerBase
     {
@@ -229,6 +228,10 @@ namespace AuthenticationAPI.Controllers
                 await _refreshTokenService.HandleReuseAttemptAsync(request.RefreshToken);
                 return Unauthorized();
             }
+            if (stored.SessionId.HasValue)
+            {
+                await _sessions.TouchAsync(stored.SessionId.Value);
+            }
             var user = stored.User!;
             var userRoles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>
@@ -366,8 +369,6 @@ namespace AuthenticationAPI.Controllers
             return ok ? Ok() : NotFound();
         }
 
-    // ...existing code...
-
         [HttpPost("request-password-reset")]
         [AllowAnonymous]
         public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequestDto dto)
@@ -483,4 +484,4 @@ namespace AuthenticationAPI.Controllers
             return Ok(new { recoveryCodes = codes });
         }
     }
-    // ...existing code...
+}

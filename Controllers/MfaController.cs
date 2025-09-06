@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthenticationAPI.Controllers;
 
-[Route("api/mfa")]
 [Route("api/v1/mfa")]
 [ApiController]
 [Authorize]

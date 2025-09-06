@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AuthenticationAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,9 +15,9 @@ namespace AuthenticationAPI.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -29,15 +29,16 @@ namespace AuthenticationAPI.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     TenantId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TokenVersion = table.Column<int>(type: "int", nullable: false),
                     MfaEnabled = table.Column<bool>(type: "bit", nullable: false),
                     MfaSecret = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MfaLastTimeStep = table.Column<long>(type: "bigint", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -129,6 +130,7 @@ namespace AuthenticationAPI.Migrations
                     Kid = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false),
                     Algorithm = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Secret = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PublicKey = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Active = table.Column<bool>(type: "bit", nullable: false),
                     CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RetiredUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -139,12 +141,29 @@ namespace AuthenticationAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserRecoveryCodes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CodeHash = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RedeemedUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RedeemedIp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserRecoveryCodes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(128)", nullable: false),
                     ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -165,7 +184,7 @@ namespace AuthenticationAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(128)", nullable: false),
                     ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -187,7 +206,7 @@ namespace AuthenticationAPI.Migrations
                     LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(128)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -204,8 +223,8 @@ namespace AuthenticationAPI.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(128)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(128)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -228,7 +247,7 @@ namespace AuthenticationAPI.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(128)", nullable: false),
                     LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -245,25 +264,23 @@ namespace AuthenticationAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RefreshTokens",
+                name: "Sessions",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    TokenHash = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ExpiresUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(128)", nullable: false),
+                    DeviceId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    Ip = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    UserAgent = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedIp = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RevokedUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RevokedReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ReplacedByTokenHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
+                    LastSeenUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RevokedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.PrimaryKey("PK_Sessions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RefreshTokens_AspNetUsers_UserId",
+                        name: "FK_Sessions_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -274,7 +291,7 @@ namespace AuthenticationAPI.Migrations
                 name: "RolePermissions",
                 columns: table => new
                 {
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     PermissionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -292,6 +309,38 @@ namespace AuthenticationAPI.Migrations
                         principalTable: "Permissions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(128)", nullable: false),
+                    TokenHash = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    ExpiresUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedIp = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    RevokedUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RevokedReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReplacedByTokenHash = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_Sessions_SessionId",
+                        column: x => x.SessionId,
+                        principalTable: "Sessions",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -351,6 +400,11 @@ namespace AuthenticationAPI.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_SessionId",
+                table: "RefreshTokens",
+                column: "SessionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId_TokenHash",
                 table: "RefreshTokens",
                 columns: new[] { "UserId", "TokenHash" },
@@ -362,9 +416,20 @@ namespace AuthenticationAPI.Migrations
                 column: "PermissionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Sessions_UserId_CreatedUtc",
+                table: "Sessions",
+                columns: new[] { "UserId", "CreatedUtc" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SigningKeys_Kid",
                 table: "SigningKeys",
                 column: "Kid",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRecoveryCodes_UserId_CodeHash",
+                table: "UserRecoveryCodes",
+                columns: new[] { "UserId", "CodeHash" },
                 unique: true);
         }
 
@@ -405,13 +470,19 @@ namespace AuthenticationAPI.Migrations
                 name: "SigningKeys");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "UserRecoveryCodes");
+
+            migrationBuilder.DropTable(
+                name: "Sessions");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Permissions");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

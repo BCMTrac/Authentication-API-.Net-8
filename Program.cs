@@ -1,14 +1,18 @@
 using AuthenticationAPI.Data;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
 using AuthenticationAPI.Models;
 using AuthenticationAPI.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using AuthenticationAPI.Services;
 using AuthenticationAPI.Services.Email;
 using AuthenticationAPI.Models.Options;
 using Microsoft.Extensions.Options;
+using AuthenticationAPI.Infrastructure.Swagger;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Text.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -46,8 +50,15 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.User.AllowedUserNameCharacters += " ";
         }
-        // Allow the provided admin password (no digit required)
-        options.Password.RequireDigit = false;
+        // Relax password policy in Development to ensure seeding works with env-provided credentials
+        if (builder.Environment.IsDevelopment())
+        {
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 4;
+        }
         // Lockout policy
         options.Lockout.AllowedForNewUsers = true;
         options.Lockout.MaxFailedAccessAttempts = 10;
@@ -67,6 +78,19 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 
 builder.Services.AddControllers();
+
+// API versioning
+builder.Services.AddApiVersioning(o =>
+{
+    o.AssumeDefaultVersionWhenUnspecified = true;
+    o.DefaultApiVersion = new ApiVersion(1, 0);
+    o.ReportApiVersions = true;
+});
+builder.Services.AddVersionedApiExplorer(o =>
+{
+    o.GroupNameFormat = "'v'VVV"; // e.g., v1, v1.0
+    o.SubstituteApiVersionInUrl = true;
+});
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = ctx =>
@@ -89,8 +113,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Authentication API", Version = "v1" });
-
+    // NOTE: SwaggerDoc entries will be added dynamically per API version below
     var jwtScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -111,6 +134,7 @@ builder.Services.AddSwaggerGen(c =>
         { jwtScheme, Array.Empty<string>() }
     });
 });
+builder.Services.AddTransient<IConfigureOptions<Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 var rlOptions = configuration.GetSection(RateLimitOptions.SectionName).Get<RateLimitOptions>() ?? new RateLimitOptions();
 builder.Services.AddRateLimiter(options =>
@@ -172,7 +196,16 @@ builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 builder.Services.AddHostedService<KeyRotationHostedService>();
-builder.Services.AddDataProtection();
+// Data Protection keys persistence (so MFA secrets survive restarts)
+var dpBuilder = builder.Services.AddDataProtection().SetApplicationName("AuthenticationAPI");
+var dpStorage = (configuration["DataProtection:Storage"] ?? "file").ToLowerInvariant();
+if (dpStorage == "file")
+{
+    var path = configuration["DataProtection:FileSystemPath"] ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
+    Directory.CreateDirectory(path);
+    dpBuilder.PersistKeysToFileSystem(new DirectoryInfo(path));
+}
+// Future options (placeholders): azureblob/keyvault can be plugged in here based on config
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
 var mailtrapToken = configuration["Smtp:ApiToken"] ?? string.Empty;
@@ -200,7 +233,16 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 // Enable Swagger in all environments for now (prod testing). Protect behind auth later if needed.
 app.UseSwagger();
-app.UseSwaggerUI();
+// Wire Swagger to API versions
+var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+app.UseSwaggerUI(options =>
+{
+    foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+    {
+        var group = description.GroupName; // e.g., v1
+        options.SwaggerEndpoint($"/swagger/{group}/swagger.json", $"Authentication API {group.ToUpperInvariant()}");
+    }
+});
 
 // Security headers (basic set)
 app.Use(async (ctx, next) =>

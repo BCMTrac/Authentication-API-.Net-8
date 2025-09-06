@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthenticationAPI.Controllers;
 
-[Route("api/admin/client-apps")]
 [Route("api/v1/admin/client-apps")]
 [ApiController]
 [Authorize(Roles = "Admin")]

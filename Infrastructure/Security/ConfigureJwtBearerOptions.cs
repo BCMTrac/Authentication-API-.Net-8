@@ -32,6 +32,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
             ValidAudience = jwt.ValidAudience,
             ValidIssuer = jwt.ValidIssuer,
             ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(60),
             IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
             {
                 var byKid = _cache.GetByKid(kid);

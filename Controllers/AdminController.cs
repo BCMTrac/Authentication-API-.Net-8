@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthenticationAPI.Controllers;
 
-[Route("api/admin")] 
 [Route("api/v1/admin")] 
 [ApiController]
 [Authorize(Roles = "Admin")] // Require Admin role

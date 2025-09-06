@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthenticationAPI.Controllers;
 
-[Route("api/admin/keys")]
+[Route("api/v1/admin/keys")]
 [ApiController]
 [Authorize(Roles = "Admin")]
 public class KeyManagementController : ControllerBase

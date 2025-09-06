@@ -1,6 +1,7 @@
 using AuthenticationAPI.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace AuthenticationAPI.Data
 {
@@ -22,6 +23,20 @@ namespace AuthenticationAPI.Data
         {
             base.OnModelCreating(builder);
 
+            // 1) Shorten ASP.NET Identity key columns to safe sizes
+            builder.Entity<ApplicationUser>(b =>
+            {
+                b.Property(u => u.Id).HasMaxLength(128);
+                b.Property(u => u.NormalizedUserName).HasMaxLength(128);
+                b.Property(u => u.NormalizedEmail).HasMaxLength(128);
+            });
+            builder.Entity<IdentityRole>(b =>
+            {
+                b.Property(r => r.Id).HasMaxLength(128);
+                b.Property(r => r.NormalizedName).HasMaxLength(128);
+            });
+
+            // 2) Configure entity indexes and relationships
             builder.Entity<RolePermission>().HasKey(rp => new { rp.RoleId, rp.PermissionId });
             builder.Entity<RolePermission>()
                 .HasOne(rp => rp.Permission)
@@ -51,7 +66,31 @@ namespace AuthenticationAPI.Data
                 .HasOne(r => r.Session)
                 .WithMany()
                 .HasForeignKey(r => r.SessionId)
-                .OnDelete(DeleteBehavior.Cascade);
+                // Prevent cascade delete to avoid multiple cascade paths on Sessions
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure RefreshToken hash length to fit index key limits
+            builder.Entity<RefreshToken>(b =>
+            {
+                b.Property(r => r.TokenHash)
+                    .HasMaxLength(64);
+                b.Property(r => r.ReplacedByTokenHash)
+                    .HasMaxLength(64);
+            });
+
+            // Configure UserRecoveryCode hash length
+            builder.Entity<UserRecoveryCode>(b =>
+            {
+                b.Property(rc => rc.CodeHash)
+                    .HasMaxLength(64);
+            });
+
+            // Shorten RolePermission.RoleId for composite key
+            builder.Entity<RolePermission>(b =>
+            {
+                b.Property(rp => rp.RoleId)
+                    .HasMaxLength(128);
+            });
         }
     }
 }
