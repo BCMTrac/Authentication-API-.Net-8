@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "N7B8P4eLaFs=",
+  "dgSpecHash": "102h9zLbN5o=",
   "success": true,
-  "projectFilePath": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\AuthenticationAPI.csproj",
+  "projectFilePath": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\AuthenticationAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\brand\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\brand\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

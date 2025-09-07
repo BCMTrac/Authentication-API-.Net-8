@@ -28,11 +28,9 @@ public sealed class SendGridEmailSender : IEmailSender
     public async Task SendAsync(string to, string subject, string body, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(_apiKey))
-        {
-            // Fallback for local dev if no key is set
-            Console.WriteLine($"[EMAIL-FAKE] To={to} Subject={subject}\n{body}");
-            return;
-        }
+            throw new InvalidOperationException("SendGrid API key is not configured.");
+        if (string.IsNullOrWhiteSpace(_fromEmail))
+            throw new InvalidOperationException("SendGrid From address is not configured.");
 
         var client = _httpFactory.CreateClient("sendgrid");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
@@ -54,7 +52,7 @@ public sealed class SendGridEmailSender : IEmailSender
 
         var json = JsonSerializer.Serialize(payload);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
-        using var resp = await client.PostAsync(Endpoint, content, ct);
+    using var resp = await client.PostAsync(Endpoint, content, ct);
         if (!resp.IsSuccessStatusCode)
         {
             var respText = await resp.Content.ReadAsStringAsync(ct);

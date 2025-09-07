@@ -323,15 +323,8 @@ namespace AuthenticationAPI.Controllers
             if (existing != null) return BadRequest(new { error = "Email already in use" });
             var token = await _userManager.GenerateChangeEmailTokenAsync(user, dto.NewEmail);
             // Send to the new address to prove control
-            try
-            {
-                await _email.SendAsync(dto.NewEmail, "Confirm your new email", $"Use this token to confirm your new email: {token}");
-                return Ok(new { sent = true });
-            }
-            catch
-            {
-                return Ok(new { sent = false, message = "Email dispatch failed. Please try again later." });
-            }
+            await _email.SendAsync(dto.NewEmail, "Confirm your new email", $"Use this token to confirm your new email: {token}");
+            return Ok(new { sent = true });
         }
 
         [HttpPost("change-email/confirm")]
@@ -386,15 +379,8 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok(); // do not reveal existence
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            try
-            {
-                await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
-                return Ok(new { sent = true });
-            }
-            catch
-            {
-                return Ok(new { sent = false, message = "Email dispatch failed. Please try again later." });
-            }
+            await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
+            return Ok(new { sent = true });
         }
 
         [HttpPost("confirm-password-reset")]
@@ -420,17 +406,9 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok();
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            try
-            {
-                await _email.SendAsync(user.Email!, "Email confirmation",
-                    $"Use this token to confirm your email: {token}");
-                return Ok(new { sent = true });
-            }
-            catch (Exception)
-            {
-                // Do not fail the request with 500 — surface a clear signal for clients.
-                return Ok(new { sent = false, message = "Email dispatch failed. Please try again later." });
-            }
+            await _email.SendAsync(user.Email!, "Email confirmation",
+                $"Use this token to confirm your email: {token}");
+            return Ok(new { sent = true });
         }
 
         [HttpPost("confirm-email")]

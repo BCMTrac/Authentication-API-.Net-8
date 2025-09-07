@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auth API Dev Console</title>
+  <link rel="stylesheet" href="/dev/styles.css" />
+</head>
+<body>
+  <main>
+    <h1>Authentication API Dev Console</h1>
+    <nav class="tabs">
+      <button data-tab="config" class="active">Config</button>
+      <button data-tab="auth">Auth</button>
+      <button data-tab="email">Email</button>
+      <button data-tab="mfa">MFA</button>
+      <button data-tab="admin">Admin</button>
+      <button data-tab="misc">Misc</button>
+    </nav>
+
+    <section id="config" class="tab active">
+      <h2>Config</h2>
+      <label>Base URL <input id="baseUrl" value="" placeholder="https://localhost:7086" /></label>
+      <button id="saveCfg">Save</button>
+      <span id="cfgMsg"></span>
+    </section>
+
+    <section id="auth" class="tab">
+      <h2>Register</h2>
+      <input id="regUser" placeholder="username" />
+      <input id="regEmail" placeholder="email" />
+      <input id="regPass" placeholder="password" type="password" />
+      <button id="btnRegister">Register</button>
+      <pre id="outRegister"></pre>
+      <hr />
+      <h2>Login</h2>
+      <input id="loginUser" placeholder="username" />
+      <input id="loginPass" placeholder="password" type="password" />
+      <input id="loginMfa" placeholder="mfa code (if required)" />
+      <button id="btnLogin">Login</button>
+      <pre id="outLogin"></pre>
+      <hr />
+      <h2>Token Actions</h2>
+      <button id="btnRefresh">Refresh</button>
+      <button id="btnLogout">Logout (session)</button>
+      <button id="btnLogoutAll">Logout All</button>
+      <button id="btnMe">Me</button>
+  <button id="btnCopyToken" title="Copy access token">Copy Access Token</button>
+  <button id="btnDecodeToken" title="Decode access token">Decode Access Token</button>
+      <pre id="outToken"></pre>
+  <pre id="outTokenDecoded"></pre>
+  <hr />
+  <h2>Change Password</h2>
+  <input id="cpCurrent" placeholder="current password" type="password" />
+  <input id="cpNew" placeholder="new password" type="password" />
+  <button id="btnChangePassword">Change Password</button>
+  <pre id="outChangePassword"></pre>
+    </section>
+
+    <section id="email" class="tab">
+      <h2>Email</h2>
+      <input id="emailAddr" placeholder="email" />
+      <button id="btnReqConfirm">Request Email Confirm</button>
+      <input id="emailToken" placeholder="confirm token" />
+      <button id="btnConfirmEmail">Confirm Email</button>
+      <input id="resetEmail" placeholder="reset email" />
+      <button id="btnReqReset">Request Password Reset</button>
+      <input id="resetToken" placeholder="reset token" />
+      <input id="resetNew" placeholder="new password" type="password" />
+      <button id="btnDoReset">Confirm Reset</button>
+      <pre id="outEmail"></pre>
+    </section>
+
+    <section>
+      <h2>Change Email (requires login)</h2>
+      <input id="chgNewEmail" placeholder="new email" />
+      <button id="btnChgEmailStart">Start</button>
+      <input id="chgToken" placeholder="token" />
+      <button id="btnChgEmailConfirm">Confirm</button>
+      <pre id="outChangeEmail"></pre>
+    </section>
+
+    <section>
+      <h2>Revoke Specific Refresh Token</h2>
+      <input id="revokeToken" placeholder="refresh token" />
+      <button id="btnRevoke">Revoke</button>
+      <pre id="outRevoke"></pre>
+    </section>
+
+    <section id="mfa" class="tab">
+      <h2>MFA</h2>
+      <button id="btnMfaStart">Enroll Start</button>
+      <button id="btnMfaQr">Get QR</button>
+      <input id="mfaCode" placeholder="code or recovery" />
+      <button id="btnMfaConfirm">Enroll Confirm</button>
+      <button id="btnMfaDisable">Disable</button>
+      <button id="btnMfaRegen">Regen Recovery</button>
+      <pre id="outMfa"></pre>
+    </section>
+
+    <section id="admin" class="tab">
+      <h2>Admin</h2>
+      <p>Requires Admin role.</p>
+      <input id="adminUserId" placeholder="user id" />
+      <button id="btnListSessions">List Sessions</button>
+      <input id="adminSessId" placeholder="session id" />
+      <button id="btnRevokeSession">Revoke Session</button>
+      <button id="btnBumpVersion">Bump Token Version</button>
+      <button id="btnLock">Lock</button>
+      <button id="btnUnlock">Unlock</button>
+  <hr />
+  <h3>Key Management</h3>
+  <button id="btnKeysList">List Keys</button>
+  <button id="btnKeysRotate">Rotate</button>
+  <hr />
+  <h3>Create Client App</h3>
+  <input id="clientName" placeholder="name" />
+  <input id="clientScopes" placeholder="scopes (space-separated)" />
+  <button id="btnCreateClient">Create</button>
+  <hr />
+  <h3>Send Test Email</h3>
+  <input id="testTo" placeholder="to@example.com" />
+  <input id="testSubject" placeholder="subject" />
+  <input id="testBody" placeholder="body" />
+  <button id="btnTestEmail">Send</button>
+      <pre id="outAdmin"></pre>
+    </section>
+
+    <section id="misc" class="tab">
+      <h2>JWKS & Health</h2>
+      <button id="btnJwks">JWKS</button>
+      <button id="btnHealthLive">Health Live</button>
+      <button id="btnHealthReady">Health Ready</button>
+      <pre id="outMisc"></pre>
+  <hr />
+  <h2>Client Credentials Token</h2>
+  <input id="ccClientId" placeholder="client id (guid)" />
+  <input id="ccSecret" placeholder="client secret" />
+  <input id="ccScope" placeholder="scopes (space-separated)" />
+  <button id="btnClientToken">Get Token</button>
+  <pre id="outClientToken"></pre>
+    </section>
+  </main>
+  <script src="/dev/main.js"></script>
+</body>
+</html>

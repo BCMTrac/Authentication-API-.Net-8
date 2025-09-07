@@ -10,14 +10,22 @@ namespace AuthenticationAPI.Controllers;
 [Route("api/v1/admin")] 
 [ApiController]
 [Authorize(Roles = "Admin")] // Require Admin role
-public class AdminController : ControllerBase
+public partial class AdminController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly AuthenticationAPI.Data.ApplicationDbContext _db;
     private readonly ISessionService _sessions;
-    public AdminController(UserManager<ApplicationUser> userManager, AuthenticationAPI.Data.ApplicationDbContext db, ISessionService sessions)
+    private readonly AuthenticationAPI.Services.Email.IEmailSender _email;
+    public AdminController(
+        UserManager<ApplicationUser> userManager,
+        AuthenticationAPI.Data.ApplicationDbContext db,
+        ISessionService sessions,
+        AuthenticationAPI.Services.Email.IEmailSender email)
     {
-        _userManager = userManager; _db = db; _sessions = sessions;
+        _userManager = userManager;
+        _db = db;
+        _sessions = sessions;
+        _email = email;
     }
 
     [HttpPost("users/{id}/bump-token-version")]
@@ -79,5 +87,18 @@ public class AdminController : ControllerBase
         user.LockoutEnd = null;
         var res = await _userManager.UpdateAsync(user);
         return res.Succeeded ? Ok() : StatusCode(500, new { error = "Failed to unlock user" });
+    }
+}
+
+public partial class AdminController
+{
+    public record TestEmailDto(string To, string Subject, string Body);
+
+    [HttpPost("test-email")]
+    public async Task<IActionResult> SendTestEmail([FromBody] TestEmailDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.To)) return BadRequest(new { error = "Missing 'to'" });
+        await _email.SendAsync(dto.To, string.IsNullOrWhiteSpace(dto.Subject) ? "Test Email" : dto.Subject, dto.Body ?? "This is a test email from Authentication API.");
+        return Ok(new { sent = true });
     }
 }

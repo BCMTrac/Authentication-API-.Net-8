@@ -247,13 +247,22 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["X-XSS-Protection"] = "0"; // modern browsers ignore/obsolete
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     ctx.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=()";
-    // Minimal CSP (adjust later)
-    ctx.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none';";
+    // CSP: strict by default; allow basic inline for the dev console under /dev
+    var path = ctx.Request.Path.Value ?? string.Empty;
+    if (path.StartsWith("/dev", StringComparison.OrdinalIgnoreCase))
+    {
+        ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'";
+    }
+    else
+    {
+        ctx.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none';";
+    }
     await next();
 });
 app.UseGlobalExceptionHandling();
 app.UseCorrelationId();
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("Default");
 
 app.UseAuthentication();
@@ -277,6 +286,8 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 
 // Convenience root redirect to Swagger UI
 app.MapGet("/", () => Results.Redirect("/swagger"));
+// Dev console entry
+app.MapGet("/dev", () => Results.Redirect("/dev/index.html"));
 
 using (var scope = app.Services.CreateScope())
 {

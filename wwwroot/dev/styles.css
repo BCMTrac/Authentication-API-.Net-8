@@ -1,0 +1,13 @@
+body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:1rem;background:#0b0e14;color:#e6e6e6}
+main{max-width:1080px;margin:auto}
+.tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0 1rem}
+.tabs button{background:#1b2335;border:1px solid #39486b;color:#e6e6e6}
+.tabs button.active{background:#3d64ff;border-color:#5078f2}
+section{border:1px solid #2a2f3a;border-radius:8px;padding:1rem;margin:1rem 0;background:#121723}
+.tab{display:none}
+.tab.active{display:block}
+label{display:inline-block;margin:.5rem 0}
+input{margin:.25rem .5rem .25rem 0;padding:.4rem;border-radius:4px;border:1px solid #3a4150;background:#0e131f;color:#f0f0f0}
+button{padding:.45rem .8rem;border-radius:4px;border:1px solid #5078f2;background:#3d64ff;color:white;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+pre{white-space:pre-wrap;background:#0e131f;border:1px solid #283045;padding:.5rem;border-radius:4px;max-height:240px;overflow:auto}
