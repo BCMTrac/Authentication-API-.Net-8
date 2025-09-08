@@ -30,6 +30,7 @@ namespace AuthenticationAPI.Controllers
     private readonly IEmailSender _email;
     private readonly IMfaSecretProtector _protector;
     private readonly IRecoveryCodeService _recoveryCodes;
+    private readonly AuthenticationAPI.Services.Throttle.IThrottleService _throttle;
     private readonly ISessionService _sessions;
     private readonly IHostEnvironment _env;
 
@@ -44,6 +45,7 @@ namespace AuthenticationAPI.Controllers
             IEmailSender email,
             IMfaSecretProtector protector,
             IRecoveryCodeService recoveryCodes,
+            AuthenticationAPI.Services.Throttle.IThrottleService throttle,
             ISessionService sessions,
             IHostEnvironment env)
         {
@@ -57,6 +59,7 @@ namespace AuthenticationAPI.Controllers
             _email = email;
             _protector = protector;
             _recoveryCodes = recoveryCodes;
+            _throttle = throttle;
             _sessions = sessions;
             _env = env;
         }
@@ -80,6 +83,7 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             if (string.IsNullOrEmpty(model.Identifier) || string.IsNullOrEmpty(model.Password) || model.Password.Length > 256)
             {
                 return Unauthorized(); // DoS guard / generic response
@@ -159,20 +163,20 @@ namespace AuthenticationAPI.Controllers
             var token = GetToken(authClaims);
             var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
 
-            return Ok(new
+            return Ok(new TokenSetResponse
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = token.ValidTo,
-                refreshToken,
-                refreshTokenExpiration = refreshExp
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Expiration = token.ValidTo,
+                RefreshToken = refreshToken,
+                RefreshTokenExpiration = refreshExp
             });
         }
 
         [HttpPost]
         [Route("register")]
-        [EnableRateLimiting("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             // Deny passwords that contain the username or email local part
             var emailLocal = (model.Email?.Split('@').FirstOrDefault() ?? string.Empty);
             if (!string.IsNullOrEmpty(model.Password))
@@ -181,7 +185,7 @@ namespace AuthenticationAPI.Controllers
                 if ((!string.IsNullOrWhiteSpace(emailLocal) && pwLower.Contains(emailLocal.ToLowerInvariant())) ||
                     (!string.IsNullOrWhiteSpace(model.Username) && pwLower.Contains(model.Username.ToLowerInvariant())))
                 {
-                    return BadRequest(new { message = "Password is too similar to account identifiers." });
+                    return BadRequest(new ApiMessage { Message = "Password is too similar to account identifiers." });
                 }
             }
 
@@ -189,18 +193,18 @@ namespace AuthenticationAPI.Controllers
             var compromised = await HttpContext.RequestServices.GetRequiredService<IPasswordBreachChecker>().IsCompromisedAsync(model.Password);
             if (compromised)
             {
-                return BadRequest(new { message = "This password appears in known breaches. Choose a different one." });
+                return BadRequest(new ApiMessage { Message = "This password appears in known breaches. Choose a different one." });
             }
 
             // Enforce uniqueness by email and username
             var userExists = await _userManager.FindByNameAsync(model.Username);
             if (userExists != null)
-                return BadRequest(new { message = "If that email exists, we've sent a confirmation link." });
+                return BadRequest(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
             var emailExists = await _userManager.FindByEmailAsync(model.Email!);
             if (emailExists != null)
             {
                 // Always generic to prevent email enumeration
-                return Ok(new { message = "If that email exists, we've sent a confirmation link." });
+                return Ok(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
             }
 
             ApplicationUser user = new()
@@ -212,11 +216,7 @@ namespace AuthenticationAPI.Controllers
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
-                return BadRequest(new
-                {
-                    message = "User creation failed",
-                    errors = result.Errors.Select(e => e.Description)
-                });
+                return BadRequest(new ApiMessage { Message = "User creation failed" });
 
             await _userManager.AddToRoleAsync(user, "User");
 
@@ -236,14 +236,14 @@ namespace AuthenticationAPI.Controllers
             }
             catch { /* hide email provider errors from client */ }
 
-            return Ok(new { message = "If that email exists, we've sent a confirmation link." });
+            return Ok(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
         }
 
         [HttpPost]
         [Route("register-admin")]
-        [EnableRateLimiting("register")]
         public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel model)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var userExists = await _userManager.FindByNameAsync(model.Username);
             if (userExists != null)
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Status = "Error", Message = "User already exists!" });
@@ -256,16 +256,11 @@ namespace AuthenticationAPI.Controllers
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
-                return BadRequest(new
-                {
-                    Status = "Error",
-                    Message = "Admin user creation failed",
-                    Errors = result.Errors.Select(e => e.Description)
-                });
+                return BadRequest(new ApiMessage { Message = "Admin user creation failed" });
 
             await _userManager.AddToRoleAsync(user, "Admin");
 
-            return Ok(new { Status = "Success", Message = "Admin user created successfully!" });
+            return Ok(new ApiMessage { Message = "Admin user created successfully!" });
         }
 
         private JwtSecurityToken GetToken(List<Claim> authClaims)
@@ -289,6 +284,7 @@ namespace AuthenticationAPI.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var stored = await _refreshTokenService.ValidateAsync(request.RefreshToken);
             if (stored == null)
             {
@@ -320,12 +316,12 @@ namespace AuthenticationAPI.Controllers
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var (newRefresh, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, stored.SessionId ?? Guid.Empty);
             await _refreshTokenService.RevokeAndLinkAsync(request.RefreshToken, newRefresh, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
-            return Ok(new
+            return Ok(new TokenSetResponse
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = token.ValidTo,
-                refreshToken = newRefresh,
-                refreshTokenExpiration = refreshExp
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Expiration = token.ValidTo,
+                RefreshToken = newRefresh,
+                RefreshTokenExpiration = refreshExp
             });
         }
 
@@ -333,6 +329,7 @@ namespace AuthenticationAPI.Controllers
         [Authorize]
         public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             // Revoke the session associated with the provided refresh token
             var stored = await _refreshTokenService.ValidateAsync(request.RefreshToken);
             if (stored == null)
@@ -368,6 +365,7 @@ namespace AuthenticationAPI.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
             var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
@@ -382,6 +380,7 @@ namespace AuthenticationAPI.Controllers
         [Authorize]
         public async Task<IActionResult> ChangeEmailStart([FromBody] ChangeEmailStartDto dto)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
             if (string.Equals(user.Email, dto.NewEmail, StringComparison.OrdinalIgnoreCase)) return BadRequest(new { error = "Email is unchanged" });
@@ -397,6 +396,7 @@ namespace AuthenticationAPI.Controllers
         [Authorize]
         public async Task<IActionResult> ChangeEmailConfirm([FromBody] ChangeEmailConfirmDto dto)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
             var normToken = NormalizeToken(dto.Token);
@@ -443,6 +443,13 @@ namespace AuthenticationAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequestDto dto)
         {
+            // Per-email throttle: 1/min and 5/day
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var resetKey1m = $"pwd-reset:1m:{dto.Email}";
+            var resetKey1d = $"pwd-reset:1d:{dto.Email}";
+            var allow1m = await _throttle.AllowAsync(resetKey1m, 1, TimeSpan.FromMinutes(1));
+            var allow1d = await _throttle.AllowAsync(resetKey1d, 5, TimeSpan.FromDays(1));
+            if (!allow1m || !allow1d) return Ok(new { sent = true });
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok(); // do not reveal existence
             try
@@ -454,7 +461,7 @@ namespace AuthenticationAPI.Controllers
             {
                 // Swallow email transport errors; respond generically
             }
-            return Ok(new { sent = true });
+            return Ok(new SentResponse { Sent = true });
         }
 
         [HttpPost("confirm-password-reset")]
@@ -462,6 +469,7 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("otp")]
         public async Task<IActionResult> ConfirmPasswordReset([FromBody] PasswordResetConfirmDto dto)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return BadRequest();
             var normToken = NormalizeToken(dto.Token);
@@ -479,6 +487,14 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("otp")]
         public async Task<IActionResult> RequestEmailConfirm([FromBody] EmailRequestDto dto)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            // Per-email throttle: 1/min and 5/day (silent on refusal)
+            var emailKey1m = $"email-confirm:1m:{dto.Email}";
+            var emailKey1d = $"email-confirm:1d:{dto.Email}";
+            var allow1m = await _throttle.AllowAsync(emailKey1m, 1, TimeSpan.FromMinutes(1));
+            var allow1d = await _throttle.AllowAsync(emailKey1d, 5, TimeSpan.FromDays(1));
+            if (!allow1m || !allow1d) return Ok(new { sent = true });
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok();
             try
@@ -491,7 +507,7 @@ namespace AuthenticationAPI.Controllers
             {
                 // Swallow email transport errors to avoid leaking server details; client receives generic response
             }
-            return Ok(new { sent = true });
+            return Ok(new SentResponse { Sent = true });
         }
 
         [HttpPost("confirm-email")]
@@ -499,6 +515,7 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("otp")]
         public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmDto dto)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return BadRequest(new { error = "Invalid email" });
             if (user.EmailConfirmed) return Ok(new { emailConfirmed = true });
@@ -518,7 +535,7 @@ namespace AuthenticationAPI.Controllers
                         errors = res.Errors.Select(e => e.Description)
                     });
                 }
-                return Ok(new { emailConfirmed = true });
+                return Ok(new EmailConfirmedResponse { EmailConfirmed = true });
             }
             catch (Exception)
             {
@@ -541,7 +558,7 @@ namespace AuthenticationAPI.Controllers
             await _userManager.UpdateAsync(user);
             var issuer = _configuration["Mfa:Issuer"] ?? _configuration["JWT:ValidIssuer"] ?? "AuthAPI";
             var url = _totp.GetOtpAuthUrl(secret, user.Email ?? user.UserName!, issuer);
-            return Ok(new { secret, otpauthUrl = url });
+            return Ok(new OtpAuthResponse { Secret = secret, OtpauthUrl = url });
         }
 
         [HttpPost("mfa/enroll/confirm")]
@@ -549,6 +566,7 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("otp")]
         public async Task<IActionResult> MfaEnrollConfirm([FromBody] MfaCodeDto dto)
         {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
             if (string.IsNullOrWhiteSpace(user.MfaSecret)) return BadRequest(new { error = "No secret generated" });
@@ -559,7 +577,7 @@ namespace AuthenticationAPI.Controllers
             user.MfaLastTimeStep = ts;
             await _userManager.UpdateAsync(user);
             var codes = await _recoveryCodes.GenerateAsync(user);
-            return Ok(new { enabled = true, recoveryCodes = codes });
+            return Ok(new MfaEnabledResponse { Enabled = true, RecoveryCodes = codes });
         }
 
         [HttpPost("mfa/disable")]
@@ -589,7 +607,7 @@ namespace AuthenticationAPI.Controllers
             _db.UserRecoveryCodes.RemoveRange(existing);
             await _db.SaveChangesAsync();
             var codes = await _recoveryCodes.GenerateAsync(user);
-            return Ok(new { recoveryCodes = codes });
+            return Ok(new RecoveryCodesResponse { RecoveryCodes = codes });
         }
     }
 }

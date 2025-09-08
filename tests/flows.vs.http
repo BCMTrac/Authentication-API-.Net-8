@@ -1,0 +1,93 @@
+@base = https://localhost:7086
+@json = application/json
+@username = user-{{$guid}}
+@password = StrongP@ssw0rd!X
+@email = test-{{$timestamp}}@example.com
+
+### Ping (sanity)
+GET {{base}}/api/ping
+
+### Register (username, email, password required)
+POST {{base}}/api/v1/authenticate/register
+Content-Type: {{json}}
+
+{
+  "username": "{{username}}",
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Request Email Confirmation (check smtp4dev for the token)
+POST {{base}}/api/v1/authenticate/request-email-confirm
+Content-Type: {{json}}
+
+{
+  "email": "{{email}}"
+}
+
+### Confirm Email (paste token from smtp4dev below)
+@confirm_token = PASTE_TOKEN_HERE
+POST {{base}}/api/v1/authenticate/confirm-email
+Content-Type: {{json}}
+
+{
+  "email": "{{email}}",
+  "token": "{{confirm_token}}"
+}
+
+### Login (identifier can be email or username)
+POST {{base}}/api/v1/authenticate/login
+Content-Type: {{json}}
+X-Login-Id: {{email}}
+
+{
+  "identifier": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Me (copy the token value from Login response and paste below)
+@accessToken = PASTE_ACCESS_TOKEN
+GET {{base}}/api/v1/users/me
+Authorization: Bearer {{accessToken}}
+
+### Refresh (copy refreshToken from Login response)
+@refreshToken = PASTE_REFRESH_TOKEN
+POST {{base}}/api/v1/authenticate/refresh
+Content-Type: {{json}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### MFA Enroll Start (requires access token)
+POST {{base}}/api/v1/authenticate/mfa/enroll/start
+Authorization: Bearer {{accessToken}}
+
+### MFA Enroll Confirm (paste current 6-digit code from your app)
+@mfa_code = 000000
+POST {{base}}/api/v1/authenticate/mfa/enroll/confirm
+Authorization: Bearer {{accessToken}}
+Content-Type: {{json}}
+
+{
+  "code": "{{mfa_code}}"
+}
+
+### Password Reset Request
+POST {{base}}/api/v1/authenticate/request-password-reset
+Content-Type: {{json}}
+
+{
+  "email": "{{email}}"
+}
+
+### Password Reset Confirm (paste reset token from smtp4dev)
+@reset_token = PASTE_RESET_TOKEN
+POST {{base}}/api/v1/authenticate/confirm-password-reset
+Content-Type: {{json}}
+
+{
+  "email": "{{email}}",
+  "token": "{{reset_token}}",
+  "newPassword": "StrongerP@ssw0rd!!X"
+}

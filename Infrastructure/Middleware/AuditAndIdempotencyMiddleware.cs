@@ -32,7 +32,15 @@ public class AuditAndIdempotencyMiddleware
                 await context.Response.WriteAsync("Idempotency-Key header is empty");
                 return;
             }
-            existing = await db.IdempotencyRecords.FindAsync(idempotencyKey);
+            try
+            {
+                existing = await db.IdempotencyRecords.FindAsync(idempotencyKey);
+            }
+            catch (Exception ex)
+            {
+                // Table may not exist in some dev DBs; log and continue without idempotency replay
+                logger.LogWarning(ex, "Idempotency lookup failed; continuing without replay");
+            }
         }
 
         // Buffer response
@@ -69,28 +77,51 @@ public class AuditAndIdempotencyMiddleware
             return;
         }
 
-        await _next(context);
-
-        sw.Stop();
-        memStream.Position = 0;
-        var responseBody = await new StreamReader(memStream).ReadToEndAsync();
-        memStream.Position = 0;
-        await memStream.CopyToAsync(originalBody);
-        context.Response.Body = originalBody;
+        string responseBody = string.Empty;
+        try
+        {
+            await _next(context);
+        }
+        finally
+        {
+            try
+            {
+                sw.Stop();
+                memStream.Position = 0;
+                responseBody = await new StreamReader(memStream).ReadToEndAsync();
+                memStream.Position = 0;
+                await memStream.CopyToAsync(originalBody);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to copy buffered response body");
+            }
+            finally
+            {
+                context.Response.Body = originalBody;
+            }
+        }
 
         // Persist idempotency record if needed
         if (idempotencyKey != null)
         {
-            db.IdempotencyRecords.Add(new IdempotencyRecord
+            try
             {
-                Key = idempotencyKey,
-                RequestHash = requestCompositeHash,
-                StatusCode = context.Response.StatusCode,
-                ResponseBody = responseBody,
-                ContentType = context.Response.ContentType ?? "application/json",
-                ExpiresUtc = DateTime.UtcNow.AddHours(12)
-            });
-            logger.LogInformation("Stored idempotency record key={Key} status={Status}", idempotencyKey, context.Response.StatusCode);
+                db.IdempotencyRecords.Add(new IdempotencyRecord
+                {
+                    Key = idempotencyKey,
+                    RequestHash = requestCompositeHash,
+                    StatusCode = context.Response.StatusCode,
+                    ResponseBody = responseBody,
+                    ContentType = context.Response.ContentType ?? "application/json",
+                    ExpiresUtc = DateTime.UtcNow.AddHours(12)
+                });
+                logger.LogInformation("Stored idempotency record key={Key} status={Status}", idempotencyKey, context.Response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to queue idempotency persistence");
+            }
         }
 
         // Audit log

@@ -2,6 +2,8 @@
   const $ = (id) => document.getElementById(id);
   const bindClick = (id, handler) => { const el = $(id); if (el) el.onclick = handler; };
   const v = (id) => (document.getElementById(id)?.value ?? '').toString();
+  const vt = (id) => v(id).trim();
+  const isEmail = (s) => /.+@.+\..+/.test(s);
   // Tabs
   document.querySelectorAll('nav.tabs button').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -58,17 +60,24 @@
 
   // Register
   bindClick('btnRegister', async () => {
+    const username = vt('regUser');
+    const email = vt('regEmail');
     const pwd = v('regPass');
+    if (!username || !email || !pwd) { out('outRegister', { ok:false, message:'Please fill in username, email and password.' }); return; }
+    if (!isEmail(email)) { out('outRegister', { ok:false, message:'Enter a valid email address.' }); return; }
     if (!meetsPwd(pwd)) { out('outRegister', { ok:false, message:'Password must be \u226512 and include uppercase, lowercase, digit, and symbol.' }); return; }
-    const payload = { username: v('regUser'), email: v('regEmail'), fullName: v('regFullName'), phone: v('regPhone'), password: pwd };
+    const payload = { username, email, fullName: v('regFullName'), phone: v('regPhone'), password: pwd };
     const r = await call('/api/v1/authenticate/register', { method:'POST', body: JSON.stringify(payload) });
     out('outRegister', r);
   });
 
   // Login
   bindClick('btnLogin', async () => {
-  const payload = { identifier: v('loginUser').trim(), password: v('loginPass'), mfaCode: v('loginMfa').trim() };
-    const r = await call('/api/v1/authenticate/login', { method:'POST', body: JSON.stringify(payload) });
+  const identifier = vt('loginUser');
+  const password = v('loginPass');
+  if (!identifier || !password) { out('outLogin', { ok:false, message:'Please fill in identifier and password.' }); return; }
+  const payload = { identifier, password, mfaCode: vt('loginMfa') };
+    const r = await call('/api/v1/authenticate/login', { method:'POST', headers: { 'X-Login-Id': identifier }, body: JSON.stringify(payload) });
     out('outLogin', r);
   if (r.json && r.json.token) { accessToken = r.json.token; refreshToken = r.json.refreshToken; updateAuthUi(); }
   });
@@ -124,22 +133,26 @@
 
   // Email flows
   bindClick('btnReqConfirm', async () => {
-  const r = await call('/api/v1/authenticate/request-email-confirm', { method:'POST', body: JSON.stringify({ email: v('emailAddr') }) });
+  const em = vt('emailAddr'); if (!em){ out('outEmail','Please enter email'); return; }
+  const r = await call('/api/v1/authenticate/request-email-confirm', { method:'POST', body: JSON.stringify({ email: em }) });
   out('outEmail', r);
   });
   bindClick('btnConfirmEmail', async () => {
-  const r = await call('/api/v1/authenticate/confirm-email', { method:'POST', body: JSON.stringify({ email: v('emailAddr'), token: v('emailToken') }) });
+  const cem = vt('emailAddr'); const ctk = vt('emailToken'); if (!cem || !ctk){ out('outEmail','Enter email and token'); return; }
+  const r = await call('/api/v1/authenticate/confirm-email', { method:'POST', body: JSON.stringify({ email: cem, token: ctk }) });
     out('outEmail', r);
   });
   
   bindClick('btnReqReset', async () => {
-  const r = await call('/api/v1/authenticate/request-password-reset', { method:'POST', body: JSON.stringify({ email: v('resetEmail') }) });
+  const rem = vt('resetEmail'); if (!rem){ out('outEmail','Enter reset email'); return; }
+  const r = await call('/api/v1/authenticate/request-password-reset', { method:'POST', body: JSON.stringify({ email: rem }) });
   out('outEmail', r);
   });
   bindClick('btnDoReset', async () => {
-    const np = v('resetNew');
-    if (!meetsPwd(np)) { out('outEmail', { ok:false, message:'New password must be \u226512 and include uppercase, lowercase, digit, and symbol.' }); return; }
-    const r = await call('/api/v1/authenticate/confirm-password-reset', { method:'POST', body: JSON.stringify({ email: v('resetEmail'), token: v('resetToken'), newPassword: np }) });
+  const rem2 = vt('resetEmail'); const rtk = vt('resetToken'); const np = v('resetNew');
+  if (!rem2 || !rtk){ out('outEmail','Enter email and reset token'); return; }
+  if (!meetsPwd(np)) { out('outEmail', { ok:false, message:'New password must be \u226512 and include uppercase, lowercase, digit, and symbol.' }); return; }
+  const r = await call('/api/v1/authenticate/confirm-password-reset', { method:'POST', body: JSON.stringify({ email: rem2, token: rtk, newPassword: np }) });
     out('outEmail', r);
   });
   
@@ -147,12 +160,14 @@
   // Change email
   bindClick('btnChgEmailStart', async () => {
   if (!accessToken) { out('outChangeEmail', 'login first'); return; }
-  const r = await call('/api/v1/authenticate/change-email/start', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ newEmail: v('chgNewEmail') }) });
+  const ne = vt('chgNewEmail'); if (!ne){ out('outChangeEmail','Enter a new email'); return; }
+  const r = await call('/api/v1/authenticate/change-email/start', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ newEmail: ne }) });
   out('outChangeEmail', r);
   });
   bindClick('btnChgEmailConfirm', async () => {
   if (!accessToken) { out('outChangeEmail', 'login first'); return; }
-  const r = await call('/api/v1/authenticate/change-email/confirm', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ newEmail: v('chgNewEmail'), token: v('chgToken') }) });
+  const ne2 = vt('chgNewEmail'); const tok = vt('chgToken'); if (!ne2 || !tok){ out('outChangeEmail','Enter new email and token'); return; }
+  const r = await call('/api/v1/authenticate/change-email/confirm', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ newEmail: ne2, token: tok }) });
     out('outChangeEmail', r);
     if (r.ok) {
       // Email change bumps token_version and revokes refresh tokens. Require re-login.
@@ -189,7 +204,7 @@
     if (cont) { cont.textContent = ''; cont.appendChild(pre); }
     } else { out('outMfa', { status: res.status, text: await res.text() }); }
   });
-  bindClick('btnMfaConfirm', async () => { const r = await call('/api/v1/authenticate/mfa/enroll/confirm', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ code: v('mfaCode') }) }); out('outMfa', r); });
+  bindClick('btnMfaConfirm', async () => { const code = vt('mfaCode'); if (!/^\d{6}$/.test(code) && !code){ out('outMfa','Enter a 6-digit code or a recovery code'); return; } const r = await call('/api/v1/authenticate/mfa/enroll/confirm', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ code }) }); out('outMfa', r); });
   bindClick('btnMfaDisable', async () => { const r = await call('/api/v1/authenticate/mfa/disable', { method:'POST', headers: { ...auth() } }); out('outMfa', r); });
   bindClick('btnMfaRegen', async () => { const r = await call('/api/v1/authenticate/mfa/recovery/regenerate', { method:'POST', headers: { ...auth() } }); out('outMfa', r); });
 
@@ -274,4 +289,18 @@
   bindPwdChecklist('regPass','rp');
   bindPwdChecklist('cpNew','cp');
   bindPwdChecklist('resetNew','rs');
+  bindPwdToggle();
+  function bindPwdToggle(){
+    document.querySelectorAll('.pwd-toggle').forEach(btn => {
+      const id = btn.getAttribute('data-target');
+      const input = document.getElementById(id);
+      if (!input) return;
+      btn.addEventListener('click', () => {
+        const isPwd = input.type === 'password';
+        input.type = isPwd ? 'text' : 'password';
+        btn.textContent = isPwd ? 'Hide' : 'Show';
+        btn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
+      });
+    });
+  }
 })();

@@ -32,3 +32,9 @@ pre{white-space:pre-wrap;background:#0e131f;border:1px solid #283045;padding:.65
 .req-list li::before{content:'•';margin-right:.5rem;color:#ffb84d}
 .req-list li.ok{color:#4cd964}
 .req-list li.ok::before{content:'✔';color:#4cd964}
+
+/* Password show/hide wrapper */
+.pwd-wrap{display:flex;align-items:center;gap:.5rem;max-width:520px}
+.pwd-wrap input{flex:1 1 auto}
+.pwd-toggle{padding:.45rem .6rem;border-radius:6px;border:1px solid #39486b;background:#1b2335;color:#e6e6e6;cursor:pointer}
+.pwd-toggle:hover{filter:brightness(1.1)}

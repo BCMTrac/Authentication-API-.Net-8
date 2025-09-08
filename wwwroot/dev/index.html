@@ -30,7 +30,10 @@
         <label for="regPhone">Phone <span class="hint" tabindex="0" data-hint="Optional. E.164: + plus 8–15 digits (e.g., +15551234567).">*</span></label>
         <input id="regPhone" placeholder="e.g. +15551234567" />
         <label for="regPass">Password <span class="hint" tabindex="0" data-hint="Min 12 (16+ ideal). Must include at least one uppercase, one lowercase, one digit, and one symbol. Avoid using your username or email local part.">*</span></label>
-        <input id="regPass" type="password" placeholder="min 12; upper/lower/digit/symbol" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,256}" title="Min 12; include uppercase, lowercase, digit, and symbol" />
+        <div class="pwd-wrap">
+          <input id="regPass" type="password" placeholder="min 12; upper/lower/digit/symbol" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,256}" title="Min 12; include uppercase, lowercase, digit, and symbol" />
+          <button type="button" class="pwd-toggle" aria-label="Show password" data-target="regPass">Show</button>
+        </div>
         <ul id="regPassReqs" class="req-list">
           <li id="rpLen">At least 12 characters</li>
           <li id="rpUpper">At least one uppercase letter</li>
@@ -49,7 +52,10 @@
         <label for="loginUser">Identifier <span class="hint" tabindex="0" data-hint="Email or username.">*</span></label>
         <input id="loginUser" placeholder="email or username" />
         <label for="loginPass">Password <span class="hint" tabindex="0" data-hint="1–256 chars.">*</span></label>
-        <input id="loginPass" type="password" placeholder="password" />
+        <div class="pwd-wrap">
+          <input id="loginPass" type="password" placeholder="password" />
+          <button type="button" class="pwd-toggle" aria-label="Show password" data-target="loginPass">Show</button>
+        </div>
         <label for="loginMfa">MFA Code <span class="hint" tabindex="0" data-hint="6 digits when prompted. You may use a recovery code instead.">*</span></label>
         <input id="loginMfa" placeholder="123456 or recovery" />
         <div class="full"><button id="btnLogin">Login</button></div>
@@ -67,9 +73,9 @@
   <pre id="outTokenDecoded"></pre>
   <hr />
   <h2>Change Password</h2>
-  <input id="cpCurrent" placeholder="current password" type="password" />
+  <div class="pwd-wrap"><input id="cpCurrent" placeholder="current password" type="password" /><button type="button" class="pwd-toggle" aria-label="Show password" data-target="cpCurrent">Show</button></div>
   <label for="cpNew">New Password <span class="hint" tabindex="0" data-hint="Min 12. Must include uppercase, lowercase, digit, and symbol.">*</span></label>
-  <input id="cpNew" placeholder="new password" type="password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,256}" title="Min 12; include uppercase, lowercase, digit, and symbol" />
+  <div class="pwd-wrap"><input id="cpNew" placeholder="new password" type="password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,256}" title="Min 12; include uppercase, lowercase, digit, and symbol" /><button type="button" class="pwd-toggle" aria-label="Show password" data-target="cpNew">Show</button></div>
   <ul id="cpReqs" class="req-list">
     <li id="cpLen">At least 12 characters</li>
     <li id="cpUpper">At least one uppercase letter</li>
@@ -96,7 +102,10 @@
         <label for="resetToken">Reset Token <span class="hint" tabindex="0" data-hint="Paste the token from the email; no spaces.">*</span></label>
         <input id="resetToken" placeholder="reset token" />
         <label for="resetNew">New Password <span class="hint" tabindex="0" data-hint="Min 12. Must include uppercase, lowercase, digit, and symbol.">*</span></label>
-        <input id="resetNew" type="password" placeholder="new password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,256}" title="Min 12; include uppercase, lowercase, digit, and symbol" />
+        <div class="pwd-wrap">
+          <input id="resetNew" type="password" placeholder="new password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,256}" title="Min 12; include uppercase, lowercase, digit, and symbol" />
+          <button type="button" class="pwd-toggle" aria-label="Show password" data-target="resetNew">Show</button>
+        </div>
         <ul id="rsReqs" class="req-list">
           <li id="rsLen">At least 12 characters</li>
           <li id="rsUpper">At least one uppercase letter</li>

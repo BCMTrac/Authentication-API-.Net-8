@@ -148,6 +148,20 @@ builder.Services.AddTransient<IConfigureOptions<Swashbuckle.AspNetCore.SwaggerGe
 var rlOptions = configuration.GetSection(RateLimitOptions.SectionName).Get<RateLimitOptions>() ?? new RateLimitOptions();
 builder.Services.AddRateLimiter(options =>
 {
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (ctx, token) =>
+    {
+        ctx.HttpContext.Response.ContentType = "application/problem+json";
+        var problem = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            type = "https://httpstatuses.io/429",
+            title = "Too Many Requests",
+            status = 429,
+            detail = "Rate limit exceeded. Please retry later.",
+            traceId = ctx.HttpContext.TraceIdentifier
+        });
+        await ctx.HttpContext.Response.WriteAsync(problem, token);
+    };
     options.AddFixedWindowLimiter(rlOptions.PolicyName, opt =>
     {
         opt.PermitLimit = rlOptions.PermitLimit;
@@ -157,7 +171,7 @@ builder.Services.AddRateLimiter(options =>
     // Route-specific fixed window policies by IP
     options.AddPolicy("login", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            partitionKey: $"{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}:{httpContext.Request.Headers["X-Login-Id"].ToString()}",
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
@@ -264,6 +278,8 @@ else
 }
 
 builder.Services.AddAuthorization();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<AuthenticationAPI.Services.Throttle.IThrottleService, AuthenticationAPI.Services.Throttle.MemoryThrottleService>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Global server-side request size ceiling (defense-in-depth)
@@ -314,8 +330,21 @@ app.UseCors("Default");
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRateLimiter();
-app.UseAuditAndIdempotency();
+var enableRateLimit = builder.Environment.IsDevelopment()
+    ? string.Equals(configuration["Features:RateLimit"], "true", StringComparison.OrdinalIgnoreCase)
+    : true;
+if (enableRateLimit)
+{
+    app.UseRateLimiter();
+}
+// In Development, disable audit/idempotency unless explicitly enabled to avoid masking errors
+var enableAudit = builder.Environment.IsDevelopment()
+    ? string.Equals(configuration["Features:AuditAndIdempotency"], "true", StringComparison.OrdinalIgnoreCase)
+    : true;
+if (enableAudit)
+{
+    app.UseAuditAndIdempotency();
+}
 
 app.MapControllers();
 
@@ -335,6 +364,8 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 app.MapGet("/", () => Results.Redirect("/swagger"));
 // Dev console entry
 app.MapGet("/dev", () => Results.Redirect("/dev/index.html"));
+// Lightweight ping that does not touch the database (useful for quick 200 check)
+app.MapGet("/api/ping", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }));
 
 using (var scope = app.Services.CreateScope())
 {
@@ -351,24 +382,31 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine($"[Startup] Migration failed: {ex.Message}");
     }
 
-    await Seed.SeedRoles(scope.ServiceProvider);
-    await Seed.SeedPermissions(scope.ServiceProvider);
-    // Admin user seed. In non-Development, require env/user-secrets to provide credentials.
-    // Environment variables keys: SeedAdmin__Email and SeedAdmin__Password (double underscore)
-    var env = app.Environment;
-    var adminEmail = configuration["SeedAdmin:Email"];
-    var adminPassword = configuration["SeedAdmin:Password"];
-    if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+    try
     {
-        if (!env.IsDevelopment())
+        await Seed.SeedRoles(scope.ServiceProvider);
+        await Seed.SeedPermissions(scope.ServiceProvider);
+        // Admin user seed. In non-Development, require env/user-secrets to provide credentials.
+        // Environment variables keys: SeedAdmin__Email and SeedAdmin__Password (double underscore)
+        var env = app.Environment;
+        var adminEmail = configuration["SeedAdmin:Email"];
+        var adminPassword = configuration["SeedAdmin:Password"];
+        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
         {
-            throw new InvalidOperationException("Missing SeedAdmin__Email/SeedAdmin__Password. Set them via environment variables or user-secrets.");
+            if (!env.IsDevelopment())
+            {
+                throw new InvalidOperationException("Missing SeedAdmin__Email/SeedAdmin__Password. Set them via environment variables or user-secrets.");
+            }
+            // Development fallback
+            adminEmail ??= "admin@local";
+            adminPassword ??= "Change_this_Admin1!";
         }
-        // Development fallback
-        adminEmail ??= "admin@local";
-        adminPassword ??= "Change_this_Admin1!";
+        await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail!, adminPassword!);
     }
-    await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail!, adminPassword!);
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Seeding failed: {ex.Message}");
+    }
     // Seed signing key if none
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     if (!db.SigningKeys.Any())

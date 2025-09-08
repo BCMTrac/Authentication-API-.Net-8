@@ -66,10 +66,21 @@ public static class Seed
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
+        var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
         var fullNameFromEnv = configuration["SeedAdmin:FullName"];
         var phoneFromEnv = configuration["SeedAdmin:Phone"];
+
+        // Defensive: ensure FullName column exists before any queries that materialize ApplicationUser
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "IF COL_LENGTH('dbo.AspNetUsers','FullName') IS NULL ALTER TABLE dbo.AspNetUsers ADD FullName nvarchar(100) NULL;");
+        }
+        catch
+        {
+            // Ignore: may lack permissions; subsequent code may still succeed if column exists
+        }
 
         // Ensure Admin role exists
         if (!await roleManager.RoleExistsAsync("Admin"))
