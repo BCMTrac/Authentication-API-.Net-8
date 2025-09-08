@@ -10,22 +10,14 @@
   <main>
     <h1>Authentication API Dev Console</h1>
     <nav class="tabs">
-      <button data-tab="config" class="active">Config</button>
-      <button data-tab="auth">Auth</button>
+      <button data-tab="auth" class="active">Auth</button>
       <button data-tab="email">Email</button>
       <button data-tab="mfa">MFA</button>
       <button data-tab="admin">Admin</button>
       <button data-tab="misc">Misc</button>
     </nav>
 
-    <section id="config" class="tab active">
-      <h2>Config</h2>
-      <label>Base URL <input id="baseUrl" value="" placeholder="https://localhost:7086" /></label>
-      <button id="saveCfg">Save</button>
-      <span id="cfgMsg"></span>
-    </section>
-
-    <section id="auth" class="tab">
+    <section id="auth" class="tab active">
       <h2>Register</h2>
       <input id="regUser" placeholder="username" />
       <input id="regEmail" placeholder="email" />
@@ -60,14 +52,14 @@
     <section id="email" class="tab">
       <h2>Email</h2>
       <input id="emailAddr" placeholder="email" />
-      <button id="btnReqConfirm">Request Email Confirm</button>
+  <button id="btnReqConfirm">Request Email Confirm</button>
       <input id="emailToken" placeholder="confirm token" />
-      <button id="btnConfirmEmail">Confirm Email</button>
+  <button id="btnConfirmEmail">Confirm Email</button>
       <input id="resetEmail" placeholder="reset email" />
-      <button id="btnReqReset">Request Password Reset</button>
+  <button id="btnReqReset">Request Password Reset</button>
       <input id="resetToken" placeholder="reset token" />
       <input id="resetNew" placeholder="new password" type="password" />
-      <button id="btnDoReset">Confirm Reset</button>
+  <button id="btnDoReset">Confirm Reset</button>
       <pre id="outEmail"></pre>
     </section>
 

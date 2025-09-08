@@ -9,7 +9,8 @@ public sealed class ConsoleEmailSender : IEmailSender
 {
     public Task SendAsync(string to, string subject, string body, CancellationToken ct = default)
     {
-        Console.WriteLine($"[EMAIL] To={to} Subject={subject}\n{body}");
+    // Print in a single line so tokens are easy to copy from the terminal
+    Console.WriteLine($"[EMAIL] To={to} Subject={subject} {body}");
         return Task.CompletedTask;
     }
 }

@@ -10,7 +10,6 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using AuthenticationAPI.Services;
 using AuthenticationAPI.Services.Email;
-using AuthenticationAPI.Models.Options;
 using Microsoft.Extensions.Options;
 using AuthenticationAPI.Infrastructure.Swagger;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -22,6 +21,7 @@ using Microsoft.AspNetCore.Mvc;
 using AuthenticationAPI.Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
 using DotNetEnv;
+using AuthenticationAPI.Models.Options;
 
 // Load .env if present (supports local dev and on-server env-file usage) BEFORE building configuration
 try { Env.Load(); } catch { /* optional */ }
@@ -205,20 +205,50 @@ if (dpStorage == "file")
 // Future options (placeholders): azureblob/keyvault can be plugged in here based on config
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
-// SendGrid email provider (exclusive)
+// Email provider
+// In Development: support SMTP (e.g., smtp4dev). If not configured, fall back to ConsoleEmailSender.
+// In non-Development: prefer SendGrid and fail fast if missing.
 var sgApiKey = configuration["SendGrid:ApiKey"] ?? configuration["SENDGRID_API_KEY"] ?? string.Empty;
 var sgFrom = configuration["SendGrid:From"] ?? string.Empty;
 var sgFromName = configuration["SendGrid:FromName"] ?? string.Empty;
-if (string.IsNullOrWhiteSpace(sgApiKey) || string.IsNullOrWhiteSpace(sgFrom))
+if (builder.Environment.IsDevelopment())
 {
-    throw new InvalidOperationException("Email is not configured. Set SendGrid:ApiKey and SendGrid:From (or SENDGRID_API_KEY env var).");
+    var smtpSection = configuration.GetSection(SmtpOptions.SectionName);
+    var smtpOpts = smtpSection.Get<SmtpOptions>();
+    if (smtpOpts != null && !string.IsNullOrWhiteSpace(smtpOpts.Host) && smtpOpts.Port > 0)
+    {
+    builder.Services.AddSingleton<IEmailSender>(new AuthenticationAPI.Services.Email.SmtpEmailSender(smtpOpts));
+        Console.WriteLine($"[DEV] Using SMTP for email: {smtpOpts.Host}:{smtpOpts.Port}");
+    }
+    else if (!string.IsNullOrWhiteSpace(sgApiKey) && !string.IsNullOrWhiteSpace(sgFrom))
+    {
+        builder.Services.AddSingleton<IEmailSender>(sp =>
+            new SendGridEmailSender(
+                sp.GetRequiredService<IHttpClientFactory>(),
+                sgApiKey,
+                sgFrom,
+                string.IsNullOrWhiteSpace(sgFromName) ? "Authentication API" : sgFromName));
+        Console.WriteLine("[DEV] Using SendGrid for email");
+    }
+    else
+    {
+        builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
+        Console.WriteLine("[DEV] Email not configured. Using ConsoleEmailSender fallback.");
+    }
 }
-builder.Services.AddSingleton<IEmailSender>(sp =>
-    new SendGridEmailSender(
-        sp.GetRequiredService<IHttpClientFactory>(),
-        sgApiKey,
-        sgFrom,
-        string.IsNullOrWhiteSpace(sgFromName) ? "Authentication API" : sgFromName));
+else
+{
+    if (string.IsNullOrWhiteSpace(sgApiKey) || string.IsNullOrWhiteSpace(sgFrom))
+    {
+        throw new InvalidOperationException("Email is not configured. Set SendGrid:ApiKey and SendGrid:From (or SENDGRID_API_KEY env var).");
+    }
+    builder.Services.AddSingleton<IEmailSender>(sp =>
+        new SendGridEmailSender(
+            sp.GetRequiredService<IHttpClientFactory>(),
+            sgApiKey,
+            sgFrom,
+            string.IsNullOrWhiteSpace(sgFromName) ? "Authentication API" : sgFromName));
+}
 
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
@@ -251,7 +281,8 @@ app.Use(async (ctx, next) =>
     var path = ctx.Request.Path.Value ?? string.Empty;
     if (path.StartsWith("/dev", StringComparison.OrdinalIgnoreCase))
     {
-        ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'";
+        // Allow WebSocket for hot reload and fetch to same-origin
+        ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self' wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'";
     }
     else
     {

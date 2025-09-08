@@ -34,6 +34,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(60),
+            NameClaimType = System.Security.Claims.ClaimTypes.Name,
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role,
             IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
             {
                 var byKid = _cache.GetByKid(kid);

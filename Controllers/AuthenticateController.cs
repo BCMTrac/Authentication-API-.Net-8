@@ -7,6 +7,7 @@ using AuthenticationAPI.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Net;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using AuthenticationAPI.Services.Email;
@@ -60,6 +61,20 @@ namespace AuthenticationAPI.Controllers
             _env = env;
         }
 
+        private static string NormalizeToken(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token)) return token;
+            try
+            {
+                var decoded = WebUtility.UrlDecode(token);
+                return (decoded ?? token).Replace(' ', '+');
+            }
+            catch
+            {
+                return token;
+            }
+        }
+
         [HttpPost]
         [Route("login")]
         [EnableRateLimiting("login")]
@@ -101,6 +116,7 @@ namespace AuthenticationAPI.Controllers
             var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
@@ -240,6 +256,7 @@ namespace AuthenticationAPI.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim("token_version", user.TokenVersion.ToString())
             };
@@ -333,7 +350,8 @@ namespace AuthenticationAPI.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
-            var result = await _userManager.ChangeEmailAsync(user, dto.NewEmail, dto.Token);
+            var normToken = NormalizeToken(dto.Token);
+            var result = await _userManager.ChangeEmailAsync(user, dto.NewEmail, normToken);
             if (!result.Succeeded) return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
             // Optional: also update username if you want email-as-username policy
             // await _userManager.SetUserNameAsync(user, dto.NewEmail);
@@ -390,7 +408,8 @@ namespace AuthenticationAPI.Controllers
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return BadRequest();
-            var res = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            var normToken = NormalizeToken(dto.Token);
+            var res = await _userManager.ResetPasswordAsync(user, normToken, dto.NewPassword);
             if (!res.Succeeded) return BadRequest(new { errors = res.Errors.Select(e => e.Description) });
             // Global session revoke on password reset and bump token version
             user.TokenVersion += 1;
@@ -421,7 +440,8 @@ namespace AuthenticationAPI.Controllers
             if (user.EmailConfirmed) return Ok(new { emailConfirmed = true });
             try
             {
-                var res = await _userManager.ConfirmEmailAsync(user, dto.Token);
+                var normToken = NormalizeToken(dto.Token);
+                var res = await _userManager.ConfirmEmailAsync(user, normToken);
                 if (!res.Succeeded)
                 {
                     return BadRequest(new
@@ -438,6 +458,8 @@ namespace AuthenticationAPI.Controllers
                 return BadRequest(new { message = "Email confirmation failed. Please request a new token and try again." });
             }
         }
+
+        
 
         [HttpPost("mfa/enroll/start")]
         [Authorize]
