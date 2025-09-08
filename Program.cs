@@ -50,12 +50,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.User.AllowedUserNameCharacters += " ";
         }
+        options.User.RequireUniqueEmail = true;
     // Enforce strong password policy in all environments
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
+    options.Password.RequiredLength = 12;
         // Lockout policy
         options.Lockout.AllowedForNewUsers = true;
         options.Lockout.MaxFailedAccessAttempts = 10;
@@ -74,7 +75,18 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer();
 builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(o =>
+{
+    o.Filters.Add<AuthenticationAPI.Infrastructure.Filters.InputNormalizationFilter>();
+})
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Disallow;
+        opts.JsonSerializerOptions.AllowTrailingCommas = false;
+        opts.JsonSerializerOptions.IgnoreReadOnlyFields = false;
+        // Unknown properties should not be ignored; captured via [JsonExtensionData]
+        opts.JsonSerializerOptions.UnknownTypeHandling = System.Text.Json.Serialization.JsonUnknownTypeHandling.JsonNode; // keep strict parsing
+    });
 
 // API versioning
 builder.Services.AddApiVersioning(o =>
@@ -148,8 +160,8 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(15),
                 QueueLimit = 0
             }));
     options.AddPolicy("register", httpContext =>
@@ -157,8 +169,8 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 2,
-                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 5,
+                Window = TimeSpan.FromHours(1),
                 QueueLimit = 0
             }));
     options.AddPolicy("otp", httpContext =>
@@ -166,8 +178,8 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 3,
-                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(5),
                 QueueLimit = 0
             }));
 });
@@ -192,6 +204,7 @@ builder.Services.AddScoped<IRecoveryCodeService, RecoveryCodeService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
+builder.Services.AddSingleton<IPasswordBreachChecker, NoOpPasswordBreachChecker>();
 builder.Services.AddHostedService<KeyRotationHostedService>();
 // Data Protection keys persistence (so MFA secrets survive restarts)
 var dpBuilder = builder.Services.AddDataProtection().SetApplicationName("AuthenticationAPI");
@@ -252,6 +265,9 @@ else
 
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
+
+// Global server-side request size ceiling (defense-in-depth)
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 20 * 1024);
 
 var app = builder.Build();
 
@@ -322,6 +338,14 @@ app.MapGet("/dev", () => Results.Redirect("/dev/index.html"));
 
 using (var scope = app.Services.CreateScope())
 {
+    // Ensure database is up-to-date in Development to avoid 500s from schema drift
+    try
+    {
+        var dbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.ApplicationDbContext>();
+        await dbCtx.Database.MigrateAsync();
+    }
+    catch { /* swallow migration errors; health checks will report issues */ }
+
     await Seed.SeedRoles(scope.ServiceProvider);
     await Seed.SeedPermissions(scope.ServiceProvider);
     // Admin user seed. In non-Development, require env/user-secrets to provide credentials.

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AuthenticationAPI.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace AuthenticationAPI.Data;
 
@@ -66,6 +67,9 @@ public static class Seed
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var fullNameFromEnv = configuration["SeedAdmin:FullName"];
+        var phoneFromEnv = configuration["SeedAdmin:Phone"];
 
         // Ensure Admin role exists
         if (!await roleManager.RoleExistsAsync("Admin"))
@@ -103,7 +107,9 @@ public static class Seed
             {
                 UserName = email,
                 Email = email,
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                FullName = string.IsNullOrWhiteSpace(fullNameFromEnv) ? null : fullNameFromEnv,
+                PhoneNumber = string.IsNullOrWhiteSpace(phoneFromEnv) ? null : phoneFromEnv
             };
             var createResult = await userManager.CreateAsync(admin, password);
             if (!createResult.Succeeded)
@@ -117,6 +123,22 @@ public static class Seed
             var resetToken = await userManager.GeneratePasswordResetTokenAsync(admin);
             var reset = await userManager.ResetPasswordAsync(admin, resetToken, password);
             // If password policy blocks it, the earlier Program.cs change loosens RequireDigit
+            // Update profile details from env if provided
+            bool changed = false;
+            if (!string.IsNullOrWhiteSpace(fullNameFromEnv) && admin.FullName != fullNameFromEnv)
+            {
+                admin.FullName = fullNameFromEnv;
+                changed = true;
+            }
+            if (!string.IsNullOrWhiteSpace(phoneFromEnv) && admin.PhoneNumber != phoneFromEnv)
+            {
+                admin.PhoneNumber = phoneFromEnv;
+                changed = true;
+            }
+            if (changed)
+            {
+                await userManager.UpdateAsync(admin);
+            }
         }
         if (!await userManager.IsInRoleAsync(admin, "Admin"))
         {

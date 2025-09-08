@@ -16,7 +16,7 @@
   let base = BASE_URL;
   // No Config UI needed; base is fixed to API origin
 
-  let accessToken = null, refreshToken = null;
+  let accessToken = null, refreshToken = null, currentOtpauthUrl = null;
   const auth = () => accessToken ? { 'Authorization': 'Bearer ' + accessToken } : {};
   const out = (el, data) => { const node = $(el); if (!node) return; node.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2); };
   const updateAuthUi = () => {
@@ -30,6 +30,12 @@
   if (logoutBtn) logoutBtn.disabled = !refreshToken;
   const logoutAllBtn = document.getElementById('btnLogoutAll');
   if (logoutAllBtn) logoutAllBtn.disabled = !accessToken;
+  const chgStart = document.getElementById('btnChgEmailStart');
+  if (chgStart) chgStart.disabled = !accessToken;
+  const chgConfirm = document.getElementById('btnChgEmailConfirm');
+  if (chgConfirm) chgConfirm.disabled = !accessToken;
+  const mfaBtns = ['btnMfaStart','btnMfaQr','btnMfaConfirm','btnMfaDisable','btnMfaRegen'];
+  mfaBtns.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = !accessToken; });
   };
   updateAuthUi();
 
@@ -52,14 +58,16 @@
 
   // Register
   bindClick('btnRegister', async () => {
-  const payload = { username: v('regUser'), email: v('regEmail'), password: v('regPass') };
+    const pwd = v('regPass');
+    if (!meetsPwd(pwd)) { out('outRegister', { ok:false, message:'Password must be \u226512 and include uppercase, lowercase, digit, and symbol.' }); return; }
+    const payload = { username: v('regUser'), email: v('regEmail'), fullName: v('regFullName'), phone: v('regPhone'), password: pwd };
     const r = await call('/api/v1/authenticate/register', { method:'POST', body: JSON.stringify(payload) });
     out('outRegister', r);
   });
 
   // Login
   bindClick('btnLogin', async () => {
-  const payload = { username: v('loginUser').trim(), password: v('loginPass'), mfaCode: v('loginMfa').trim() };
+  const payload = { identifier: v('loginUser').trim(), password: v('loginPass'), mfaCode: v('loginMfa').trim() };
     const r = await call('/api/v1/authenticate/login', { method:'POST', body: JSON.stringify(payload) });
     out('outLogin', r);
   if (r.json && r.json.token) { accessToken = r.json.token; refreshToken = r.json.refreshToken; updateAuthUi(); }
@@ -94,7 +102,9 @@
   });
   bindClick('btnChangePassword', async () => {
     if (!accessToken) { out('outChangePassword', 'login first'); return; }
-    const r = await call('/api/v1/authenticate/change-password', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ currentPassword: v('cpCurrent'), newPassword: v('cpNew') }) });
+    const newPwd = v('cpNew');
+    if (!meetsPwd(newPwd)) { out('outChangePassword', { ok:false, message:'New password must be \u226512 and include uppercase, lowercase, digit, and symbol.' }); return; }
+    const r = await call('/api/v1/authenticate/change-password', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ currentPassword: v('cpCurrent'), newPassword: newPwd }) });
     out('outChangePassword', r);
     if (r.ok) {
       // Password change bumps token_version and revokes refresh tokens. Require re-login.
@@ -127,17 +137,21 @@
   out('outEmail', r);
   });
   bindClick('btnDoReset', async () => {
-  const r = await call('/api/v1/authenticate/confirm-password-reset', { method:'POST', body: JSON.stringify({ email: v('resetEmail'), token: v('resetToken'), newPassword: v('resetNew') }) });
+    const np = v('resetNew');
+    if (!meetsPwd(np)) { out('outEmail', { ok:false, message:'New password must be \u226512 and include uppercase, lowercase, digit, and symbol.' }); return; }
+    const r = await call('/api/v1/authenticate/confirm-password-reset', { method:'POST', body: JSON.stringify({ email: v('resetEmail'), token: v('resetToken'), newPassword: np }) });
     out('outEmail', r);
   });
   
 
   // Change email
   bindClick('btnChgEmailStart', async () => {
+  if (!accessToken) { out('outChangeEmail', 'login first'); return; }
   const r = await call('/api/v1/authenticate/change-email/start', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ newEmail: v('chgNewEmail') }) });
   out('outChangeEmail', r);
   });
   bindClick('btnChgEmailConfirm', async () => {
+  if (!accessToken) { out('outChangeEmail', 'login first'); return; }
   const r = await call('/api/v1/authenticate/change-email/confirm', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ newEmail: v('chgNewEmail'), token: v('chgToken') }) });
     out('outChangeEmail', r);
     if (r.ok) {
@@ -155,10 +169,15 @@
   });
 
   // MFA
-  bindClick('btnMfaStart', async () => { const r = await call('/api/v1/authenticate/mfa/enroll/start', { method:'POST', headers: { ...auth() } }); out('outMfa', r); });
+  bindClick('btnMfaStart', async () => {
+    const r = await call('/api/v1/authenticate/mfa/enroll/start', { method:'POST', headers: { ...auth() } });
+    out('outMfa', r);
+    if (r.json && r.json.otpauthUrl) { currentOtpauthUrl = r.json.otpauthUrl; }
+  });
   bindClick('btnMfaQr', async () => {
     if (!accessToken) { out('outMfa', 'login first'); return; }
-    const url = base.replace(/\/$/, '') + '/api/v1/authenticate/mfa/qr';
+    if (!currentOtpauthUrl) { out('outMfa', 'Start enrollment first to get otpauthUrl'); return; }
+    const url = base.replace(/\/$/, '') + '/api/v1/mfa/qr?otpauthUrl=' + encodeURIComponent(currentOtpauthUrl);
     const res = await fetch(url, { headers: { ...auth() } });
     if (res.ok) {
       const blob = await res.blob();
@@ -228,4 +247,31 @@
     const r = await call('/api/v1/admin/test-email', { method:'POST', headers: { ...auth() }, body: JSON.stringify(payload) });
     out('outAdmin', r);
   });
+  // Password requirement checker + live checklist
+  function meetsPwd(p){
+    return typeof p === 'string' && p.length >= 12 && /[A-Z]/.test(p) && /[a-z]/.test(p) && /\d/.test(p) && /[^A-Za-z0-9]/.test(p);
+  }
+  function bindPwdChecklist(inputId, prefix){
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    const upd = () => {
+      const val = el.value || '';
+      const checks = {
+        Len: val.length >= 12,
+        Upper: /[A-Z]/.test(val),
+        Lower: /[a-z]/.test(val),
+        Digit: /\d/.test(val),
+        Symbol: /[^A-Za-z0-9]/.test(val),
+      };
+      Object.entries(checks).forEach(([k, ok]) => {
+        const li = document.getElementById(prefix + k);
+        if (li) li.classList.toggle('ok', !!ok);
+      });
+    };
+    el.addEventListener('input', upd);
+    upd();
+  }
+  bindPwdChecklist('regPass','rp');
+  bindPwdChecklist('cpNew','cp');
+  bindPwdChecklist('resetNew','rs');
 })();

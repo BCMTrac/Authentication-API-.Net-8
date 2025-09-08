@@ -4,6 +4,7 @@ namespace AuthenticationAPI.Models
 {
     public class ApplicationUser : IdentityUser
     {
+    public string? FullName { get; set; }
     public string? TenantId { get; set; } // For future multi-tenant support
     public int TokenVersion { get; set; } = 0; // Increment to invalidate existing access tokens
     public bool MfaEnabled { get; set; } = false; // TOTP enabled flag

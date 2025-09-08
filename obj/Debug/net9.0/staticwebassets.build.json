@@ -1,12 +1,1042 @@
 {
   "Version": 1,
-  "Hash": "NDYSYDv+Q2KM9sR6icpYtzuXLcvLFOOUbDpiJeP7DN0=",
+  "Hash": "e1j4Y1eQFE3Whg/Z4vRFIZ6UNOJPX+GCFvUnReWhDXY=",
   "Source": "AuthenticationAPI",
   "BasePath": "_content/AuthenticationAPI",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "AuthenticationAPI\\wwwroot",
+      "Source": "AuthenticationAPI",
+      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
+      "BasePath": "_content/AuthenticationAPI",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-z0um8khwpj.gz",
+      "SourceId": "AuthenticationAPI",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
+      "BasePath": "_content/AuthenticationAPI",
+      "RelativePath": "dev/styles#[.{fingerprint=z0um8khwpj}]?.css.gz",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "qrlzobwwx7",
+      "Integrity": "9nzMLUDpqS1viP6+lq3+f8lvI5o5Q1SNZjh9/h+IwHI=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css"
+    },
+    {
+      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-njohin44rx.gz",
+      "SourceId": "AuthenticationAPI",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
+      "BasePath": "_content/AuthenticationAPI",
+      "RelativePath": "dev/main#[.{fingerprint=njohin44rx}]?.js.gz",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "cyv054fayi",
+      "Integrity": "PDmapVVTSA7u7CmyzzS79r7NKlezgCXlM0B1VG7Xeb8=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js"
+    },
+    {
+      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-797sbusuxd.gz",
+      "SourceId": "AuthenticationAPI",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
+      "BasePath": "_content/AuthenticationAPI",
+      "RelativePath": "dev/index#[.{fingerprint=797sbusuxd}]?.html.gz",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "bi0ctxm3me",
+      "Integrity": "kw7jWK0bd7E4PR91vnH2X/UQrCEkaU092loXmAhhfSs=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html"
+    },
+    {
+      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
+      "SourceId": "AuthenticationAPI",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
+      "BasePath": "_content/AuthenticationAPI",
+      "RelativePath": "dev/index#[.{fingerprint}]?.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "797sbusuxd",
+      "Integrity": "RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\dev\\index.html"
+    },
+    {
+      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
+      "SourceId": "AuthenticationAPI",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
+      "BasePath": "_content/AuthenticationAPI",
+      "RelativePath": "dev/main#[.{fingerprint}]?.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "njohin44rx",
+      "Integrity": "g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\dev\\main.js"
+    },
+    {
+      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
+      "SourceId": "AuthenticationAPI",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
+      "BasePath": "_content/AuthenticationAPI",
+      "RelativePath": "dev/styles#[.{fingerprint}]?.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "z0um8khwpj",
+      "Integrity": "fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\dev\\styles.css"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "dev/index.797sbusuxd.html",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-797sbusuxd.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000312304809"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3201"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"kw7jWK0bd7E4PR91vnH2X/UQrCEkaU092loXmAhhfSs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:22:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "797sbusuxd"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/index.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA="
+        }
+      ]
+    },
+    {
+      "Route": "dev/index.797sbusuxd.html",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "12165"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:22:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "797sbusuxd"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/index.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA="
+        }
+      ]
+    },
+    {
+      "Route": "dev/index.797sbusuxd.html.gz",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-797sbusuxd.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3201"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"kw7jWK0bd7E4PR91vnH2X/UQrCEkaU092loXmAhhfSs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:22:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "797sbusuxd"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/index.html.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-kw7jWK0bd7E4PR91vnH2X/UQrCEkaU092loXmAhhfSs="
+        }
+      ]
+    },
+    {
+      "Route": "dev/index.html",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-797sbusuxd.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000312304809"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3201"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"kw7jWK0bd7E4PR91vnH2X/UQrCEkaU092loXmAhhfSs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:22:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA="
+        }
+      ]
+    },
+    {
+      "Route": "dev/index.html",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "12165"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:22:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-RYmspPw7qaudVjf1q3QVETO6VL+Uq5doo9pUMMFsVvA="
+        }
+      ]
+    },
+    {
+      "Route": "dev/index.html.gz",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-797sbusuxd.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3201"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"kw7jWK0bd7E4PR91vnH2X/UQrCEkaU092loXmAhhfSs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:22:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-kw7jWK0bd7E4PR91vnH2X/UQrCEkaU092loXmAhhfSs="
+        }
+      ]
+    },
+    {
+      "Route": "dev/main.js",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-njohin44rx.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000300751880"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3324"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"PDmapVVTSA7u7CmyzzS79r7NKlezgCXlM0B1VG7Xeb8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:21:09 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw="
+        }
+      ]
+    },
+    {
+      "Route": "dev/main.js",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "14075"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:21:09 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw="
+        }
+      ]
+    },
+    {
+      "Route": "dev/main.js.gz",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-njohin44rx.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3324"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"PDmapVVTSA7u7CmyzzS79r7NKlezgCXlM0B1VG7Xeb8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:21:09 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-PDmapVVTSA7u7CmyzzS79r7NKlezgCXlM0B1VG7Xeb8="
+        }
+      ]
+    },
+    {
+      "Route": "dev/main.njohin44rx.js",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-njohin44rx.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000300751880"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3324"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"PDmapVVTSA7u7CmyzzS79r7NKlezgCXlM0B1VG7Xeb8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:21:09 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "njohin44rx"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/main.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw="
+        }
+      ]
+    },
+    {
+      "Route": "dev/main.njohin44rx.js",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "14075"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:21:09 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "njohin44rx"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/main.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-g+RyUnvW9RUaWE4P6O8/spLV6VUGv/gDx8/XlqHc+Lw="
+        }
+      ]
+    },
+    {
+      "Route": "dev/main.njohin44rx.js.gz",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-njohin44rx.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3324"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"PDmapVVTSA7u7CmyzzS79r7NKlezgCXlM0B1VG7Xeb8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:21:09 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "njohin44rx"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/main.js.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-PDmapVVTSA7u7CmyzzS79r7NKlezgCXlM0B1VG7Xeb8="
+        }
+      ]
+    },
+    {
+      "Route": "dev/styles.css",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-z0um8khwpj.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000989119683"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1010"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"9nzMLUDpqS1viP6+lq3+f8lvI5o5Q1SNZjh9/h+IwHI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:16:49 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM="
+        }
+      ]
+    },
+    {
+      "Route": "dev/styles.css",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "2396"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:16:49 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM="
+        }
+      ]
+    },
+    {
+      "Route": "dev/styles.css.gz",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-z0um8khwpj.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1010"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"9nzMLUDpqS1viP6+lq3+f8lvI5o5Q1SNZjh9/h+IwHI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:16:49 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-9nzMLUDpqS1viP6+lq3+f8lvI5o5Q1SNZjh9/h+IwHI="
+        }
+      ]
+    },
+    {
+      "Route": "dev/styles.z0um8khwpj.css",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-z0um8khwpj.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000989119683"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1010"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"9nzMLUDpqS1viP6+lq3+f8lvI5o5Q1SNZjh9/h+IwHI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:16:49 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "z0um8khwpj"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/styles.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM="
+        }
+      ]
+    },
+    {
+      "Route": "dev/styles.z0um8khwpj.css",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "2396"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:16:49 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "z0um8khwpj"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/styles.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-fdYAzxWcXqSPW1lqZiRU3T56rmChmNEoE9zUWDZR4BM="
+        }
+      ]
+    },
+    {
+      "Route": "dev/styles.z0um8khwpj.css.gz",
+      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-z0um8khwpj.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1010"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"9nzMLUDpqS1viP6+lq3+f8lvI5o5Q1SNZjh9/h+IwHI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Sep 2025 11:16:49 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "z0um8khwpj"
+        },
+        {
+          "Name": "label",
+          "Value": "dev/styles.css.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-9nzMLUDpqS1viP6+lq3+f8lvI5o5Q1SNZjh9/h+IwHI="
+        }
+      ]
+    }
+  ]
 }

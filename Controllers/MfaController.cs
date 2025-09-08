@@ -1,6 +1,7 @@
 using AuthenticationAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QRCoder;
 
 namespace AuthenticationAPI.Controllers;
 
@@ -16,6 +17,10 @@ public class MfaController : ControllerBase
     public IActionResult GetQr([FromQuery] string otpauthUrl)
     {
         if (string.IsNullOrWhiteSpace(otpauthUrl)) return BadRequest(new { error = "Missing otpauthUrl" });
-        return StatusCode(501, new { message = "QR PNG/SVG generation not installed on server. Use the otpauthUrl client-side or install QRCoder.", otpauthUrl });
+        using var qrGenerator = new QRCodeGenerator();
+        using var qrCodeData = qrGenerator.CreateQrCode(otpauthUrl, QRCodeGenerator.ECCLevel.Q);
+        using var qrCode = new PngByteQRCode(qrCodeData);
+        var bytes = qrCode.GetGraphic(20);
+        return File(bytes, "image/png");
     }
 }

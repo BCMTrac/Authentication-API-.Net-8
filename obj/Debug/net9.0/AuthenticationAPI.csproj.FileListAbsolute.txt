@@ -1,5 +1,6 @@
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\appsettings.Development.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\appsettings.json
+c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\AuthenticationAPI.staticwebassets.runtime.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\AuthenticationAPI.staticwebassets.endpoints.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\AuthenticationAPI.exe
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\bin\Debug\net9.0\AuthenticationAPI.deps.json
@@ -162,7 +163,11 @@ c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\Authenti
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\AuthenticationAPI.csproj.CoreCompileInputs.cache
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\AuthenticationAPI.MvcApplicationPartsAssemblyInfo.cs
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\AuthenticationAPI.MvcApplicationPartsAssemblyInfo.cache
+c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\AuthenticationAPI.sourcelink.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\scopedcss\bundle\AuthenticationAPI.styles.css
+c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\compressed\yc3n2m9aue-797sbusuxd.gz
+c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\compressed\v6xfjld0j7-njohin44rx.gz
+c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\compressed\474klkkjth-z0um8khwpj.gz
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\staticwebassets.build.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\staticwebassets.development.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\staticwebassets.build.endpoints.json

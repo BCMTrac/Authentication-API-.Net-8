@@ -80,7 +80,14 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var user = await _userManager.FindByNameAsync(model.Username);
+            if (string.IsNullOrEmpty(model.Identifier) || string.IsNullOrEmpty(model.Password) || model.Password.Length > 256)
+            {
+                return Unauthorized(); // DoS guard / generic response
+            }
+            var looksLikeEmail = model.Identifier!.Contains('@');
+            ApplicationUser? user = looksLikeEmail
+                ? await _userManager.FindByEmailAsync(model.Identifier!)
+                : await _userManager.FindByNameAsync(model.Identifier!);
             if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password)) return Unauthorized();
             if (!user.EmailConfirmed)
             {
@@ -166,28 +173,70 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
+            // Deny passwords that contain the username or email local part
+            var emailLocal = (model.Email?.Split('@').FirstOrDefault() ?? string.Empty);
+            if (!string.IsNullOrEmpty(model.Password))
+            {
+                var pwLower = model.Password.ToLowerInvariant();
+                if ((!string.IsNullOrWhiteSpace(emailLocal) && pwLower.Contains(emailLocal.ToLowerInvariant())) ||
+                    (!string.IsNullOrWhiteSpace(model.Username) && pwLower.Contains(model.Username.ToLowerInvariant())))
+                {
+                    return BadRequest(new { message = "Password is too similar to account identifiers." });
+                }
+            }
+
+            // Optional compromised password check (no-op default)
+            var compromised = await HttpContext.RequestServices.GetRequiredService<IPasswordBreachChecker>().IsCompromisedAsync(model.Password);
+            if (compromised)
+            {
+                return BadRequest(new { message = "This password appears in known breaches. Choose a different one." });
+            }
+
+            // Enforce uniqueness by email and username
             var userExists = await _userManager.FindByNameAsync(model.Username);
             if (userExists != null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Status = "Error", Message = "User already exists!" });
+                return BadRequest(new { message = "If that email exists, we've sent a confirmation link." });
+            var emailExists = await _userManager.FindByEmailAsync(model.Email!);
+            if (emailExists != null)
+            {
+                // Always generic to prevent email enumeration
+                return Ok(new { message = "If that email exists, we've sent a confirmation link." });
+            }
 
             ApplicationUser user = new()
             {
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.Username
+                UserName = model.Username,
+                FullName = string.IsNullOrWhiteSpace(model.FullName) ? null : model.FullName
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
                 return BadRequest(new
                 {
-                    Status = "Error",
-                    Message = "User creation failed",
-                    Errors = result.Errors.Select(e => e.Description)
+                    message = "User creation failed",
+                    errors = result.Errors.Select(e => e.Description)
                 });
 
             await _userManager.AddToRoleAsync(user, "User");
 
-            return Ok(new { Status = "Success", Message = "User created successfully!" });
+            // Optionally capture phone for future MFA via SMS (unconfirmed)
+            if (!string.IsNullOrWhiteSpace(model.Phone))
+            {
+                user.PhoneNumber = model.Phone;
+                await _userManager.UpdateAsync(user);
+            }
+
+            // Send email confirmation token (generic response regardless of delivery)
+            try
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                await _email.SendAsync(user.Email!, "Confirm your email",
+                    $"Use this token to confirm your email: {token}");
+            }
+            catch { /* hide email provider errors from client */ }
+
+            return Ok(new { message = "If that email exists, we've sent a confirmation link." });
         }
 
         [HttpPost]
@@ -396,8 +445,15 @@ namespace AuthenticationAPI.Controllers
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok(); // do not reveal existence
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
+            try
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
+            }
+            catch
+            {
+                // Swallow email transport errors; respond generically
+            }
             return Ok(new { sent = true });
         }
 
@@ -420,13 +476,21 @@ namespace AuthenticationAPI.Controllers
 
         [HttpPost("request-email-confirm")]
         [AllowAnonymous]
+        [EnableRateLimiting("otp")]
         public async Task<IActionResult> RequestEmailConfirm([FromBody] EmailRequestDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok();
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            await _email.SendAsync(user.Email!, "Email confirmation",
-                $"Use this token to confirm your email: {token}");
+            try
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                await _email.SendAsync(user.Email!, "Email confirmation",
+                    $"Use this token to confirm your email: {token}");
+            }
+            catch
+            {
+                // Swallow email transport errors to avoid leaking server details; client receives generic response
+            }
             return Ok(new { sent = true });
         }
 
@@ -438,6 +502,10 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return BadRequest(new { error = "Invalid email" });
             if (user.EmailConfirmed) return Ok(new { emailConfirmed = true });
+            if (string.IsNullOrWhiteSpace(dto.Token) || dto.Token.Length > 256 || dto.Token.Any(char.IsWhiteSpace))
+            {
+                return BadRequest(new { message = "Invalid or expired confirmation token." });
+            }
             try
             {
                 var normToken = NormalizeToken(dto.Token);
