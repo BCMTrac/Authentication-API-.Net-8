@@ -343,8 +343,13 @@ using (var scope = app.Services.CreateScope())
     {
         var dbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.ApplicationDbContext>();
         await dbCtx.Database.MigrateAsync();
+        // Defensive: ensure FullName exists on AspNetUsers even if migration discovery fails (DEV only)
+        await dbCtx.Database.ExecuteSqlRawAsync("IF COL_LENGTH('dbo.AspNetUsers','FullName') IS NULL ALTER TABLE dbo.AspNetUsers ADD FullName nvarchar(100) NULL;");
     }
-    catch { /* swallow migration errors; health checks will report issues */ }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Migration failed: {ex.Message}");
+    }
 
     await Seed.SeedRoles(scope.ServiceProvider);
     await Seed.SeedPermissions(scope.ServiceProvider);
