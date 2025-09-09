@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Authorization;
 using AuthenticationAPI.Services.Email;
 using Microsoft.AspNetCore.RateLimiting;
 using QRCoder; // add QR code generator types
-using Microsoft.AspNetCore.Http;
 
 namespace AuthenticationAPI.Controllers
 {
@@ -33,7 +32,6 @@ namespace AuthenticationAPI.Controllers
     private readonly IRecoveryCodeService _recoveryCodes;
     private readonly AuthenticationAPI.Services.Throttle.IThrottleService _throttle;
     private readonly ISessionService _sessions;
-    private readonly IHostEnvironment _env;
 
         public AuthenticateController(
             UserManager<ApplicationUser> userManager,
@@ -47,8 +45,7 @@ namespace AuthenticationAPI.Controllers
             IMfaSecretProtector protector,
             IRecoveryCodeService recoveryCodes,
             AuthenticationAPI.Services.Throttle.IThrottleService throttle,
-            ISessionService sessions,
-            IHostEnvironment env)
+            ISessionService sessions)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -62,7 +59,6 @@ namespace AuthenticationAPI.Controllers
             _recoveryCodes = recoveryCodes;
             _throttle = throttle;
             _sessions = sessions;
-            _env = env;
         }
 
         private static string NormalizeToken(string token)
@@ -79,18 +75,7 @@ namespace AuthenticationAPI.Controllers
             }
         }
 
-        private static string? GetRefreshFromCookie(HttpRequest request)
-            => request.Cookies["refresh_token"];
-
-        private static CookieOptions BuildRefreshCookieOptions(DateTime expiresUtc)
-            => new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = expiresUtc,
-                Path = "/api/v1/authenticate"
-            };
+        // Cookies removed: refresh tokens are passed only in request bodies now.
 
         [HttpPost]
         [Route("login")]
@@ -106,7 +91,24 @@ namespace AuthenticationAPI.Controllers
             ApplicationUser? user = looksLikeEmail
                 ? await _userManager.FindByEmailAsync(model.Identifier!)
                 : await _userManager.FindByNameAsync(model.Identifier!);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password)) return Unauthorized();
+            if (user == null)
+            {
+                // Generic auth failure
+                return Unauthorized();
+            }
+            // Enforce admin/user lockouts
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                return Unauthorized(new { error = "Account is locked" });
+            }
+            // Verify password and track failures for lockout policy
+            var validPassword = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (!validPassword)
+            {
+                await _userManager.AccessFailedAsync(user);
+                return Unauthorized();
+            }
+            await _userManager.ResetAccessFailedCountAsync(user);
             if (!user.EmailConfirmed)
             {
                 return Unauthorized(new { error = "Email not confirmed" });
@@ -185,8 +187,7 @@ namespace AuthenticationAPI.Controllers
             authClaims.Add(new Claim("sid", session.Id.ToString()));
             var token = GetToken(authClaims);
             var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
-            // Set refresh token as Secure, HttpOnly cookie (also return in body for backward compatibility)
-            Response.Cookies.Append("refresh_token", refreshToken, BuildRefreshCookieOptions(refreshExp));
+            // Return refresh token only in response body (no cookies)
 
             return Ok(new TokenSetResponse
             {
@@ -361,11 +362,9 @@ namespace AuthenticationAPI.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshRequest? request)
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
-            var fromBody = request?.RefreshToken;
-            var fromCookie = GetRefreshFromCookie(Request);
-            var provided = string.IsNullOrWhiteSpace(fromBody) ? fromCookie : fromBody;
+            var provided = request.RefreshToken;
             if (string.IsNullOrWhiteSpace(provided)) return Unauthorized();
             var stored = await _refreshTokenService.ValidateAsync(provided);
             if (stored == null)
@@ -398,8 +397,6 @@ namespace AuthenticationAPI.Controllers
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var (newRefresh, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, stored.SessionId ?? Guid.Empty);
             await _refreshTokenService.RevokeAndLinkAsync(provided!, newRefresh, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
-            // Rotate cookie to new refresh token
-            Response.Cookies.Append("refresh_token", newRefresh, BuildRefreshCookieOptions(refreshExp));
             return Ok(new TokenSetResponse
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
@@ -411,9 +408,9 @@ namespace AuthenticationAPI.Controllers
 
         [HttpPost("logout")]
         [Authorize]
-        public async Task<IActionResult> Logout([FromBody] RefreshRequest? request)
+        public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
         {
-            var provided = !string.IsNullOrWhiteSpace(request?.RefreshToken) ? request!.RefreshToken : GetRefreshFromCookie(Request);
+            var provided = request.RefreshToken;
             // Revoke the session associated with the provided refresh token
             var stored = string.IsNullOrWhiteSpace(provided) ? null : await _refreshTokenService.ValidateAsync(provided!);
             if (stored == null)
@@ -422,8 +419,6 @@ namespace AuthenticationAPI.Controllers
                 {
                     await _refreshTokenService.HandleReuseAttemptAsync(provided!);
                 }
-                // Clear cookie regardless for idempotency
-                Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" });
                 return Ok(); // idempotent
             }
             if (stored.SessionId.HasValue)
@@ -435,7 +430,6 @@ namespace AuthenticationAPI.Controllers
                 // No session tracked: best-effort revoke this token only
                 await _refreshTokenService.RevokeAsync(provided!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "logout");
             }
-            Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" });
             return Ok();
         }
 
@@ -448,7 +442,6 @@ namespace AuthenticationAPI.Controllers
             await _sessions.RevokeAllForUserAsync(user.Id, "logout-all");
             user.TokenVersion += 1; // invalidate access tokens too
             await _userManager.UpdateAsync(user);
-            Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" });
             return Ok();
         }
 
@@ -513,12 +506,9 @@ namespace AuthenticationAPI.Controllers
             {
                 await _email.SendAsync(dto.NewEmail, "Confirm your new email", $"Use this token to confirm your new email: {token}");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (_env.IsDevelopment())
-                {
-                    Console.WriteLine($"[EMAIL-ERR][change-email-start] to={dto.NewEmail} ex={ex.Message}");
-                }
+                // Do not fail due to email delivery issues. Log removed for production.
             }
             return Ok(new SentResponse { Sent = true });
         }
@@ -564,12 +554,11 @@ namespace AuthenticationAPI.Controllers
         }
         
         [HttpPost("revoke-refresh")]
-        public async Task<IActionResult> RevokeRefresh([FromBody] RefreshRequest? request)
+        public async Task<IActionResult> RevokeRefresh([FromBody] RefreshRequest request)
         {
-            var provided = !string.IsNullOrWhiteSpace(request?.RefreshToken) ? request!.RefreshToken : GetRefreshFromCookie(Request);
-            if (string.IsNullOrWhiteSpace(provided)) { Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" }); return NotFound(); }
+            var provided = request.RefreshToken;
+            if (string.IsNullOrWhiteSpace(provided)) { return NotFound(); }
             var ok = await _refreshTokenService.RevokeAsync(provided!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "manual");
-            Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" });
             return ok ? Ok() : NotFound();
         }
 
@@ -602,14 +591,9 @@ namespace AuthenticationAPI.Controllers
                     await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Swallow; log in Development to aid troubleshooting
-                if (_env.IsDevelopment())
-                {
-                    Console.WriteLine($"[EMAIL-ERR][password-reset-request] to={dto.Email} ex={ex.Message}");
-                    return StatusCode(StatusCodes.Status502BadGateway, new SentResponse { Sent = false });
-                }
+                // Swallow; do not log in production.
             }
             return Ok(new SentResponse { Sent = true });
         }
@@ -686,13 +670,9 @@ namespace AuthenticationAPI.Controllers
                 await _email.SendAsync(user.Email!, "Email confirmation",
                     $"Use this token to confirm your email: {token}");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Swallow; log in Development to aid troubleshooting
-                if (_env.IsDevelopment())
-                {
-                    Console.WriteLine($"[EMAIL-ERR][request-email-confirm] to={dto.Email} ex={ex.Message}");
-                }
+                // Swallow; do not log in production.
             }
             return Ok(new SentResponse { Sent = true });
         }

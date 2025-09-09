@@ -68,19 +68,8 @@ public static class Seed
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-        var fullNameFromEnv = configuration["SeedAdmin:FullName"];
-        var phoneFromEnv = configuration["SeedAdmin:Phone"];
-
-        // Defensive: ensure FullName column exists before any queries that materialize ApplicationUser
-        try
-        {
-            await context.Database.ExecuteSqlRawAsync(
-                "IF COL_LENGTH('dbo.AspNetUsers','FullName') IS NULL ALTER TABLE dbo.AspNetUsers ADD FullName nvarchar(100) NULL;");
-        }
-        catch
-        {
-            // Ignore: may lack permissions; subsequent code may still succeed if column exists
-        }
+    var fullNameFromEnv = configuration["SeedAdmin:FullName"];
+    var phoneFromEnv = configuration["SeedAdmin:Phone"];
 
         // Ensure Admin role exists
         if (!await roleManager.RoleExistsAsync("Admin"))
@@ -128,34 +117,7 @@ public static class Seed
                 throw new InvalidOperationException("Failed to create seed admin user: " + string.Join(",", createResult.Errors.Select(e => e.Description)));
             }
         }
-        else
-        {
-            // Ensure the known password (dev-only); in prod, disable or use one-time reset
-            var resetToken = await userManager.GeneratePasswordResetTokenAsync(admin);
-            var reset = await userManager.ResetPasswordAsync(admin, resetToken, password);
-            // If password policy blocks it, the earlier Program.cs change loosens RequireDigit
-            // Update profile details from env if provided
-            bool changed = false;
-            if (!string.IsNullOrWhiteSpace(fullNameFromEnv) && admin.FullName != fullNameFromEnv)
-            {
-                admin.FullName = fullNameFromEnv;
-                changed = true;
-            }
-            if (!string.IsNullOrWhiteSpace(phoneFromEnv) && admin.PhoneNumber != phoneFromEnv)
-            {
-                admin.PhoneNumber = phoneFromEnv;
-                changed = true;
-            }
-            if (changed)
-            {
-                await userManager.UpdateAsync(admin);
-            }
-        }
-        if (!await userManager.IsInRoleAsync(admin, "Admin"))
-        {
-            await userManager.AddToRoleAsync(admin, "Admin");
-        }
-
+        // In production, do not reset password or update profile details automatically for existing admin.
         // Ensure permissions assigned to role (reuse existing logic lightly)
         var allPerms = await context.Permissions.ToListAsync();
         var adminRole = await roleManager.FindByNameAsync("Admin");

@@ -44,7 +44,7 @@
   async function call(path, opts = {}) {
     const url = base.replace(/\/$/, '') + path;
     try {
-      const res = await fetch(url, { ...(opts || {}), credentials: 'include', headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+      const res = await fetch(url, { ...(opts || {}), headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) } });
       const text = await res.text();
       try {
         const json = JSON.parse(text);

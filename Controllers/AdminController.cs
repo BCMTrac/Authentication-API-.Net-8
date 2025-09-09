@@ -90,15 +90,3 @@ public partial class AdminController : ControllerBase
     }
 }
 
-public partial class AdminController
-{
-    public record TestEmailDto(string To, string Subject, string Body);
-
-    [HttpPost("test-email")]
-    public async Task<IActionResult> SendTestEmail([FromBody] TestEmailDto dto)
-    {
-        if (string.IsNullOrWhiteSpace(dto.To)) return BadRequest(new { error = "Missing 'to'" });
-        await _email.SendAsync(dto.To, string.IsNullOrWhiteSpace(dto.Subject) ? "Test Email" : dto.Subject, dto.Body ?? "This is a test email from Authentication API.");
-        return Ok(new { sent = true });
-    }
-}

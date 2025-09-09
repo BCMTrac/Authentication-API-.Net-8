@@ -209,8 +209,7 @@ builder.Services.AddCors(policy =>
     policy.AddPolicy("Default", p => p
         .WithOrigins(origins)
         .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials());
+        .AllowAnyMethod());
 });
 
 builder.Services.AddHealthChecks()
@@ -403,13 +402,7 @@ app.Use(async (ctx, next) =>
 });
 
 // Enforce secure cookie defaults for any cookie usage
-app.UseCookiePolicy(new CookiePolicyOptions
-{
-    Secure = CookieSecurePolicy.Always,
-    HttpOnly = HttpOnlyPolicy.Always,
-    // Allow per-cookie SameSite=None for refresh cookie
-    MinimumSameSitePolicy = SameSiteMode.None
-});
+// Cookies are not used for auth; cookie policy middleware removed.
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -457,8 +450,6 @@ using (var scope = app.Services.CreateScope())
     {
         var dbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.ApplicationDbContext>();
         await dbCtx.Database.MigrateAsync();
-        // Defensive: ensure FullName exists on AspNetUsers even if migration discovery fails (DEV only)
-        await dbCtx.Database.ExecuteSqlRawAsync("IF COL_LENGTH('dbo.AspNetUsers','FullName') IS NULL ALTER TABLE dbo.AspNetUsers ADD FullName nvarchar(100) NULL;");
     }
     catch (Exception ex)
     {
@@ -469,22 +460,13 @@ using (var scope = app.Services.CreateScope())
     {
         await Seed.SeedRoles(scope.ServiceProvider);
         await Seed.SeedPermissions(scope.ServiceProvider);
-        // Admin user seed. In non-Development, require env/user-secrets to provide credentials.
-        // Environment variables keys: SeedAdmin__Email and SeedAdmin__Password (double underscore)
-        var env = app.Environment;
+        // Only seed admin user if credentials are provided
         var adminEmail = configuration["SeedAdmin:Email"];
         var adminPassword = configuration["SeedAdmin:Password"];
-        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+        if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
         {
-            if (!env.IsDevelopment())
-            {
-                throw new InvalidOperationException("Missing SeedAdmin__Email/SeedAdmin__Password. Set them via environment variables or user-secrets.");
-            }
-            // Development fallback
-            adminEmail ??= "admin@local";
-            adminPassword ??= "Change_this_Admin1!";
+            await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail, adminPassword);
         }
-        await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail!, adminPassword!);
     }
     catch (Exception ex)
     {
