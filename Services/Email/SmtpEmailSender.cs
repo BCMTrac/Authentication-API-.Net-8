@@ -24,6 +24,9 @@ public sealed class SmtpEmailSender : IEmailSender
 			Subject = subject,
 			Body = body
 		};
+		// Heuristic: mark as HTML if content looks like HTML
+		var looksHtml = !string.IsNullOrWhiteSpace(body) && (body.TrimStart().StartsWith("<html", StringComparison.OrdinalIgnoreCase) || body.TrimStart().StartsWith("<!doctype html", StringComparison.OrdinalIgnoreCase));
+		msg.IsBodyHtml = looksHtml;
 		msg.To.Add(new MailAddress(to));
 		await client.SendMailAsync(msg, ct);
 	}

@@ -212,28 +212,6 @@ namespace AuthenticationAPI.Migrations
                     b.ToTable("IdempotencyRecords");
                 });
 
-            modelBuilder.Entity("AuthenticationAPI.Models.Permission", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("Permissions");
-                });
 
             modelBuilder.Entity("AuthenticationAPI.Models.RefreshToken", b =>
                 {
@@ -288,21 +266,6 @@ namespace AuthenticationAPI.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
-            modelBuilder.Entity("AuthenticationAPI.Models.RolePermission", b =>
-                {
-                    b.Property<string>("RoleId")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<Guid>("PermissionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("RoleId", "PermissionId");
-
-                    b.HasIndex("PermissionId");
-
-                    b.ToTable("RolePermissions");
-                });
 
             modelBuilder.Entity("AuthenticationAPI.Models.Session", b =>
                 {
@@ -567,24 +530,6 @@ namespace AuthenticationAPI.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AuthenticationAPI.Models.RolePermission", b =>
-                {
-                    b.HasOne("AuthenticationAPI.Models.Permission", "Permission")
-                        .WithMany("RolePermissions")
-                        .HasForeignKey("PermissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Permission");
-
-                    b.Navigation("Role");
-                });
 
             modelBuilder.Entity("AuthenticationAPI.Models.Session", b =>
                 {
@@ -648,10 +593,7 @@ namespace AuthenticationAPI.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AuthenticationAPI.Models.Permission", b =>
-                {
-                    b.Navigation("RolePermissions");
-                });
+
 #pragma warning restore 612, 618
         }
     }

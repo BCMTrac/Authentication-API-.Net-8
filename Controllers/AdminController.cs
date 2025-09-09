@@ -1,5 +1,6 @@
 using AuthenticationAPI.Models;
 using AuthenticationAPI.Services;
+using AuthenticationAPI.Services.Email;
 using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,16 +17,19 @@ public partial class AdminController : ControllerBase
     private readonly AuthenticationAPI.Data.ApplicationDbContext _db;
     private readonly ISessionService _sessions;
     private readonly AuthenticationAPI.Services.Email.IEmailSender _email;
+    private readonly IEmailTemplateRenderer _templates;
     public AdminController(
         UserManager<ApplicationUser> userManager,
         AuthenticationAPI.Data.ApplicationDbContext db,
         ISessionService sessions,
-        AuthenticationAPI.Services.Email.IEmailSender email)
+        AuthenticationAPI.Services.Email.IEmailSender email,
+        IEmailTemplateRenderer templates)
     {
         _userManager = userManager;
         _db = db;
         _sessions = sessions;
         _email = email;
+        _templates = templates;
     }
 
     [HttpPost("users/{id}/bump-token-version")]
@@ -88,5 +92,22 @@ public partial class AdminController : ControllerBase
         var res = await _userManager.UpdateAsync(user);
         return res.Succeeded ? Ok() : StatusCode(500, new { error = "Failed to unlock user" });
     }
+
+    [HttpPost("test-email")]
+    public async Task<IActionResult> SendTestEmail([FromBody] TestEmailDto dto)
+    {
+        if (dto == null || string.IsNullOrWhiteSpace(dto.To)) return BadRequest();
+        string subject = string.IsNullOrWhiteSpace(dto.Subject) ? "Test Email" : dto.Subject!;
+        string body = string.IsNullOrWhiteSpace(dto.Body) ? "Hello from AuthenticationAPI" : dto.Body!;
+        await _email.SendAsync(dto.To!, subject, body);
+        return Ok(new { sent = true });
+    }
+}
+
+public class TestEmailDto
+{
+    public string? To { get; set; }
+    public string? Subject { get; set; }
+    public string? Body { get; set; }
 }
 

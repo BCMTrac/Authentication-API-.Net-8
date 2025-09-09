@@ -23,11 +23,13 @@ namespace AuthenticationAPI.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
-    private readonly ApplicationDbContext _db;
+        private readonly ApplicationDbContext _db;
+        private readonly AppDbContext _appDb;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IKeyRingService _keyRing;
     private readonly ITotpService _totp;
     private readonly IEmailSender _email;
+    private readonly IEmailTemplateRenderer _templates;
     private readonly IMfaSecretProtector _protector;
     private readonly IRecoveryCodeService _recoveryCodes;
     private readonly AuthenticationAPI.Services.Throttle.IThrottleService _throttle;
@@ -38,10 +40,12 @@ namespace AuthenticationAPI.Controllers
             RoleManager<IdentityRole> roleManager,
             IConfiguration configuration,
             ApplicationDbContext db,
+            AppDbContext appDb,
             IRefreshTokenService refreshTokenService,
             IKeyRingService keyRing,
             ITotpService totp,
             IEmailSender email,
+            IEmailTemplateRenderer templates,
             IMfaSecretProtector protector,
             IRecoveryCodeService recoveryCodes,
             AuthenticationAPI.Services.Throttle.IThrottleService throttle,
@@ -51,10 +55,12 @@ namespace AuthenticationAPI.Controllers
             _roleManager = roleManager;
             _configuration = configuration;
             _db = db;
+            _appDb = appDb;
             _refreshTokenService = refreshTokenService;
             _keyRing = keyRing;
             _totp = totp;
             _email = email;
+            _templates = templates;
             _protector = protector;
             _recoveryCodes = recoveryCodes;
             _throttle = throttle;
@@ -161,7 +167,7 @@ namespace AuthenticationAPI.Controllers
                 .Select(r => r.Id)
                 .ToListAsync();
 
-            var permissions = await _db.RolePermissions
+            var permissions = await _appDb.RolePermissions
                 .Where(rp => roleIds.Contains(rp.RoleId))
                 .Include(rp => rp.Permission)
                 .Select(rp => rp.Permission!.Name)
@@ -306,8 +312,17 @@ namespace AuthenticationAPI.Controllers
             try
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                await _email.SendAsync(user.Email!, "Confirm your email",
-                    $"Use this token to confirm your email: {token}");
+                var confirmUrlBase = _configuration["Email:EmailConfirm:Url"] ?? string.Empty;
+                string? link = string.IsNullOrWhiteSpace(confirmUrlBase) ? null : $"{confirmUrlBase}?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
+                var (html, text) = await _templates.RenderAsync("email-confirm", new Dictionary<string,string>
+                {
+                    ["Title"] = "Confirm your email",
+                    ["Intro"] = "Thanks for signing up. Please confirm your email to activate your account.",
+                    ["ActionText"] = "Confirm Email",
+                    ["ActionUrl"] = link ?? string.Empty,
+                    ["Token"] = link == null ? token : string.Empty
+                });
+                await _email.SendAsync(user.Email!, "Confirm your email", html);
             }
             catch (Exception ex)
             {
@@ -389,7 +404,7 @@ namespace AuthenticationAPI.Controllers
             var roleIds = await _roleManager.Roles
                 .Where(r => userRoles.Contains(r.Name!))
                 .Select(r => r.Id).ToListAsync();
-            var permissions = await _db.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId))
+            var permissions = await _appDb.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId))
                 .Include(rp => rp.Permission)
                 .Select(rp => rp.Permission!.Name).Distinct().ToListAsync();
             foreach (var p in permissions) claims.Add(new Claim("scope", p));
@@ -452,9 +467,12 @@ namespace AuthenticationAPI.Controllers
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
-            // Prevent reuse of recent passwords (last 5) and within last 1 day
+            // Prevent reuse of recent passwords and enforce minimum age based on config
+            var reuseWindow = int.TryParse(_configuration["PasswordHistory:ReuseWindowCount"], out var rw) ? Math.Max(1, rw) : 5;
+            var minAgeHours = int.TryParse(_configuration["PasswordHistory:MinAgeHours"], out var mh) ? Math.Max(1, mh) : 24;
+            var totalHistory = await _db.PasswordHistory.CountAsync(ph => ph.UserId == user.Id);
             var recent = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
-                .OrderByDescending(ph => ph.CreatedUtc).Take(5).ToListAsync();
+                .OrderByDescending(ph => ph.CreatedUtc).Take(reuseWindow).ToListAsync();
             var hasher = HttpContext.RequestServices.GetRequiredService<IPasswordHasher<ApplicationUser>>();
             foreach (var ph in recent)
             {
@@ -463,7 +481,8 @@ namespace AuthenticationAPI.Controllers
                 {
                     return BadRequest(new ApiMessage { Message = "New password must not match your recent passwords." });
                 }
-                if ((DateTime.UtcNow - ph.CreatedUtc).TotalDays < 1)
+                // Allow immediate change for brand new accounts (initial history entry)
+                if (totalHistory > 1 && (DateTime.UtcNow - ph.CreatedUtc).TotalHours < minAgeHours)
                 {
                     return BadRequest(new ApiMessage { Message = "Password was changed recently. Try again later." });
                 }
@@ -504,7 +523,17 @@ namespace AuthenticationAPI.Controllers
             // Send to the new address to prove control
             try
             {
-                await _email.SendAsync(dto.NewEmail, "Confirm your new email", $"Use this token to confirm your new email: {token}");
+                var confirmUrlBase = _configuration["Email:EmailConfirm:Url"] ?? string.Empty;
+                string? link = string.IsNullOrWhiteSpace(confirmUrlBase) ? null : $"{confirmUrlBase}?email={Uri.EscapeDataString(dto.NewEmail)}&token={Uri.EscapeDataString(token)}";
+                var (html, text) = await _templates.RenderAsync("email-change", new Dictionary<string,string>
+                {
+                    ["Title"] = "Confirm your new email",
+                    ["Intro"] = "Confirm this new email address to complete the change.",
+                    ["ActionText"] = "Confirm New Email",
+                    ["ActionUrl"] = link ?? string.Empty,
+                    ["Token"] = link == null ? token : string.Empty
+                });
+                await _email.SendAsync(dto.NewEmail, "Confirm your new email", html);
             }
             catch (Exception)
             {
@@ -581,15 +610,16 @@ namespace AuthenticationAPI.Controllers
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var resetUrl = _configuration["PasswordReset:Url"];
-                if (!string.IsNullOrWhiteSpace(resetUrl))
+                string? link = string.IsNullOrWhiteSpace(resetUrl) ? null : $"{resetUrl}?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
+                var (html, text) = await _templates.RenderAsync("password-reset", new Dictionary<string,string>
                 {
-                    var link = $"{resetUrl}?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
-                    await _email.SendAsync(user.Email!, "Password reset", $"Click the link to reset your password: {link}");
-                }
-                else
-                {
-                    await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
-                }
+                    ["Title"] = "Reset your password",
+                    ["Intro"] = "We received a request to reset your password. If you didn't request this, you can ignore this email.",
+                    ["ActionText"] = "Reset Password",
+                    ["ActionUrl"] = link ?? string.Empty,
+                    ["Token"] = link == null ? token : string.Empty
+                });
+                await _email.SendAsync(user.Email!, "Password reset", html);
             }
             catch (Exception)
             {
@@ -609,7 +639,6 @@ namespace AuthenticationAPI.Controllers
             var normToken = NormalizeToken(dto.Token);
             // Enforce password history reuse rules
             var reuseWindow = int.TryParse(_configuration["PasswordHistory:ReuseWindowCount"], out var rw) ? Math.Max(1, rw) : 5;
-            var minAgeHours = int.TryParse(_configuration["PasswordHistory:MinAgeHours"], out var mh) ? Math.Max(1, mh) : 24;
             var keepCount = int.TryParse(_configuration["PasswordHistory:KeepCount"], out var kc) ? Math.Max(reuseWindow, kc) : 12;
             var recent = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
                 .OrderByDescending(ph => ph.CreatedUtc).Take(reuseWindow).ToListAsync();
@@ -620,10 +649,6 @@ namespace AuthenticationAPI.Controllers
                 if (verdict == PasswordVerificationResult.Success)
                 {
                     return BadRequest(new ApiMessage { Message = "New password must not match your recent passwords." });
-                }
-                if ((DateTime.UtcNow - ph.CreatedUtc).TotalHours < minAgeHours)
-                {
-                    return BadRequest(new ApiMessage { Message = "Password was changed recently. Try again later." });
                 }
             }
             var res = await _userManager.ResetPasswordAsync(user, normToken, dto.NewPassword);
@@ -667,8 +692,17 @@ namespace AuthenticationAPI.Controllers
             try
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                await _email.SendAsync(user.Email!, "Email confirmation",
-                    $"Use this token to confirm your email: {token}");
+                var confirmUrlBase = _configuration["Email:EmailConfirm:Url"] ?? string.Empty;
+                string? link = string.IsNullOrWhiteSpace(confirmUrlBase) ? null : $"{confirmUrlBase}?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
+                var (html, text) = await _templates.RenderAsync("email-confirm", new Dictionary<string,string>
+                {
+                    ["Title"] = "Confirm your email",
+                    ["Intro"] = "Please confirm your email to activate your account.",
+                    ["ActionText"] = "Confirm Email",
+                    ["ActionUrl"] = link ?? string.Empty,
+                    ["Token"] = link == null ? token : string.Empty
+                });
+                await _email.SendAsync(user.Email!, "Email confirmation", html);
             }
             catch (Exception)
             {

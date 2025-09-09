@@ -35,7 +35,9 @@ public sealed class SendGridEmailSender : IEmailSender
         var client = _httpFactory.CreateClient("sendgrid");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
-        // Send both text and HTML; HTML is an encoded pre block
+        var looksHtml = !string.IsNullOrWhiteSpace(body) && (body.TrimStart().StartsWith("<html", StringComparison.OrdinalIgnoreCase) || body.TrimStart().StartsWith("<!doctype html", StringComparison.OrdinalIgnoreCase));
+        string text = looksHtml ? StripTags(body) : body;
+        string html = looksHtml ? body : $"<pre>{HtmlEncoder.Default.Encode(body)}</pre>";
         var payload = new
         {
             from = new { email = _fromEmail, name = _fromName },
@@ -45,8 +47,8 @@ public sealed class SendGridEmailSender : IEmailSender
             },
             content = new[]
             {
-                new { type = "text/plain", value = body },
-                new { type = "text/html", value = $"<pre>{HtmlEncoder.Default.Encode(body)}</pre>" }
+                new { type = "text/plain", value = text },
+                new { type = "text/html", value = html }
             }
         };
 
@@ -59,5 +61,18 @@ public sealed class SendGridEmailSender : IEmailSender
             Console.WriteLine($"[EMAIL-ERR] SendGrid send failed: {(int)resp.StatusCode} {resp.ReasonPhrase} => {respText}");
             throw new HttpRequestException($"SendGrid send failed with status {(int)resp.StatusCode}: {resp.ReasonPhrase}");
         }
+    }
+
+    private static string StripTags(string html)
+    {
+        var sb = new StringBuilder(html.Length);
+        bool inside = false;
+        foreach (var ch in html)
+        {
+            if (ch == '<') { inside = true; continue; }
+            if (ch == '>') { inside = false; continue; }
+            if (!inside) sb.Append(ch);
+        }
+        return System.Net.WebUtility.HtmlDecode(sb.ToString());
     }
 }

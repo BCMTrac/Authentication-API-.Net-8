@@ -47,6 +47,7 @@ builder.Services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitO
 builder.Services.Configure<KeyRotationOptions>(configuration.GetSection(KeyRotationOptions.SectionName));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("AppDb")));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -224,6 +225,7 @@ builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
 builder.Services.AddSingleton<ITotpService, TotpService>();
 builder.Services.AddSingleton<IPasswordBreachChecker, NoOpPasswordBreachChecker>();
+builder.Services.AddSingleton<IEmailTemplateRenderer, EmailTemplateRenderer>();
 builder.Services.AddHostedService<KeyRotationHostedService>();
 // Data Protection keys persistence (so MFA secrets survive restarts)
 var dpBuilder = builder.Services.AddDataProtection()
@@ -454,6 +456,16 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         Console.WriteLine($"[Startup] Migration failed: {ex.Message}");
+    }
+
+    try
+    {
+        var appDbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.AppDbContext>();
+        await appDbCtx.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] AppDb migration failed: {ex.Message}");
     }
 
     try

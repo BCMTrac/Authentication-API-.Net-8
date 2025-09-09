@@ -23,6 +23,12 @@
   <PackageReference Include="DotNetEnv" Version="2.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Email\Templates\**\*.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   
 
 </Project>

@@ -31,32 +31,32 @@ public static class Seed
     public static async Task SeedPermissions(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
         // Ensure permissions
         foreach (var perm in Permissions)
         {
-            if (!await context.Permissions.AnyAsync(p => p.Name == perm.name))
+            if (!await appDb.Permissions.AnyAsync(p => p.Name == perm.name))
             {
-                context.Permissions.Add(new Permission { Name = perm.name, Description = perm.description });
+                appDb.Permissions.Add(new Permission { Name = perm.name, Description = perm.description });
             }
         }
-        await context.SaveChangesAsync();
+        await appDb.SaveChangesAsync();
 
         // Assign all permissions to Admin role
         var adminRole = await roleManager.FindByNameAsync("Admin");
         if (adminRole != null)
         {
-            var allPerms = await context.Permissions.ToListAsync();
+            var allPerms = await appDb.Permissions.ToListAsync();
             foreach (var p in allPerms)
             {
-                if (!await context.RolePermissions.AnyAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == p.Id))
+                if (!await appDb.RolePermissions.AnyAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == p.Id))
                 {
-                    context.RolePermissions.Add(new RolePermission { RoleId = adminRole.Id, PermissionId = p.Id });
+                    appDb.RolePermissions.Add(new RolePermission { RoleId = adminRole.Id, PermissionId = p.Id });
                 }
             }
-            await context.SaveChangesAsync();
+            await appDb.SaveChangesAsync();
         }
     }
 
@@ -65,7 +65,8 @@ public static class Seed
         using var scope = serviceProvider.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var authDb = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     var fullNameFromEnv = configuration["SeedAdmin:FullName"];
@@ -79,7 +80,7 @@ public static class Seed
 
         // Handle duplicates gracefully: query directly to avoid SingleOrDefault in FindByEmailAsync
         var normalizedEmail = normalizer.NormalizeEmail(email) ?? email.ToUpperInvariant();
-        var matches = await context.Users.Where(u => u.NormalizedEmail == normalizedEmail).ToListAsync();
+        var matches = await authDb.Users.Where(u => u.NormalizedEmail == normalizedEmail).ToListAsync();
         ApplicationUser? admin = matches.FirstOrDefault();
 
         if (matches.Count > 1)
@@ -98,7 +99,7 @@ public static class Seed
                 }
                 catch { /* best-effort clean-up */ }
             }
-            await context.SaveChangesAsync();
+            await authDb.SaveChangesAsync();
         }
 
         if (admin == null)
@@ -119,18 +120,18 @@ public static class Seed
         }
         // In production, do not reset password or update profile details automatically for existing admin.
         // Ensure permissions assigned to role (reuse existing logic lightly)
-        var allPerms = await context.Permissions.ToListAsync();
+        var allPerms = await appDb.Permissions.ToListAsync();
         var adminRole = await roleManager.FindByNameAsync("Admin");
         if (adminRole != null)
         {
             foreach (var p in allPerms)
             {
-                if (!await context.RolePermissions.AnyAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == p.Id))
+                if (!await appDb.RolePermissions.AnyAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == p.Id))
                 {
-                    context.RolePermissions.Add(new RolePermission { RoleId = adminRole.Id, PermissionId = p.Id });
+                    appDb.RolePermissions.Add(new RolePermission { RoleId = adminRole.Id, PermissionId = p.Id });
                 }
             }
-            await context.SaveChangesAsync();
+            await appDb.SaveChangesAsync();
         }
     }
 }

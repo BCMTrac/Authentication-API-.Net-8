@@ -9,8 +9,6 @@ namespace AuthenticationAPI.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        public DbSet<Permission> Permissions => Set<Permission>();
-        public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
@@ -37,14 +35,7 @@ namespace AuthenticationAPI.Data
                 b.Property(r => r.NormalizedName).HasMaxLength(128);
             });
 
-            // 2) Configure entity indexes and relationships
-            builder.Entity<RolePermission>().HasKey(rp => new { rp.RoleId, rp.PermissionId });
-            builder.Entity<RolePermission>()
-                .HasOne(rp => rp.Permission)
-                .WithMany(p => p.RolePermissions)
-                .HasForeignKey(rp => rp.PermissionId);
-
-            builder.Entity<Permission>().HasIndex(p => p.Name).IsUnique();
+            // 2) Configure entity indexes and relationships (identity + auth DB only)
 
             builder.Entity<RefreshToken>()
                 .HasIndex(r => new { r.UserId, r.TokenHash }).IsUnique();
@@ -86,12 +77,7 @@ namespace AuthenticationAPI.Data
                     .HasMaxLength(64);
             });
 
-            // Shorten RolePermission.RoleId for composite key
-            builder.Entity<RolePermission>(b =>
-            {
-                b.Property(rp => rp.RoleId)
-                    .HasMaxLength(128);
-            });
+            // RolePermission/Permission moved to AppDbContext
 
             builder.Entity<PasswordHistory>(b =>
             {

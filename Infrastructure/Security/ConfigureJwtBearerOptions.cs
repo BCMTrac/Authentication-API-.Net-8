@@ -4,7 +4,6 @@ using AuthenticationAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthenticationAPI.Infrastructure.Security;
@@ -13,11 +12,10 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
 {
     private readonly IOptions<JwtOptions> _jwt;
     private readonly IKeyRingCache _cache;
-    private readonly IHostEnvironment _env;
 
-    public ConfigureJwtBearerOptions(IOptions<JwtOptions> jwt, IKeyRingCache cache, IHostEnvironment env)
+    public ConfigureJwtBearerOptions(IOptions<JwtOptions> jwt, IKeyRingCache cache)
     {
-        _jwt = jwt; _cache = cache; _env = env;
+        _jwt = jwt; _cache = cache;
     }
 
     public void Configure(string? name, JwtBearerOptions options) => Configure(options);
@@ -25,8 +23,9 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
     public void Configure(JwtBearerOptions options)
     {
         var jwt = _jwt.Value;
-        options.SaveToken = true;
-        options.RequireHttpsMetadata = !_env.IsDevelopment();
+    options.SaveToken = true;
+    // Always require HTTPS metadata in production
+    options.RequireHttpsMetadata = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

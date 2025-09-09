@@ -30,7 +30,7 @@ public class ExceptionHandlingMiddleware
             {
                 Title = "An unexpected error occurred",
                 Status = (int)HttpStatusCode.InternalServerError,
-                Detail = appEnvironmentIsDevelopment(context) ? ex.Message : "Please contact support.",
+                Detail = "Please contact support.",
                 Instance = context.Request.Path,
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
             };
@@ -45,11 +45,7 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private static bool appEnvironmentIsDevelopment(HttpContext ctx)
-    {
-        var env = ctx.RequestServices.GetService<IHostEnvironment>();
-        return env?.IsDevelopment() ?? false;
-    }
+    // No environment-based error detail in production
 }
 
 public static class ExceptionHandlingMiddlewareExtensions

@@ -122,6 +122,41 @@
       <pre id="outEmail"></pre>
     </section>
 
+    <section id="email" class="tab">
+      <h2>Email Flows</h2>
+      <div class="form-grid">
+        <h3 class="full">Confirm Email</h3>
+        <label for="emailAddr">Email</label>
+        <input id="emailAddr" placeholder="user@example.com" />
+        <label for="emailToken">Token</label>
+        <input id="emailToken" placeholder="paste token here" />
+        <div class="full">
+          <button id="btnReqConfirm">Request Confirm</button>
+          <button id="btnConfirmEmail">Confirm Email</button>
+        </div>
+        <h3 class="full">Password Reset</h3>
+        <label for="resetEmail">Email</label>
+        <input id="resetEmail" placeholder="user@example.com" />
+        <div class="full"><button id="btnReqReset">Request Reset</button></div>
+        <label for="resetToken">Token</label>
+        <input id="resetToken" placeholder="paste token here" />
+        <label for="resetNew">New Password</label>
+        <div class="pwd-wrap">
+          <input id="resetNew" type="password" placeholder="new password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,256}" />
+          <button type="button" class="pwd-toggle" aria-label="Show password" data-target="resetNew">Show</button>
+        </div>
+        <ul id="rsPassReqs" class="req-list">
+          <li id="rsLen">At least 12 characters</li>
+          <li id="rsUpper">At least one uppercase letter</li>
+          <li id="rsLower">At least one lowercase letter</li>
+          <li id="rsDigit">At least one digit</li>
+          <li id="rsSymbol">At least one symbol</li>
+        </ul>
+        <div class="full"><button id="btnDoReset">Reset Password</button></div>
+      </div>
+      <pre id="outEmail"></pre>
+    </section>
+
     <section id="change-email" class="tab">
       <h2>Change Email (requires login)</h2>
       <div class="form-grid">
