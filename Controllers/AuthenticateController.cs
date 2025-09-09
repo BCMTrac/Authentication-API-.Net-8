@@ -586,10 +586,21 @@ namespace AuthenticationAPI.Controllers
             if (!allow1m || !allow1d) return Ok(new SentResponse { Sent = true });
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok(); // do not reveal existence
+            if (!user.EmailConfirmed) return Ok(); // send only to confirmed emails
+            if (await _userManager.IsLockedOutAsync(user)) return Ok();
             try
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
+                var resetUrl = _configuration["PasswordReset:Url"];
+                if (!string.IsNullOrWhiteSpace(resetUrl))
+                {
+                    var link = $"{resetUrl}?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
+                    await _email.SendAsync(user.Email!, "Password reset", $"Click the link to reset your password: {link}");
+                }
+                else
+                {
+                    await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
+                }
             }
             catch (Exception ex)
             {
@@ -613,8 +624,11 @@ namespace AuthenticationAPI.Controllers
             if (user == null) return BadRequest();
             var normToken = NormalizeToken(dto.Token);
             // Enforce password history reuse rules
+            var reuseWindow = int.TryParse(_configuration["PasswordHistory:ReuseWindowCount"], out var rw) ? Math.Max(1, rw) : 5;
+            var minAgeHours = int.TryParse(_configuration["PasswordHistory:MinAgeHours"], out var mh) ? Math.Max(1, mh) : 24;
+            var keepCount = int.TryParse(_configuration["PasswordHistory:KeepCount"], out var kc) ? Math.Max(reuseWindow, kc) : 12;
             var recent = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
-                .OrderByDescending(ph => ph.CreatedUtc).Take(5).ToListAsync();
+                .OrderByDescending(ph => ph.CreatedUtc).Take(reuseWindow).ToListAsync();
             var hasher = HttpContext.RequestServices.GetRequiredService<IPasswordHasher<ApplicationUser>>();
             foreach (var ph in recent)
             {
@@ -623,7 +637,7 @@ namespace AuthenticationAPI.Controllers
                 {
                     return BadRequest(new ApiMessage { Message = "New password must not match your recent passwords." });
                 }
-                if ((DateTime.UtcNow - ph.CreatedUtc).TotalDays < 1)
+                if ((DateTime.UtcNow - ph.CreatedUtc).TotalHours < minAgeHours)
                 {
                     return BadRequest(new ApiMessage { Message = "Password was changed recently. Try again later." });
                 }
@@ -641,7 +655,7 @@ namespace AuthenticationAPI.Controllers
                 _db.PasswordHistory.Add(new PasswordHistory { UserId = user.Id, Hash = user.PasswordHash! });
                 await _db.SaveChangesAsync();
                 var keep = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
-                    .OrderByDescending(ph => ph.CreatedUtc).Skip(10).ToListAsync();
+                    .OrderByDescending(ph => ph.CreatedUtc).Skip(keepCount).ToListAsync();
                 if (keep.Any())
                 {
                     _db.PasswordHistory.RemoveRange(keep);

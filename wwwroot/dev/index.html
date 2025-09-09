@@ -235,6 +235,45 @@
         <li>Rotate on every use; reuse detection revokes family.</li>
         <li>Cookie/call size ≤ 1–2 KB; ASCII/base64url only.</li>
       </ul>
+      <h3>Passwords</h3>
+      <ul>
+        <li>Hash: Argon2id with per-user salt; constant-time compare.</li>
+        <li>History: keep last 12; block reuse of last 5; minimum 24h before reuse (configurable).</li>
+        <li>Breach check: optional HIBP k-anon (PasswordBreach:UseHibp).</li>
+        <li>On change/reset: revoke all refresh tokens; bump token_version to invalidate access tokens.</li>
+      </ul>
+      <h3>Password Reset</h3>
+      <ul>
+        <li>Request: throttled (1/min, 5/day); only to confirmed emails; responses are generic.</li>
+        <li>Token: DP token, single-use; TTL ≈ 30 minutes; sent as token or link (PasswordReset:Url).</li>
+      </ul>
+      <h3>Sessions & Refresh</h3>
+      <ul>
+        <li>Sessions: per-user cap (default 5); oldest sessions auto-revoked on new login.</li>
+        <li>Refresh tokens: one-time rotation; reuse detection revokes family; bound to session.</li>
+        <li>Refresh cookie: Secure, HttpOnly, SameSite=None; also accepted in request body.</li>
+      </ul>
+      <h3>JWT</h3>
+      <ul>
+        <li>RS256 with kid; validates iss/aud/lifetime; type=JWT enforced.</li>
+        <li>Claims: token_version, sid; adds amr=mfa and auth_time when MFA succeeds.</li>
+        <li>Access token TTL from config (JWT:AccessTokenMinutes).</li>
+      </ul>
+      <h3>Transport & Headers</h3>
+      <ul>
+        <li>HTTPS required; HSTS in non-Development; Kestrel Server header removed.</li>
+        <li>Security headers: CSP, X-Content-Type-Options, Referrer-Policy, etc.</li>
+        <li>CORS: explicit origins; credentials allowed for cookie flows.</li>
+      </ul>
+      <h3>Keys & Data Protection</h3>
+      <ul>
+        <li>JWT key rotation with overlap; JWKS published; admin endpoints to rotate/list.</li>
+        <li>DP keys persisted; rotated every 90 days; encrypted at rest via DPAPI (Windows).</li>
+      </ul>
+      <h3>Admin Plane</h3>
+      <ul>
+        <li>Admin role required. Manage sessions; lock/unlock; bump token_version; rotate/list signing keys; create client apps; send test email.</li>
+      </ul>
       <h3>MFA (TOTP)</h3>
       <ul>
         <li>Enroll: generate secret + verify one current 6‑digit code.</li>

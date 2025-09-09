@@ -55,6 +55,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             options.User.AllowedUserNameCharacters += " ";
         }
         options.User.RequireUniqueEmail = true;
+        options.SignIn.RequireConfirmedEmail = true;
     // Enforce strong password policy in all environments
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
