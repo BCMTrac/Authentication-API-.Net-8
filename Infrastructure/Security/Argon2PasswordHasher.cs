@@ -20,17 +20,25 @@ public class Argon2PasswordHasher<TUser> : IPasswordHasher<TUser> where TUser : 
     public string HashPassword(TUser user, string password)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
-        var argon = new Argon2id(Encoding.UTF8.GetBytes(password))
+        byte[] pwdBytes = Encoding.UTF8.GetBytes(password);
+        try
         {
-            Salt = salt,
-            DegreeOfParallelism = DegreeOfParallelism,
-            Iterations = Iterations,
-            MemorySize = MemoryKb
-        };
-        var hashBytes = argon.GetBytes(HashLength);
-        var payload = new Argon2HashPayload("argon2id", 19, MemoryKb, Iterations, DegreeOfParallelism,
-            Convert.ToBase64String(salt), Convert.ToBase64String(hashBytes));
-        return JsonSerializer.Serialize(payload);
+            var argon = new Argon2id(pwdBytes)
+            {
+                Salt = salt,
+                DegreeOfParallelism = DegreeOfParallelism,
+                Iterations = Iterations,
+                MemorySize = MemoryKb
+            };
+            var hashBytes = argon.GetBytes(HashLength);
+            var payload = new Argon2HashPayload("argon2id", 19, MemoryKb, Iterations, DegreeOfParallelism,
+                Convert.ToBase64String(salt), Convert.ToBase64String(hashBytes));
+            return JsonSerializer.Serialize(payload);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(pwdBytes);
+        }
     }
 
     public PasswordVerificationResult VerifyHashedPassword(TUser user, string hashedPassword, string providedPassword)
@@ -45,15 +53,27 @@ public class Argon2PasswordHasher<TUser> : IPasswordHasher<TUser> where TUser : 
         catch { return PasswordVerificationResult.Failed; }
         if (payload == null || payload.Alg != "argon2id") return PasswordVerificationResult.Failed;
         var salt = Convert.FromBase64String(payload.Salt);
-        var argon = new Argon2id(Encoding.UTF8.GetBytes(providedPassword))
+        byte[] pwdBytes = Encoding.UTF8.GetBytes(providedPassword);
+        byte[]? computed = null;
+        byte[] stored = Convert.FromBase64String(payload.Hash);
+        try
         {
-            Salt = salt,
-            DegreeOfParallelism = payload.P,
-            Iterations = payload.T,
-            MemorySize = payload.M
-        };
-        var computed = Convert.ToBase64String(argon.GetBytes(Convert.FromBase64String(payload.Hash).Length));
-        if (computed == payload.Hash) return PasswordVerificationResult.Success;
-        return PasswordVerificationResult.Failed;
+            var argon = new Argon2id(pwdBytes)
+            {
+                Salt = salt,
+                DegreeOfParallelism = payload.P,
+                Iterations = payload.T,
+                MemorySize = payload.M
+            };
+            computed = argon.GetBytes(stored.Length);
+            var ok = CryptographicOperations.FixedTimeEquals(computed, stored);
+            return ok ? PasswordVerificationResult.Success : PasswordVerificationResult.Failed;
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(pwdBytes);
+            if (computed != null) CryptographicOperations.ZeroMemory(computed);
+            CryptographicOperations.ZeroMemory(stored);
+        }
     }
 }

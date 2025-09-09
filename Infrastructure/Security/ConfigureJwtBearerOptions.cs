@@ -4,6 +4,7 @@ using AuthenticationAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthenticationAPI.Infrastructure.Security;
@@ -12,10 +13,11 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
 {
     private readonly IOptions<JwtOptions> _jwt;
     private readonly IKeyRingCache _cache;
+    private readonly IHostEnvironment _env;
 
-    public ConfigureJwtBearerOptions(IOptions<JwtOptions> jwt, IKeyRingCache cache)
+    public ConfigureJwtBearerOptions(IOptions<JwtOptions> jwt, IKeyRingCache cache, IHostEnvironment env)
     {
-        _jwt = jwt; _cache = cache;
+        _jwt = jwt; _cache = cache; _env = env;
     }
 
     public void Configure(string? name, JwtBearerOptions options) => Configure(options);
@@ -24,7 +26,7 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
     {
         var jwt = _jwt.Value;
         options.SaveToken = true;
-        options.RequireHttpsMetadata = false; // set true under TLS in prod
+        options.RequireHttpsMetadata = !_env.IsDevelopment();
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -36,6 +38,7 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
             ClockSkew = TimeSpan.FromSeconds(60),
             NameClaimType = System.Security.Claims.ClaimTypes.Name,
             RoleClaimType = System.Security.Claims.ClaimTypes.Role,
+            ValidTypes = new[] { "JWT" },
             IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
             {
                 var byKid = _cache.GetByKid(kid);

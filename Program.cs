@@ -22,6 +22,8 @@ using AuthenticationAPI.Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
 using DotNetEnv;
 using AuthenticationAPI.Models.Options;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Runtime.InteropServices;
 
 // Load .env if present (supports local dev and on-server env-file usage) BEFORE building configuration
 try { Env.Load(); } catch { /* optional */ }
@@ -221,13 +223,22 @@ builder.Services.AddSingleton<ITotpService, TotpService>();
 builder.Services.AddSingleton<IPasswordBreachChecker, NoOpPasswordBreachChecker>();
 builder.Services.AddHostedService<KeyRotationHostedService>();
 // Data Protection keys persistence (so MFA secrets survive restarts)
-var dpBuilder = builder.Services.AddDataProtection().SetApplicationName("AuthenticationAPI");
+var dpBuilder = builder.Services.AddDataProtection()
+    .SetApplicationName("AuthenticationAPI")
+    .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
 var dpStorage = (configuration["DataProtection:Storage"] ?? "file").ToLowerInvariant();
 if (dpStorage == "file")
 {
     var path = configuration["DataProtection:FileSystemPath"] ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
     Directory.CreateDirectory(path);
     dpBuilder.PersistKeysToFileSystem(new DirectoryInfo(path));
+
+    // Encrypt keys at rest when safe to do so (no breaking change for existing keys)
+    if (OperatingSystem.IsWindows())
+    {
+        // Use user profile scope in Development; production can switch to certificate/KeyVault via config
+        dpBuilder.ProtectKeysWithDpapi();
+    }
 }
 // Future options (placeholders): azureblob/keyvault can be plugged in here based on config
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
@@ -324,6 +335,21 @@ app.Use(async (ctx, next) =>
 });
 app.UseGlobalExceptionHandling();
 app.UseCorrelationId();
+// HSTS in non-development environments
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+// Respect proxy headers when enabled via config or env
+var enableForwarded = string.Equals(configuration["ReverseProxy:Enabled"], "true", StringComparison.OrdinalIgnoreCase)
+    || string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"), "true", StringComparison.OrdinalIgnoreCase);
+if (enableForwarded)
+{
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+    });
+}
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("Default");
@@ -419,6 +445,8 @@ using (var scope = app.Services.CreateScope())
     var allKeys = await scope.ServiceProvider.GetRequiredService<IKeyRingService>().GetAllActiveKeysAsync();
     cache.Set(allKeys);
 
+// Shorten default Identity token lifetime to limit replay window
+builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromMinutes(30));
 }
 
 app.Run();
