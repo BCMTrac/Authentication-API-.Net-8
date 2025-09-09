@@ -227,14 +227,21 @@ namespace AuthenticationAPI.Controllers
                 await _userManager.UpdateAsync(user);
             }
 
-            // Send email confirmation token (generic response regardless of delivery)
+            // Send email confirmation token; in Development, surface SMTP errors to help debug
             try
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 await _email.SendAsync(user.Email!, "Confirm your email",
                     $"Use this token to confirm your email: {token}");
             }
-            catch { /* hide email provider errors from client */ }
+            catch (Exception ex)
+            {
+                if (_env.IsDevelopment())
+                {
+                    Console.WriteLine($"[EMAIL-ERR][register-confirm] to={user.Email} ex={ex.Message}");
+                    return StatusCode(StatusCodes.Status502BadGateway, new ApiMessage { Message = $"User created, but email delivery failed: {ex.Message}" });
+                }
+            }
 
             return Ok(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
         }
@@ -388,8 +395,18 @@ namespace AuthenticationAPI.Controllers
             if (existing != null) return BadRequest(new { error = "Email already in use" });
             var token = await _userManager.GenerateChangeEmailTokenAsync(user, dto.NewEmail);
             // Send to the new address to prove control
-            await _email.SendAsync(dto.NewEmail, "Confirm your new email", $"Use this token to confirm your new email: {token}");
-            return Ok(new { sent = true });
+            try
+            {
+                await _email.SendAsync(dto.NewEmail, "Confirm your new email", $"Use this token to confirm your new email: {token}");
+            }
+            catch (Exception ex)
+            {
+                if (_env.IsDevelopment())
+                {
+                    Console.WriteLine($"[EMAIL-ERR][change-email-start] to={dto.NewEmail} ex={ex.Message}");
+                }
+            }
+            return Ok(new SentResponse { Sent = true });
         }
 
         [HttpPost("change-email/confirm")]
@@ -449,7 +466,7 @@ namespace AuthenticationAPI.Controllers
             var resetKey1d = $"pwd-reset:1d:{dto.Email}";
             var allow1m = await _throttle.AllowAsync(resetKey1m, 1, TimeSpan.FromMinutes(1));
             var allow1d = await _throttle.AllowAsync(resetKey1d, 5, TimeSpan.FromDays(1));
-            if (!allow1m || !allow1d) return Ok(new { sent = true });
+            if (!allow1m || !allow1d) return Ok(new SentResponse { Sent = true });
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Ok(); // do not reveal existence
             try
@@ -457,9 +474,14 @@ namespace AuthenticationAPI.Controllers
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 await _email.SendAsync(user.Email!, "Password reset", $"Use this token to reset your password: {token}");
             }
-            catch
+            catch (Exception ex)
             {
-                // Swallow email transport errors; respond generically
+                // Swallow; log in Development to aid troubleshooting
+                if (_env.IsDevelopment())
+                {
+                    Console.WriteLine($"[EMAIL-ERR][password-reset-request] to={dto.Email} ex={ex.Message}");
+                    return StatusCode(StatusCodes.Status502BadGateway, new SentResponse { Sent = false });
+                }
             }
             return Ok(new SentResponse { Sent = true });
         }
@@ -503,9 +525,13 @@ namespace AuthenticationAPI.Controllers
                 await _email.SendAsync(user.Email!, "Email confirmation",
                     $"Use this token to confirm your email: {token}");
             }
-            catch
+            catch (Exception ex)
             {
-                // Swallow email transport errors to avoid leaking server details; client receives generic response
+                // Swallow; log in Development to aid troubleshooting
+                if (_env.IsDevelopment())
+                {
+                    Console.WriteLine($"[EMAIL-ERR][request-email-confirm] to={dto.Email} ex={ex.Message}");
+                }
             }
             return Ok(new SentResponse { Sent = true });
         }
@@ -519,7 +545,7 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return BadRequest(new { error = "Invalid email" });
             if (user.EmailConfirmed) return Ok(new { emailConfirmed = true });
-            if (string.IsNullOrWhiteSpace(dto.Token) || dto.Token.Length > 256 || dto.Token.Any(char.IsWhiteSpace))
+            if (string.IsNullOrWhiteSpace(dto.Token) || dto.Token.Length > 2048 || dto.Token.Any(char.IsWhiteSpace))
             {
                 return BadRequest(new { message = "Invalid or expired confirmation token." });
             }

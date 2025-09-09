@@ -38,3 +38,14 @@ pre{white-space:pre-wrap;background:#0e131f;border:1px solid #283045;padding:.65
 .pwd-wrap input{flex:1 1 auto}
 .pwd-toggle{padding:.45rem .6rem;border-radius:6px;border:1px solid #39486b;background:#1b2335;color:#e6e6e6;cursor:pointer}
 .pwd-toggle:hover{filter:brightness(1.1)}
+
+/* QR preview */
+.qr-wrap{width:600px;height:600px;border:1px solid #283045;background:#0e131f;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:.75rem 0}
+.qr-img{width:500px;height:500px;image-rendering:pixelated}
+
+/* Fullscreen-ish output canvas for MFA QR */
+#outMfa{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 200px);background:#0b111a;border:1px solid #283045;border-radius:8px}
+/* Bigger, responsive QR container */
+.qr-wrap{width:min(90vw,900px);height:min(90vh,900px);border:1px solid #283045;background:#0e131f;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+/* Large, crisp QR image */
+.qr-img{width:min(80vw,800px);height:min(80vw,800px);max-height:min(80vh,800px);image-rendering:pixelated}

@@ -51,7 +51,7 @@ namespace AuthenticationAPI.Models
     public class ChangeEmailConfirmDto : StrictDtoBase
     {
         [Required, EmailAddress, StringLength(254)] public string NewEmail { get; set; } = string.Empty;
-        [Required, StringLength(256)] public string Token { get; set; } = string.Empty;
+        [Required, StringLength(2048)] public string Token { get; set; } = string.Empty;
     }
     
     // Refresh token request
@@ -72,7 +72,7 @@ namespace AuthenticationAPI.Models
     {
         [Required, EmailAddress, StringLength(254)]
         public string Email { get; set; } = string.Empty;
-        [Required, StringLength(256)]
+        [Required, StringLength(2048)]
         public string Token { get; set; } = string.Empty;
         [Required, StringLength(256, MinimumLength = 12)]
         public string NewPassword { get; set; } = string.Empty;
@@ -88,7 +88,7 @@ namespace AuthenticationAPI.Models
     {
         [Required, EmailAddress, StringLength(254)]
         public string Email { get; set; } = string.Empty;
-        [Required, StringLength(256)]
+        [Required, StringLength(2048)]
         public string Token { get; set; } = string.Empty;
     }
     

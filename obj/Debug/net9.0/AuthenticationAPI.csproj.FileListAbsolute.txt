@@ -166,8 +166,8 @@ c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\Authenti
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\AuthenticationAPI.sourcelink.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\scopedcss\bundle\AuthenticationAPI.styles.css
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\compressed\yc3n2m9aue-3mdc8gwgen.gz
-c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\compressed\v6xfjld0j7-6zmruxej8k.gz
-c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\compressed\474klkkjth-1ydqve3zep.gz
+c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\compressed\v6xfjld0j7-5p71b8b1fn.gz
+c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\compressed\474klkkjth-bosqkirpod.gz
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\staticwebassets.build.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\staticwebassets.development.json
 c:\Users\brand\Desktop\BCMTrack Code\AuthenticationAPI\obj\Debug\net9.0\staticwebassets.build.endpoints.json

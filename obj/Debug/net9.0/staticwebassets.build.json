@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "irB8Sjlncv6owHlIq9RveMyPARa0cthnFPGAw86TzJ0=",
+  "Hash": "VDqFTLqAuXl8oFiUigVdNONa7aBWOjDA4ANm9x3LApY=",
   "Source": "AuthenticationAPI",
   "BasePath": "_content/AuthenticationAPI",
   "Mode": "Default",
@@ -10,59 +10,59 @@
     {
       "Name": "AuthenticationAPI\\wwwroot",
       "Source": "AuthenticationAPI",
-      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
+      "ContentRoot": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
       "BasePath": "_content/AuthenticationAPI",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-1ydqve3zep.gz",
+      "Identity": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-bosqkirpod.gz",
       "SourceId": "AuthenticationAPI",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
+      "ContentRoot": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
       "BasePath": "_content/AuthenticationAPI",
-      "RelativePath": "dev/styles#[.{fingerprint=1ydqve3zep}]?.css.gz",
+      "RelativePath": "dev/styles#[.{fingerprint=bosqkirpod}]?.css.gz",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Alternative",
       "AssetMergeBehavior": "",
       "AssetMergeSource": "",
-      "RelatedAsset": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
+      "RelatedAsset": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "l69za6ul86",
-      "Integrity": "PVsIzlFkRbMA9tQ6BOlEZ+OsFNn88Fpeydml7BX+ySU=",
+      "Fingerprint": "g384rw8ul0",
+      "Integrity": "BIOrGYx6Jniz+EY1T7uXSW0Yzi0B2lW8KmjCjMaE1MY=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css"
+      "OriginalItemSpec": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css"
     },
     {
-      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-6zmruxej8k.gz",
+      "Identity": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-5p71b8b1fn.gz",
       "SourceId": "AuthenticationAPI",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
+      "ContentRoot": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
       "BasePath": "_content/AuthenticationAPI",
-      "RelativePath": "dev/main#[.{fingerprint=6zmruxej8k}]?.js.gz",
+      "RelativePath": "dev/main#[.{fingerprint=5p71b8b1fn}]?.js.gz",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Alternative",
       "AssetMergeBehavior": "",
       "AssetMergeSource": "",
-      "RelatedAsset": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
+      "RelatedAsset": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "b4w1d3ksp2",
-      "Integrity": "27GLgax+gGlPJG0DLf0ENJSBmRvuEjfBSPmVqJxeFN8=",
+      "Fingerprint": "iedh1ml6ck",
+      "Integrity": "Guc9uk+p+aIEx7cNmZu3aZjCLsCVpvaQZmHZIoHvUnw=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js"
+      "OriginalItemSpec": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js"
     },
     {
-      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
+      "Identity": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
       "SourceId": "AuthenticationAPI",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
+      "ContentRoot": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\",
       "BasePath": "_content/AuthenticationAPI",
       "RelativePath": "dev/index#[.{fingerprint=3mdc8gwgen}]?.html.gz",
       "AssetKind": "All",
@@ -70,20 +70,20 @@
       "AssetRole": "Alternative",
       "AssetMergeBehavior": "",
       "AssetMergeSource": "",
-      "RelatedAsset": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
+      "RelatedAsset": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
       "Fingerprint": "mlghckrsf9",
       "Integrity": "Snq9jSEl27Ep2KZhCHHwZnUE/gnBOl9UQbavF7fVJ6w=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html"
+      "OriginalItemSpec": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html"
     },
     {
-      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
+      "Identity": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
       "SourceId": "AuthenticationAPI",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
+      "ContentRoot": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
       "BasePath": "_content/AuthenticationAPI",
       "RelativePath": "dev/index#[.{fingerprint}]?.html",
       "AssetKind": "All",
@@ -101,10 +101,10 @@
       "OriginalItemSpec": "wwwroot\\dev\\index.html"
     },
     {
-      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
+      "Identity": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
       "SourceId": "AuthenticationAPI",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
+      "ContentRoot": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
       "BasePath": "_content/AuthenticationAPI",
       "RelativePath": "dev/main#[.{fingerprint}]?.js",
       "AssetKind": "All",
@@ -115,17 +115,17 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "6zmruxej8k",
-      "Integrity": "7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI=",
+      "Fingerprint": "5p71b8b1fn",
+      "Integrity": "xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\dev\\main.js"
     },
     {
-      "Identity": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
+      "Identity": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
       "SourceId": "AuthenticationAPI",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
+      "ContentRoot": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\",
       "BasePath": "_content/AuthenticationAPI",
       "RelativePath": "dev/styles#[.{fingerprint}]?.css",
       "AssetKind": "All",
@@ -136,8 +136,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "1ydqve3zep",
-      "Integrity": "589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4=",
+      "Fingerprint": "bosqkirpod",
+      "Integrity": "qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\dev\\styles.css"
@@ -146,7 +146,7 @@
   "Endpoints": [
     {
       "Route": "dev/index.3mdc8gwgen.html",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
@@ -209,7 +209,7 @@
     },
     {
       "Route": "dev/index.3mdc8gwgen.html",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -254,7 +254,7 @@
     },
     {
       "Route": "dev/index.3mdc8gwgen.html.gz",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -307,7 +307,7 @@
     },
     {
       "Route": "dev/index.html",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
@@ -362,7 +362,7 @@
     },
     {
       "Route": "dev/index.html",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\index.html",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -399,7 +399,7 @@
     },
     {
       "Route": "dev/index.html.gz",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\yc3n2m9aue-3mdc8gwgen.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -443,13 +443,13 @@
       ]
     },
     {
-      "Route": "dev/main.6zmruxej8k.js",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-6zmruxej8k.gz",
+      "Route": "dev/main.5p71b8b1fn.js",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-5p71b8b1fn.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000261848651"
+          "Quality": "0.000253742705"
         }
       ],
       "ResponseHeaders": [
@@ -459,15 +459,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "3818"
+          "Value": "3940"
         },
         {
           "Name": "ETag",
-          "Value": "\"27GLgax+gGlPJG0DLf0ENJSBmRvuEjfBSPmVqJxeFN8=\""
+          "Value": "\"Guc9uk+p+aIEx7cNmZu3aZjCLsCVpvaQZmHZIoHvUnw=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:17:00 GMT"
+          "Value": "Mon, 08 Sep 2025 14:22:16 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -487,13 +487,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI=\""
+          "Value": "W/\"xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "6zmruxej8k"
+          "Value": "5p71b8b1fn"
         },
         {
           "Name": "label",
@@ -501,13 +501,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI="
+          "Value": "sha256-xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo="
         }
       ]
     },
     {
-      "Route": "dev/main.6zmruxej8k.js",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
+      "Route": "dev/main.5p71b8b1fn.js",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -516,7 +516,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "15854"
+          "Value": "16111"
         },
         {
           "Name": "Content-Type",
@@ -524,11 +524,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI=\""
+          "Value": "\"xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:17:00 GMT"
+          "Value": "Mon, 08 Sep 2025 14:22:16 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -538,7 +538,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "6zmruxej8k"
+          "Value": "5p71b8b1fn"
         },
         {
           "Name": "label",
@@ -546,13 +546,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI="
+          "Value": "sha256-xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo="
         }
       ]
     },
     {
-      "Route": "dev/main.6zmruxej8k.js.gz",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-6zmruxej8k.gz",
+      "Route": "dev/main.5p71b8b1fn.js.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-5p71b8b1fn.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -561,7 +561,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "3818"
+          "Value": "3940"
         },
         {
           "Name": "Content-Type",
@@ -569,11 +569,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"27GLgax+gGlPJG0DLf0ENJSBmRvuEjfBSPmVqJxeFN8=\""
+          "Value": "\"Guc9uk+p+aIEx7cNmZu3aZjCLsCVpvaQZmHZIoHvUnw=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:17:00 GMT"
+          "Value": "Mon, 08 Sep 2025 14:22:16 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -591,7 +591,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "6zmruxej8k"
+          "Value": "5p71b8b1fn"
         },
         {
           "Name": "label",
@@ -599,18 +599,18 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-27GLgax+gGlPJG0DLf0ENJSBmRvuEjfBSPmVqJxeFN8="
+          "Value": "sha256-Guc9uk+p+aIEx7cNmZu3aZjCLsCVpvaQZmHZIoHvUnw="
         }
       ]
     },
     {
       "Route": "dev/main.js",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-6zmruxej8k.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-5p71b8b1fn.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000261848651"
+          "Quality": "0.000253742705"
         }
       ],
       "ResponseHeaders": [
@@ -620,15 +620,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "3818"
+          "Value": "3940"
         },
         {
           "Name": "ETag",
-          "Value": "\"27GLgax+gGlPJG0DLf0ENJSBmRvuEjfBSPmVqJxeFN8=\""
+          "Value": "\"Guc9uk+p+aIEx7cNmZu3aZjCLsCVpvaQZmHZIoHvUnw=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:17:00 GMT"
+          "Value": "Mon, 08 Sep 2025 14:22:16 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -648,19 +648,19 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI=\""
+          "Value": "W/\"xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI="
+          "Value": "sha256-xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo="
         }
       ]
     },
     {
       "Route": "dev/main.js",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\main.js",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -669,7 +669,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "15854"
+          "Value": "16111"
         },
         {
           "Name": "Content-Type",
@@ -677,11 +677,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI=\""
+          "Value": "\"xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:17:00 GMT"
+          "Value": "Mon, 08 Sep 2025 14:22:16 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -691,13 +691,13 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-7rCS7x8sj/nuUByx4x6Qf4WFR+tOpfucO55n4BkRseI="
+          "Value": "sha256-xycxxnCuF2+rmHmnl0Qg2a26nNGUDgnj+j1m7OoQoYo="
         }
       ]
     },
     {
       "Route": "dev/main.js.gz",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-6zmruxej8k.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\v6xfjld0j7-5p71b8b1fn.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -706,7 +706,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "3818"
+          "Value": "3940"
         },
         {
           "Name": "Content-Type",
@@ -714,11 +714,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"27GLgax+gGlPJG0DLf0ENJSBmRvuEjfBSPmVqJxeFN8=\""
+          "Value": "\"Guc9uk+p+aIEx7cNmZu3aZjCLsCVpvaQZmHZIoHvUnw=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:17:00 GMT"
+          "Value": "Mon, 08 Sep 2025 14:22:16 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -736,18 +736,18 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-27GLgax+gGlPJG0DLf0ENJSBmRvuEjfBSPmVqJxeFN8="
+          "Value": "sha256-Guc9uk+p+aIEx7cNmZu3aZjCLsCVpvaQZmHZIoHvUnw="
         }
       ]
     },
     {
-      "Route": "dev/styles.1ydqve3zep.css",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-1ydqve3zep.gz",
+      "Route": "dev/styles.bosqkirpod.css",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-bosqkirpod.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000921658986"
+          "Quality": "0.000748502994"
         }
       ],
       "ResponseHeaders": [
@@ -757,15 +757,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "1084"
+          "Value": "1335"
         },
         {
           "Name": "ETag",
-          "Value": "\"PVsIzlFkRbMA9tQ6BOlEZ+OsFNn88Fpeydml7BX+ySU=\""
+          "Value": "\"BIOrGYx6Jniz+EY1T7uXSW0Yzi0B2lW8KmjCjMaE1MY=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:04:31 GMT"
+          "Value": "Mon, 08 Sep 2025 14:25:15 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -785,13 +785,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4=\""
+          "Value": "W/\"qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1ydqve3zep"
+          "Value": "bosqkirpod"
         },
         {
           "Name": "label",
@@ -799,13 +799,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4="
+          "Value": "sha256-qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs="
         }
       ]
     },
     {
-      "Route": "dev/styles.1ydqve3zep.css",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
+      "Route": "dev/styles.bosqkirpod.css",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -814,7 +814,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "2697"
+          "Value": "3528"
         },
         {
           "Name": "Content-Type",
@@ -822,11 +822,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4=\""
+          "Value": "\"qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:04:31 GMT"
+          "Value": "Mon, 08 Sep 2025 14:25:15 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -836,7 +836,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1ydqve3zep"
+          "Value": "bosqkirpod"
         },
         {
           "Name": "label",
@@ -844,13 +844,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4="
+          "Value": "sha256-qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs="
         }
       ]
     },
     {
-      "Route": "dev/styles.1ydqve3zep.css.gz",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-1ydqve3zep.gz",
+      "Route": "dev/styles.bosqkirpod.css.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-bosqkirpod.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -859,7 +859,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "1084"
+          "Value": "1335"
         },
         {
           "Name": "Content-Type",
@@ -867,11 +867,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"PVsIzlFkRbMA9tQ6BOlEZ+OsFNn88Fpeydml7BX+ySU=\""
+          "Value": "\"BIOrGYx6Jniz+EY1T7uXSW0Yzi0B2lW8KmjCjMaE1MY=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:04:31 GMT"
+          "Value": "Mon, 08 Sep 2025 14:25:15 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -889,7 +889,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1ydqve3zep"
+          "Value": "bosqkirpod"
         },
         {
           "Name": "label",
@@ -897,18 +897,18 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-PVsIzlFkRbMA9tQ6BOlEZ+OsFNn88Fpeydml7BX+ySU="
+          "Value": "sha256-BIOrGYx6Jniz+EY1T7uXSW0Yzi0B2lW8KmjCjMaE1MY="
         }
       ]
     },
     {
       "Route": "dev/styles.css",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-1ydqve3zep.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-bosqkirpod.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000921658986"
+          "Quality": "0.000748502994"
         }
       ],
       "ResponseHeaders": [
@@ -918,15 +918,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "1084"
+          "Value": "1335"
         },
         {
           "Name": "ETag",
-          "Value": "\"PVsIzlFkRbMA9tQ6BOlEZ+OsFNn88Fpeydml7BX+ySU=\""
+          "Value": "\"BIOrGYx6Jniz+EY1T7uXSW0Yzi0B2lW8KmjCjMaE1MY=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:04:31 GMT"
+          "Value": "Mon, 08 Sep 2025 14:25:15 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -946,19 +946,19 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4=\""
+          "Value": "W/\"qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4="
+          "Value": "sha256-qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs="
         }
       ]
     },
     {
       "Route": "dev/styles.css",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\wwwroot\\dev\\styles.css",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -967,7 +967,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "2697"
+          "Value": "3528"
         },
         {
           "Name": "Content-Type",
@@ -975,11 +975,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4=\""
+          "Value": "\"qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:04:31 GMT"
+          "Value": "Mon, 08 Sep 2025 14:25:15 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -989,13 +989,13 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-589blo384zHXQOZwPIkmf29lyjOw1575yYCp/edWGc4="
+          "Value": "sha256-qx/qUHkkketr00xwwB5vTalYhuSj66y3NGVDoKok2Hs="
         }
       ]
     },
     {
       "Route": "dev/styles.css.gz",
-      "AssetFile": "C:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-1ydqve3zep.gz",
+      "AssetFile": "c:\\Users\\brand\\Desktop\\BCMTrack Code\\AuthenticationAPI\\obj\\Debug\\net9.0\\compressed\\474klkkjth-bosqkirpod.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -1004,7 +1004,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "1084"
+          "Value": "1335"
         },
         {
           "Name": "Content-Type",
@@ -1012,11 +1012,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"PVsIzlFkRbMA9tQ6BOlEZ+OsFNn88Fpeydml7BX+ySU=\""
+          "Value": "\"BIOrGYx6Jniz+EY1T7uXSW0Yzi0B2lW8KmjCjMaE1MY=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Mon, 08 Sep 2025 12:04:31 GMT"
+          "Value": "Mon, 08 Sep 2025 14:25:15 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -1034,7 +1034,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-PVsIzlFkRbMA9tQ6BOlEZ+OsFNn88Fpeydml7BX+ySU="
+          "Value": "sha256-BIOrGYx6Jniz+EY1T7uXSW0Yzi0B2lW8KmjCjMaE1MY="
         }
       ]
     }

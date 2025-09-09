@@ -110,6 +110,8 @@ public sealed class InputNormalizationFilter : IActionFilter
         foreach (var prop in t.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             if (!prop.CanRead || !prop.CanWrite) continue;
+            // Skip indexers (e.g., Dictionary<TKey,TValue>.Item) to avoid reflection SetValue parameter mismatch
+            if (prop.GetIndexParameters().Length > 0) continue;
             var val = prop.GetValue(obj);
             if (val is null) continue;
             if (val is string sv)
@@ -119,6 +121,15 @@ public sealed class InputNormalizationFilter : IActionFilter
             }
             else if (!prop.PropertyType.IsPrimitive && !prop.PropertyType.IsEnum)
             {
+                // Avoid diving into dictionaries and general enumerables (other than strings)
+                var isString = val is string;
+                var isDictionary = typeof(System.Collections.IDictionary).IsAssignableFrom(prop.PropertyType);
+                var isEnumerable = !isString && typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType);
+                if (isDictionary || isEnumerable)
+                {
+                    // Skip normalization for nested collections/dictionaries to prevent reflection errors
+                    continue;
+                }
                 var newVal = NormalizeObject(val, propertyPath + "." + prop.Name);
                 prop.SetValue(obj, newVal);
             }

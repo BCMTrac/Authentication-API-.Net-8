@@ -313,8 +313,8 @@ app.Use(async (ctx, next) =>
     var path = ctx.Request.Path.Value ?? string.Empty;
     if (path.StartsWith("/dev", StringComparison.OrdinalIgnoreCase))
     {
-        // Allow WebSocket for hot reload and fetch to same-origin
-        ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self' wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'";
+        // Allow WebSocket for hot reload and fetch to same-origin; permit data: and blob: images for QR rendering
+        ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self' wss:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'";
     }
     else
     {

@@ -195,13 +195,19 @@
     const url = base.replace(/\/$/, '') + '/api/v1/mfa/qr?otpauthUrl=' + encodeURIComponent(currentOtpauthUrl);
     const res = await fetch(url, { headers: { ...auth() } });
     if (res.ok) {
-      const blob = await res.blob();
+      const buf = await res.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      const b64 = btoa(bin);
       const img = document.createElement('img');
-      img.src = URL.createObjectURL(blob);
-      const pre = document.createElement('div');
-      pre.appendChild(img);
-    const cont = document.getElementById('outMfa');
-    if (cont) { cont.textContent = ''; cont.appendChild(pre); }
+      img.className = 'qr-img';
+      img.src = 'data:image/png;base64,' + b64;
+      const wrap = document.createElement('div');
+      wrap.className = 'qr-wrap';
+      wrap.appendChild(img);
+      const cont = document.getElementById('outMfa');
+      if (cont) { cont.textContent = ''; cont.appendChild(wrap); }
     } else { out('outMfa', { status: res.status, text: await res.text() }); }
   });
   bindClick('btnMfaConfirm', async () => { const code = vt('mfaCode'); if (!/^\d{6}$/.test(code) && !code){ out('outMfa','Enter a 6-digit code or a recovery code'); return; } const r = await call('/api/v1/authenticate/mfa/enroll/confirm', { method:'POST', headers: { ...auth() }, body: JSON.stringify({ code }) }); out('outMfa', r); });
