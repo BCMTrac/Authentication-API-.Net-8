@@ -185,6 +185,12 @@ public sealed class InputNormalizationFilter : IActionFilter
             s = s.ToLowerInvariant();
         }
 
+        // Reject angle brackets anywhere to prevent accidental HTML/script injection in common fields
+        if (s.Contains('<') || s.Contains('>'))
+        {
+            throw new ValidationException($"Invalid characters in field '{path}'.");
+        }
+
         // For full names, strip leading/trailing punctuation
         if (string.Equals(lastSegment, "FullName", StringComparison.OrdinalIgnoreCase))
         {

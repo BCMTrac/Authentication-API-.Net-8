@@ -24,6 +24,8 @@ using DotNetEnv;
 using AuthenticationAPI.Models.Options;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.CookiePolicy;
 
 // Load .env if present (supports local dev and on-server env-file usage) BEFORE building configuration
 try { Env.Load(); } catch { /* optional */ }
@@ -206,7 +208,8 @@ builder.Services.AddCors(policy =>
     policy.AddPolicy("Default", p => p
         .WithOrigins(origins)
         .AllowAnyHeader()
-        .AllowAnyMethod());
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 builder.Services.AddHealthChecks()
@@ -243,6 +246,15 @@ if (dpStorage == "file")
 // Future options (placeholders): azureblob/keyvault can be plugged in here based on config
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
+// Optional: enable HIBP password breach checks if configured
+var useHibp = string.Equals(configuration["PasswordBreach:Provider"], "hibp", StringComparison.OrdinalIgnoreCase)
+              || string.Equals(configuration["PasswordBreach:UseHibp"], "true", StringComparison.OrdinalIgnoreCase);
+if (useHibp)
+{
+    builder.Services.AddSingleton<IPasswordBreachChecker, HibpPasswordBreachChecker>();
+}
+// Shorten default Identity token lifetime to limit replay window
+builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromMinutes(30));
 // Email provider
 // In Development: support SMTP (e.g., smtp4dev). If not configured, fall back to ConsoleEmailSender.
 // In non-Development: prefer SendGrid and fail fast if missing.
@@ -294,7 +306,12 @@ builder.Services.AddSingleton<AuthenticationAPI.Services.Throttle.IThrottleServi
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Global server-side request size ceiling (defense-in-depth)
-builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 20 * 1024);
+builder.WebHost.ConfigureKestrel(o =>
+{
+    o.Limits.MaxRequestBodySize = 20 * 1024;
+    // Remove the 'Server: Kestrel' header to reduce fingerprinting
+    o.AddServerHeader = false;
+});
 
 var app = builder.Build();
 
@@ -351,8 +368,47 @@ if (enableForwarded)
     });
 }
 app.UseHttpsRedirection();
+// Enforce content type for JSON APIs
+app.Use(async (ctx, next) =>
+{
+    if (ctx.Request.Method == HttpMethods.Post || ctx.Request.Method == HttpMethods.Put || ctx.Request.Method == HttpMethods.Patch)
+    {
+        var hasBody = ctx.Request.ContentLength.GetValueOrDefault() > 0 || ctx.Request.Headers.ContainsKey("Content-Length");
+        var ct = ctx.Request.ContentType ?? string.Empty;
+        if (hasBody && !ct.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
+            await ctx.Response.WriteAsync("Unsupported Media Type");
+            return;
+        }
+    }
+    await next();
+});
 app.UseStaticFiles();
 app.UseCors("Default");
+
+// Do not cache authentication-related responses
+app.Use(async (ctx, next) =>
+{
+    var path = ctx.Request.Path.Value ?? string.Empty;
+    if (path.StartsWith("/api/authenticate", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/api/token", StringComparison.OrdinalIgnoreCase))
+    {
+        ctx.Response.Headers["Cache-Control"] = "no-store";
+        ctx.Response.Headers["Pragma"] = "no-cache";
+        ctx.Response.Headers["Expires"] = "0";
+    }
+    await next();
+});
+
+// Enforce secure cookie defaults for any cookie usage
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    Secure = CookieSecurePolicy.Always,
+    HttpOnly = HttpOnlyPolicy.Always,
+    // Allow per-cookie SameSite=None for refresh cookie
+    MinimumSameSitePolicy = SameSiteMode.None
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -445,8 +501,6 @@ using (var scope = app.Services.CreateScope())
     var allKeys = await scope.ServiceProvider.GetRequiredService<IKeyRingService>().GetAllActiveKeysAsync();
     cache.Set(allKeys);
 
-// Shorten default Identity token lifetime to limit replay window
-builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromMinutes(30));
 }
 
 app.Run();

@@ -15,13 +15,30 @@ public interface ISessionService
 public class SessionService : ISessionService
 {
     private readonly ApplicationDbContext _db;
-    public SessionService(ApplicationDbContext db) => _db = db;
+    private readonly int _maxSessions;
+    public SessionService(ApplicationDbContext db, IConfiguration config)
+    {
+        _db = db;
+        _maxSessions = Math.Max(1, int.TryParse(config["Sessions:MaxPerUser"], out var n) ? n : 5);
+    }
 
     public async Task<Session> CreateAsync(ApplicationUser user, string ip, string? userAgent, string? deviceId = null)
     {
         var s = new Session { UserId = user.Id, Ip = ip, UserAgent = userAgent, DeviceId = deviceId };
         _db.Sessions.Add(s);
         await _db.SaveChangesAsync();
+        // Enforce per-user concurrent session limit by revoking oldest active sessions
+        var active = await _db.Sessions.Where(x => x.UserId == user.Id && x.RevokedAtUtc == null)
+            .OrderBy(x => x.CreatedUtc).ToListAsync();
+        var toRevoke = active.Count - _maxSessions;
+        if (toRevoke > 0)
+        {
+            foreach (var old in active.Take(toRevoke))
+            {
+                old.RevokedAtUtc = DateTime.UtcNow;
+            }
+            await _db.SaveChangesAsync();
+        }
         return s;
     }
 

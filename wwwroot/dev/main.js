@@ -66,9 +66,13 @@
     if (!username || !email || !pwd) { out('outRegister', { ok:false, message:'Please fill in username, email and password.' }); return; }
     if (!isEmail(email)) { out('outRegister', { ok:false, message:'Enter a valid email address.' }); return; }
     if (!meetsPwd(pwd)) { out('outRegister', { ok:false, message:'Password must be \u226512 and include uppercase, lowercase, digit, and symbol.' }); return; }
-    const payload = { username, email, fullName: v('regFullName'), phone: v('regPhone'), password: pwd };
+    const payload = { username, email, fullName: v('regFullName'), phone: v('regPhone'), password: pwd, termsAccepted: document.getElementById('regTerms')?.checked === true, marketingOptIn: document.getElementById('regMarketing')?.checked === true };
     const r = await call('/api/v1/authenticate/register', { method:'POST', body: JSON.stringify(payload) });
-    out('outRegister', r);
+    if (r.ok) {
+      out('outRegister', 'If that email exists, we\'ve sent a confirmation link.');
+    } else {
+      out('outRegister', r);
+    }
   });
 
   // Login

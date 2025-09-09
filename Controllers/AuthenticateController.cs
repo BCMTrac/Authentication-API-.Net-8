@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using AuthenticationAPI.Services.Email;
 using Microsoft.AspNetCore.RateLimiting;
 using QRCoder; // add QR code generator types
+using Microsoft.AspNetCore.Http;
 
 namespace AuthenticationAPI.Controllers
 {
@@ -78,6 +79,19 @@ namespace AuthenticationAPI.Controllers
             }
         }
 
+        private static string? GetRefreshFromCookie(HttpRequest request)
+            => request.Cookies["refresh_token"];
+
+        private static CookieOptions BuildRefreshCookieOptions(DateTime expiresUtc)
+            => new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = expiresUtc,
+                Path = "/api/v1/authenticate"
+            };
+
         [HttpPost]
         [Route("login")]
         [EnableRateLimiting("login")]
@@ -101,6 +115,7 @@ namespace AuthenticationAPI.Controllers
             {
                 return Ok(new { mfaRequired = true });
             }
+            bool mfaSucceeded = false;
             if (user.MfaEnabled)
             {
                 if (string.IsNullOrWhiteSpace(user.MfaSecret)) return Unauthorized(new { error = "MFA not initialized" });
@@ -111,6 +126,7 @@ namespace AuthenticationAPI.Controllers
                     // Check recovery codes fallback
                     var used = await _recoveryCodes.RedeemAsync(user, model.MfaCode!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
                     if (!used) return Unauthorized(new { error = "Invalid MFA code" });
+                    mfaSucceeded = true;
                 }
                 else
                 {
@@ -119,6 +135,7 @@ namespace AuthenticationAPI.Controllers
                         return Unauthorized(new { error = "Stale MFA code" });
                     user.MfaLastTimeStep = ts;
                     await _userManager.UpdateAsync(user);
+                    mfaSucceeded = true;
                 }
             }
 
@@ -155,6 +172,12 @@ namespace AuthenticationAPI.Controllers
             }
 
             authClaims.Add(new Claim("token_version", user.TokenVersion.ToString()));
+            if (mfaSucceeded)
+            {
+                authClaims.Add(new Claim("amr", "mfa"));
+                var epoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                authClaims.Add(new Claim("auth_time", epoch));
+            }
             // Create session and issue tokens
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var ua = Request.Headers["User-Agent"].ToString();
@@ -162,6 +185,8 @@ namespace AuthenticationAPI.Controllers
             authClaims.Add(new Claim("sid", session.Id.ToString()));
             var token = GetToken(authClaims);
             var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
+            // Set refresh token as Secure, HttpOnly cookie (also return in body for backward compatibility)
+            Response.Cookies.Append("refresh_token", refreshToken, BuildRefreshCookieOptions(refreshExp));
 
             return Ok(new TokenSetResponse
             {
@@ -177,6 +202,11 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            // Require explicit consent
+            if (!model.TermsAccepted)
+            {
+                return BadRequest(new ApiMessage { Message = "You must accept the terms and conditions." });
+            }
             // Deny passwords that contain the username or email local part
             var emailLocal = (model.Email?.Split('@').FirstOrDefault() ?? string.Empty);
             if (!string.IsNullOrEmpty(model.Password))
@@ -187,6 +217,40 @@ namespace AuthenticationAPI.Controllers
                 {
                     return BadRequest(new ApiMessage { Message = "Password is too similar to account identifiers." });
                 }
+                // Basic weak pattern checks
+                var badFragments = new[] { "password", "qwerty", "123456", "letmein", "welcome" };
+                foreach (var frag in badFragments)
+                {
+                    if (pwLower.Contains(frag)) return BadRequest(new ApiMessage { Message = "Password contains common patterns; choose a stronger one." });
+                }
+            }
+
+            // Reserved usernames
+            var reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "admin","root","support","system","security","help","contact","postmaster","administrator"
+            };
+            if (reserved.Contains(model.Username))
+            {
+                return BadRequest(new ApiMessage { Message = "Username is reserved. Choose another." });
+            }
+
+            // Block disposable/temporary email domains
+            static bool IsDisposableDomain(string? email)
+            {
+                if (string.IsNullOrWhiteSpace(email)) return false;
+                var at = email.LastIndexOf('@');
+                if (at < 0) return false;
+                var domain = email[(at+1)..];
+                var block = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "mailinator.com","10minutemail.com","guerrillamail.com","yopmail.com","tempmail.com","trashmail.com","getnada.com","dispostable.com"
+                };
+                return block.Contains(domain);
+            }
+            if (IsDisposableDomain(model.Email))
+            {
+                return BadRequest(new ApiMessage { Message = "Disposable email domains are not allowed." });
             }
 
             // Optional compromised password check (no-op default)
@@ -212,13 +276,23 @@ namespace AuthenticationAPI.Controllers
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
                 UserName = model.Username,
-                FullName = string.IsNullOrWhiteSpace(model.FullName) ? null : model.FullName
+                FullName = string.IsNullOrWhiteSpace(model.FullName) ? null : model.FullName,
+                TermsAcceptedUtc = DateTime.UtcNow,
+                MarketingOptInUtc = model.MarketingOptIn ? DateTime.UtcNow : null
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
                 return BadRequest(new ApiMessage { Message = "User creation failed" });
 
             await _userManager.AddToRoleAsync(user, "User");
+
+            // Record initial password into history
+            await _db.Entry(user).ReloadAsync();
+            if (!string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                _db.PasswordHistory.Add(new PasswordHistory { UserId = user.Id, Hash = user.PasswordHash! });
+                await _db.SaveChangesAsync();
+            }
 
             // Optionally capture phone for future MFA via SMS (unconfirmed)
             if (!string.IsNullOrWhiteSpace(model.Phone))
@@ -236,11 +310,9 @@ namespace AuthenticationAPI.Controllers
             }
             catch (Exception ex)
             {
-                if (_env.IsDevelopment())
-                {
-                    Console.WriteLine($"[EMAIL-ERR][register-confirm] to={user.Email} ex={ex.Message}");
-                    return StatusCode(StatusCodes.Status502BadGateway, new ApiMessage { Message = $"User created, but email delivery failed: {ex.Message}" });
-                }
+                // In Development or Production, do not fail registration due to email delivery issues.
+                // Log and continue to return a generic response.
+                Console.WriteLine($"[EMAIL-ERR][register-confirm] to={user.Email} ex={ex.Message}");
             }
 
             return Ok(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
@@ -289,14 +361,17 @@ namespace AuthenticationAPI.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest? request)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            var stored = await _refreshTokenService.ValidateAsync(request.RefreshToken);
+            var fromBody = request?.RefreshToken;
+            var fromCookie = GetRefreshFromCookie(Request);
+            var provided = string.IsNullOrWhiteSpace(fromBody) ? fromCookie : fromBody;
+            if (string.IsNullOrWhiteSpace(provided)) return Unauthorized();
+            var stored = await _refreshTokenService.ValidateAsync(provided);
             if (stored == null)
             {
                 // Detect refresh token reuse attempts and globally revoke if detected
-                await _refreshTokenService.HandleReuseAttemptAsync(request.RefreshToken);
+                await _refreshTokenService.HandleReuseAttemptAsync(provided);
                 return Unauthorized();
             }
             if (stored.SessionId.HasValue)
@@ -322,7 +397,9 @@ namespace AuthenticationAPI.Controllers
             var token = GetToken(claims);
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var (newRefresh, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, stored.SessionId ?? Guid.Empty);
-            await _refreshTokenService.RevokeAndLinkAsync(request.RefreshToken, newRefresh, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+            await _refreshTokenService.RevokeAndLinkAsync(provided!, newRefresh, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+            // Rotate cookie to new refresh token
+            Response.Cookies.Append("refresh_token", newRefresh, BuildRefreshCookieOptions(refreshExp));
             return Ok(new TokenSetResponse
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
@@ -334,14 +411,19 @@ namespace AuthenticationAPI.Controllers
 
         [HttpPost("logout")]
         [Authorize]
-        public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
+        public async Task<IActionResult> Logout([FromBody] RefreshRequest? request)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var provided = !string.IsNullOrWhiteSpace(request?.RefreshToken) ? request!.RefreshToken : GetRefreshFromCookie(Request);
             // Revoke the session associated with the provided refresh token
-            var stored = await _refreshTokenService.ValidateAsync(request.RefreshToken);
+            var stored = string.IsNullOrWhiteSpace(provided) ? null : await _refreshTokenService.ValidateAsync(provided!);
             if (stored == null)
             {
-                await _refreshTokenService.HandleReuseAttemptAsync(request.RefreshToken);
+                if (!string.IsNullOrWhiteSpace(provided))
+                {
+                    await _refreshTokenService.HandleReuseAttemptAsync(provided!);
+                }
+                // Clear cookie regardless for idempotency
+                Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" });
                 return Ok(); // idempotent
             }
             if (stored.SessionId.HasValue)
@@ -351,8 +433,9 @@ namespace AuthenticationAPI.Controllers
             else
             {
                 // No session tracked: best-effort revoke this token only
-                await _refreshTokenService.RevokeAsync(request.RefreshToken, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "logout");
+                await _refreshTokenService.RevokeAsync(provided!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "logout");
             }
+            Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" });
             return Ok();
         }
 
@@ -365,6 +448,7 @@ namespace AuthenticationAPI.Controllers
             await _sessions.RevokeAllForUserAsync(user.Id, "logout-all");
             user.TokenVersion += 1; // invalidate access tokens too
             await _userManager.UpdateAsync(user);
+            Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" });
             return Ok();
         }
 
@@ -375,11 +459,41 @@ namespace AuthenticationAPI.Controllers
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
+            // Prevent reuse of recent passwords (last 5) and within last 1 day
+            var recent = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
+                .OrderByDescending(ph => ph.CreatedUtc).Take(5).ToListAsync();
+            var hasher = HttpContext.RequestServices.GetRequiredService<IPasswordHasher<ApplicationUser>>();
+            foreach (var ph in recent)
+            {
+                var verdict = hasher.VerifyHashedPassword(user, ph.Hash, dto.NewPassword);
+                if (verdict == PasswordVerificationResult.Success)
+                {
+                    return BadRequest(new ApiMessage { Message = "New password must not match your recent passwords." });
+                }
+                if ((DateTime.UtcNow - ph.CreatedUtc).TotalDays < 1)
+                {
+                    return BadRequest(new ApiMessage { Message = "Password was changed recently. Try again later." });
+                }
+            }
             var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
             if (!result.Succeeded) return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
             user.TokenVersion += 1;
             await _userManager.UpdateAsync(user);
             await _refreshTokenService.RevokeAllForUserAsync(user.Id, "password-changed");
+            // record history and cap to last 10
+            await _db.Entry(user).ReloadAsync(); // ensure PasswordHash updated
+            if (!string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                _db.PasswordHistory.Add(new PasswordHistory { UserId = user.Id, Hash = user.PasswordHash! });
+                await _db.SaveChangesAsync();
+                var keep = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
+                    .OrderByDescending(ph => ph.CreatedUtc).Skip(10).ToListAsync();
+                if (keep.Any())
+                {
+                    _db.PasswordHistory.RemoveRange(keep);
+                    await _db.SaveChangesAsync();
+                }
+            }
             return Ok();
         }
 
@@ -450,9 +564,12 @@ namespace AuthenticationAPI.Controllers
         }
         
         [HttpPost("revoke-refresh")]
-        public async Task<IActionResult> RevokeRefresh([FromBody] RefreshRequest request)
+        public async Task<IActionResult> RevokeRefresh([FromBody] RefreshRequest? request)
         {
-            var ok = await _refreshTokenService.RevokeAsync(request.RefreshToken, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "manual");
+            var provided = !string.IsNullOrWhiteSpace(request?.RefreshToken) ? request!.RefreshToken : GetRefreshFromCookie(Request);
+            if (string.IsNullOrWhiteSpace(provided)) { Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" }); return NotFound(); }
+            var ok = await _refreshTokenService.RevokeAsync(provided!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "manual");
+            Response.Cookies.Delete("refresh_token", new CookieOptions { Path = "/api/v1/authenticate" });
             return ok ? Ok() : NotFound();
         }
 
@@ -495,12 +612,42 @@ namespace AuthenticationAPI.Controllers
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return BadRequest();
             var normToken = NormalizeToken(dto.Token);
+            // Enforce password history reuse rules
+            var recent = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
+                .OrderByDescending(ph => ph.CreatedUtc).Take(5).ToListAsync();
+            var hasher = HttpContext.RequestServices.GetRequiredService<IPasswordHasher<ApplicationUser>>();
+            foreach (var ph in recent)
+            {
+                var verdict = hasher.VerifyHashedPassword(user, ph.Hash, dto.NewPassword);
+                if (verdict == PasswordVerificationResult.Success)
+                {
+                    return BadRequest(new ApiMessage { Message = "New password must not match your recent passwords." });
+                }
+                if ((DateTime.UtcNow - ph.CreatedUtc).TotalDays < 1)
+                {
+                    return BadRequest(new ApiMessage { Message = "Password was changed recently. Try again later." });
+                }
+            }
             var res = await _userManager.ResetPasswordAsync(user, normToken, dto.NewPassword);
             if (!res.Succeeded) return BadRequest(new { errors = res.Errors.Select(e => e.Description) });
             // Global session revoke on password reset and bump token version
             user.TokenVersion += 1;
             await _userManager.UpdateAsync(user);
             await _refreshTokenService.RevokeAllForUserAsync(user.Id, "password-reset");
+            // record history and cap
+            await _db.Entry(user).ReloadAsync();
+            if (!string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                _db.PasswordHistory.Add(new PasswordHistory { UserId = user.Id, Hash = user.PasswordHash! });
+                await _db.SaveChangesAsync();
+                var keep = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
+                    .OrderByDescending(ph => ph.CreatedUtc).Skip(10).ToListAsync();
+                if (keep.Any())
+                {
+                    _db.PasswordHistory.RemoveRange(keep);
+                    await _db.SaveChangesAsync();
+                }
+            }
             return Ok();
         }
 

@@ -34,6 +34,10 @@
           <input id="regPass" type="password" placeholder="min 12; upper/lower/digit/symbol" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,256}" title="Min 12; include uppercase, lowercase, digit, and symbol" />
           <button type="button" class="pwd-toggle" aria-label="Show password" data-target="regPass">Show</button>
         </div>
+        <label for="regTerms">Terms</label>
+        <div><input id="regTerms" type="checkbox" /> I agree to the Terms</div>
+        <label for="regMarketing">Marketing</label>
+        <div><input id="regMarketing" type="checkbox" /> I agree to receive updates</div>
         <ul id="regPassReqs" class="req-list">
           <li id="rpLen">At least 12 characters</li>
           <li id="rpUpper">At least one uppercase letter</li>

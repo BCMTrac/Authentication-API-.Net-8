@@ -10,5 +10,7 @@ namespace AuthenticationAPI.Models
     public bool MfaEnabled { get; set; } = false; // TOTP enabled flag
     public string? MfaSecret { get; set; } // Base32 secret (encrypted at rest in production)
     public long MfaLastTimeStep { get; set; } = -1; // anti-replay: last accepted TOTP time step
+    public DateTime? TermsAcceptedUtc { get; set; }
+    public DateTime? MarketingOptInUtc { get; set; }
     }
 }

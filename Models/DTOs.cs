@@ -18,6 +18,9 @@ namespace AuthenticationAPI.Models
         [StringLength(100, MinimumLength = 2)]
         public string? FullName { get; set; }
 
+        public bool TermsAccepted { get; set; }
+        public bool MarketingOptIn { get; set; }
+
         // If used for MFA later; format E.164 (+ plus digits), 8-15 digits total
         [RegularExpression(@"^\+[1-9][0-9]{7,14}$", ErrorMessage = "Phone must be E.164 format e.g. +15551234567")]
         public string? Phone { get; set; }
@@ -54,11 +57,11 @@ namespace AuthenticationAPI.Models
         [Required, StringLength(2048)] public string Token { get; set; } = string.Empty;
     }
     
-    // Refresh token request
+    // Refresh token request (body optional; may come via secure HttpOnly cookie)
     public class RefreshRequest : StrictDtoBase
     {
-        [Required, StringLength(1024)]
-        public string RefreshToken { get; set; } = null!;
+        [StringLength(1024)]
+        public string? RefreshToken { get; set; }
     }
     
     // Password reset request

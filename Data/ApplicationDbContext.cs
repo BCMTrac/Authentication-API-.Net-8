@@ -18,6 +18,7 @@ namespace AuthenticationAPI.Data
         public DbSet<ClientApp> ClientApps => Set<ClientApp>();
     public DbSet<UserRecoveryCode> UserRecoveryCodes => Set<UserRecoveryCode>();
         public DbSet<Session> Sessions => Set<Session>();
+        public DbSet<PasswordHistory> PasswordHistory => Set<PasswordHistory>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -90,6 +91,11 @@ namespace AuthenticationAPI.Data
             {
                 b.Property(rp => rp.RoleId)
                     .HasMaxLength(128);
+            });
+
+            builder.Entity<PasswordHistory>(b =>
+            {
+                b.HasIndex(ph => new { ph.UserId, ph.CreatedUtc });
             });
         }
     }
