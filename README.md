@@ -50,7 +50,6 @@ Multi-factor authentication (TOTP)
 
 What’s still to add (future hardening)
 
-- Production email provider (current default logs to console; Mailtrap API supported for testing)
 - Admin UI and self-service profile pages
 - Swagger protection in production + stricter CORS
 - Security monitoring dashboards and alerting
@@ -79,4 +78,4 @@ Swagger UI: https://localhost:7086/swagger
 Notes
 
 - For production, use real environment variables or a secrets manager instead of `.env`.
-- For email during testing, set a Mailtrap API token in `.env` and the API will send via Mailtrap.
+- Email is sent via SMTP. Configure `Smtp__Host`, `Smtp__Port`, `Smtp__From`, `Smtp__FromName`, and credentials in `.env`.

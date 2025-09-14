@@ -29,7 +29,7 @@ public sealed class EmailTemplateRenderer : IEmailTemplateRenderer
         var primary = _config["Email:Brand:PrimaryBlue"] ?? "#0B5FFF";
         var accent = _config["Email:Brand:AccentOrange"] ?? "#FF7A00";
         var alert = _config["Email:Brand:AlertRed"] ?? "#E53935";
-        var appName = _config["Email:Brand:AppName"] ?? "BCMTrack";
+        var appName = _config["Email:Brand:AppName"] ?? "bcmtrac";
 
         var html = await File.ReadAllTextAsync(file, ct);
 

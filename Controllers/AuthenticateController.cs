@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using AuthenticationAPI.Services.Email;
 using Microsoft.AspNetCore.RateLimiting;
 using QRCoder; // add QR code generator types
+using Microsoft.AspNetCore.Http;
 
 namespace AuthenticationAPI.Controllers
 {
@@ -34,6 +35,7 @@ namespace AuthenticationAPI.Controllers
     private readonly IRecoveryCodeService _recoveryCodes;
     private readonly AuthenticationAPI.Services.Throttle.IThrottleService _throttle;
     private readonly ISessionService _sessions;
+    private readonly AuthenticationAPI.Models.Options.BridgeOptions _bridgeOptions;
 
         public AuthenticateController(
             UserManager<ApplicationUser> userManager,
@@ -49,7 +51,8 @@ namespace AuthenticationAPI.Controllers
             IMfaSecretProtector protector,
             IRecoveryCodeService recoveryCodes,
             AuthenticationAPI.Services.Throttle.IThrottleService throttle,
-            ISessionService sessions)
+            ISessionService sessions,
+            Microsoft.Extensions.Options.IOptions<AuthenticationAPI.Models.Options.BridgeOptions> bridgeOptions)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -65,6 +68,7 @@ namespace AuthenticationAPI.Controllers
             _recoveryCodes = recoveryCodes;
             _throttle = throttle;
             _sessions = sessions;
+            _bridgeOptions = bridgeOptions.Value;
         }
 
         private static string NormalizeToken(string token)
@@ -193,6 +197,33 @@ namespace AuthenticationAPI.Controllers
             authClaims.Add(new Claim("sid", session.Id.ToString()));
             var token = GetToken(authClaims);
             var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
+
+            // Optional: also set refresh token as HttpOnly cookie for XSS protection
+            if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
+            {
+                var cookieOpts = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = refreshExp,
+                    Path = "/api/v1/authenticate"
+                };
+                Response.Cookies.Append("rt", refreshToken, cookieOpts);
+            }
+
+            // Legacy bridge headers for YARP to convert into cookies for the monolith
+            if (_bridgeOptions.Enabled)
+            {
+                foreach (var name in _bridgeOptions.HeaderNames)
+                {
+                    Response.Headers[name] = session.Id.ToString();
+                }
+                if (!string.IsNullOrWhiteSpace(_bridgeOptions.JwtHeaderName))
+                {
+                    Response.Headers[_bridgeOptions.JwtHeaderName] = new JwtSecurityTokenHandler().WriteToken(token);
+                }
+            }
             // Return refresh token only in response body (no cookies)
 
             return Ok(new TokenSetResponse
@@ -377,9 +408,14 @@ namespace AuthenticationAPI.Controllers
         }
 
         [HttpPost("refresh")]
+        [EnableRateLimiting("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
             var provided = request.RefreshToken;
+            if (string.IsNullOrWhiteSpace(provided) && string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
+            {
+                Request.Cookies.TryGetValue("rt", out provided);
+            }
             if (string.IsNullOrWhiteSpace(provided)) return Unauthorized();
             var stored = await _refreshTokenService.ValidateAsync(provided);
             if (stored == null)
@@ -412,6 +448,28 @@ namespace AuthenticationAPI.Controllers
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var (newRefresh, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, stored.SessionId ?? Guid.Empty);
             await _refreshTokenService.RevokeAndLinkAsync(provided!, newRefresh, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+
+            if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
+            {
+                var cookieOpts = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = refreshExp,
+                    Path = "/api/v1/authenticate"
+                };
+                Response.Cookies.Append("rt", newRefresh, cookieOpts);
+            }
+
+            if (_bridgeOptions.Enabled && stored.SessionId.HasValue)
+            {
+                var sid = stored.SessionId.Value.ToString();
+                foreach (var name in _bridgeOptions.HeaderNames)
+                {
+                    Response.Headers[name] = sid;
+                }
+            }
             return Ok(new TokenSetResponse
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
@@ -426,6 +484,10 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
         {
             var provided = request.RefreshToken;
+            if (string.IsNullOrWhiteSpace(provided) && string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
+            {
+                Request.Cookies.TryGetValue("rt", out provided);
+            }
             // Revoke the session associated with the provided refresh token
             var stored = string.IsNullOrWhiteSpace(provided) ? null : await _refreshTokenService.ValidateAsync(provided!);
             if (stored == null)
@@ -444,6 +506,16 @@ namespace AuthenticationAPI.Controllers
             {
                 // No session tracked: best-effort revoke this token only
                 await _refreshTokenService.RevokeAsync(provided!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "logout");
+            }
+            if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
+            {
+                Response.Cookies.Delete("rt", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Path = "/api/v1/authenticate"
+                });
             }
             return Ok();
         }
@@ -467,13 +539,15 @@ namespace AuthenticationAPI.Controllers
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
-            // Prevent reuse of recent passwords and enforce minimum age based on config
+            // Prevent reuse of recent passwords and enforce optional minimum age based on config
             var reuseWindow = int.TryParse(_configuration["PasswordHistory:ReuseWindowCount"], out var rw) ? Math.Max(1, rw) : 5;
-            var minAgeHours = int.TryParse(_configuration["PasswordHistory:MinAgeHours"], out var mh) ? Math.Max(1, mh) : 24;
+            var minAgeHours = int.TryParse(_configuration["PasswordHistory:MinAgeHours"], out var mh) ? Math.Max(0, mh) : 24;
             var totalHistory = await _db.PasswordHistory.CountAsync(ph => ph.UserId == user.Id);
             var recent = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
                 .OrderByDescending(ph => ph.CreatedUtc).Take(reuseWindow).ToListAsync();
             var hasher = HttpContext.RequestServices.GetRequiredService<IPasswordHasher<ApplicationUser>>();
+
+            // Reuse window: block if new password matches any of the recent N hashes
             foreach (var ph in recent)
             {
                 var verdict = hasher.VerifyHashedPassword(user, ph.Hash, dto.NewPassword);
@@ -481,8 +555,14 @@ namespace AuthenticationAPI.Controllers
                 {
                     return BadRequest(new ApiMessage { Message = "New password must not match your recent passwords." });
                 }
-                // Allow immediate change for brand new accounts (initial history entry)
-                if (totalHistory > 1 && (DateTime.UtcNow - ph.CreatedUtc).TotalHours < minAgeHours)
+            }
+
+            // Minimum age: block only if there has been at least one previous change and the last change is too recent
+            if (minAgeHours > 0 && totalHistory > 1)
+            {
+                var last = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
+                    .OrderByDescending(ph => ph.CreatedUtc).FirstOrDefaultAsync();
+                if (last != null && (DateTime.UtcNow - last.CreatedUtc).TotalHours < minAgeHours)
                 {
                     return BadRequest(new ApiMessage { Message = "Password was changed recently. Try again later." });
                 }
@@ -782,7 +862,7 @@ namespace AuthenticationAPI.Controllers
         }
 
         [HttpPost("mfa/disable")]
-        [Authorize]
+        [Authorize(Policy = "mfa")]
         public async Task<IActionResult> MfaDisable()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -799,7 +879,7 @@ namespace AuthenticationAPI.Controllers
         }
 
         [HttpPost("mfa/recovery/regenerate")]
-        [Authorize]
+        [Authorize(Policy = "mfa")]
         public async Task<IActionResult> RegenerateRecoveryCodes()
         {
             var user = await _userManager.GetUserAsync(User);

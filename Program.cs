@@ -31,7 +31,27 @@ using Microsoft.AspNetCore.CookiePolicy;
 try { Env.Load(); } catch { /* optional */ }
 
 var builder = WebApplication.CreateBuilder(args);
-var configuration = builder.Configuration;
+var configurationBuilder = new ConfigurationBuilder()
+    .AddConfiguration(builder.Configuration)
+    .AddEnvironmentVariables();
+
+// Optional: Azure Key Vault integration for configuration secrets
+var keyVaultUrl = builder.Configuration["Azure:KeyVault:VaultUrl"];
+if (!string.IsNullOrWhiteSpace(keyVaultUrl))
+{
+    try
+    {
+        var cred = new Azure.Identity.DefaultAzureCredential();
+        configurationBuilder.AddAzureKeyVault(new Uri(keyVaultUrl), cred);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Azure Key Vault not added: {ex.Message}");
+    }
+}
+
+var configuration = configurationBuilder.Build();
+builder.Configuration = configuration;
 
 // Structured logging (basic JSON via built-in) - Serilog can replace later
 builder.Logging.ClearProviders();
@@ -45,6 +65,8 @@ builder.Logging.AddJsonConsole(options =>
 builder.Services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
 builder.Services.Configure<KeyRotationOptions>(configuration.GetSection(KeyRotationOptions.SectionName));
+builder.Services.Configure<AuthenticationAPI.Models.Options.BridgeOptions>(
+    configuration.GetSection(AuthenticationAPI.Models.Options.BridgeOptions.SectionName));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("AppDb")));
@@ -80,6 +102,13 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer();
 builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
+// HSTS configuration for production
+builder.Services.AddHsts(options =>
+{
+    options.Preload = true;
+    options.IncludeSubDomains = true;
+    options.MaxAge = TimeSpan.FromDays(180);
+});
 
 builder.Services.AddControllers(o =>
 {
@@ -202,15 +231,29 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(5),
                 QueueLimit = 0
             }));
+    options.AddPolicy("refresh", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
+var useRefreshCookie = string.Equals(configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase);
 builder.Services.AddCors(policy =>
 {
-    var origins = (configuration["Cors:AllowedOrigins"] ?? "http://localhost:4200").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    policy.AddPolicy("Default", p => p
-        .WithOrigins(origins)
-        .AllowAnyHeader()
-        .AllowAnyMethod());
+    var origins = (configuration["Cors:AllowedOrigins"] ?? string.Empty)
+        .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    policy.AddPolicy("Default", p =>
+    {
+        p.SetIsOriginAllowed(origin => origins.Contains(origin));
+        p.AllowAnyHeader();
+        p.AllowAnyMethod();
+        if (useRefreshCookie) p.AllowCredentials();
+    });
 });
 
 builder.Services.AddHealthChecks()
@@ -245,7 +288,34 @@ if (dpStorage == "file")
         dpBuilder.ProtectKeysWithDpapi();
     }
 }
-// Future options (placeholders): azureblob/keyvault can be plugged in here based on config
+else if (dpStorage == "azure")
+{
+    // Protect keys with a Key Vault key and persist to Blob Storage
+    var blobConn = configuration["Azure:Blob:ConnectionString"];
+    var containerName = configuration["Azure:Blob:Container"] ?? "dataprotection";
+    var keyId = configuration["Azure:KeyVault:KeyId"]; // e.g., https://<vault>.vault.azure.net/keys/<keyname>/<version>
+    var vaultUrlCfg = configuration["Azure:KeyVault:VaultUrl"];
+    if (string.IsNullOrWhiteSpace(blobConn) || string.IsNullOrWhiteSpace(keyId) || string.IsNullOrWhiteSpace(vaultUrlCfg))
+    {
+        throw new InvalidOperationException("DataProtection storage 'azure' requires Azure:Blob:ConnectionString, Azure:Blob:Container, Azure:KeyVault:VaultUrl and Azure:KeyVault:KeyId.");
+    }
+    try
+    {
+        var blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(blobConn);
+        var container = blobServiceClient.GetBlobContainerClient(containerName);
+        container.CreateIfNotExists();
+        dpBuilder.PersistKeysToAzureBlobStorage(container, "keys.xml");
+
+        var cred = new Azure.Identity.DefaultAzureCredential();
+        dpBuilder.ProtectKeysWithAzureKeyVault(new Uri(keyId), cred);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Azure DP config failed: {ex.Message}");
+        throw;
+    }
+}
+// Future options (placeholders): other providers can be plugged in here based on config
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
 // Optional: enable HIBP password breach checks if configured
@@ -257,52 +327,22 @@ if (useHibp)
 }
 // Shorten default Identity token lifetime to limit replay window
 builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromMinutes(30));
-// Email provider
-// In Development: support SMTP (e.g., smtp4dev). If not configured, fall back to ConsoleEmailSender.
-// In non-Development: prefer SendGrid and fail fast if missing.
-var sgApiKey = configuration["SendGrid:ApiKey"] ?? configuration["SENDGRID_API_KEY"] ?? string.Empty;
-var sgFrom = configuration["SendGrid:From"] ?? string.Empty;
-var sgFromName = configuration["SendGrid:FromName"] ?? string.Empty;
-if (builder.Environment.IsDevelopment())
+// Email provider: use SMTP only (Everlytic)
+var smtpSection = configuration.GetSection(SmtpOptions.SectionName);
+var smtpOpts = smtpSection.Get<SmtpOptions>() ?? new SmtpOptions();
+if (string.IsNullOrWhiteSpace(smtpOpts.Host) || smtpOpts.Port <= 0 || string.IsNullOrWhiteSpace(smtpOpts.From))
 {
-    var smtpSection = configuration.GetSection(SmtpOptions.SectionName);
-    var smtpOpts = smtpSection.Get<SmtpOptions>();
-    if (smtpOpts != null && !string.IsNullOrWhiteSpace(smtpOpts.Host) && smtpOpts.Port > 0)
-    {
-    builder.Services.AddSingleton<IEmailSender>(new AuthenticationAPI.Services.Email.SmtpEmailSender(smtpOpts));
-        Console.WriteLine($"[DEV] Using SMTP for email: {smtpOpts.Host}:{smtpOpts.Port}");
-    }
-    else if (!string.IsNullOrWhiteSpace(sgApiKey) && !string.IsNullOrWhiteSpace(sgFrom))
-    {
-        builder.Services.AddSingleton<IEmailSender>(sp =>
-            new SendGridEmailSender(
-                sp.GetRequiredService<IHttpClientFactory>(),
-                sgApiKey,
-                sgFrom,
-                string.IsNullOrWhiteSpace(sgFromName) ? "Authentication API" : sgFromName));
-        Console.WriteLine("[DEV] Using SendGrid for email");
-    }
-    else
-    {
-        builder.Services.AddSingleton<IEmailSender, ConsoleEmailSender>();
-        Console.WriteLine("[DEV] Email not configured. Using ConsoleEmailSender fallback.");
-    }
+    throw new InvalidOperationException("SMTP is not configured. Set Smtp:Host, Smtp:Port, and Smtp:From.");
 }
-else
-{
-    if (string.IsNullOrWhiteSpace(sgApiKey) || string.IsNullOrWhiteSpace(sgFrom))
-    {
-        throw new InvalidOperationException("Email is not configured. Set SendGrid:ApiKey and SendGrid:From (or SENDGRID_API_KEY env var).");
-    }
-    builder.Services.AddSingleton<IEmailSender>(sp =>
-        new SendGridEmailSender(
-            sp.GetRequiredService<IHttpClientFactory>(),
-            sgApiKey,
-            sgFrom,
-            string.IsNullOrWhiteSpace(sgFromName) ? "Authentication API" : sgFromName));
-}
+builder.Services.AddSingleton<IEmailSender>(new AuthenticationAPI.Services.Email.SmtpEmailSender(smtpOpts));
+Console.WriteLine($"[Startup] Using SMTP for email: {smtpOpts.Host}:{smtpOpts.Port} as {smtpOpts.FromName ?? smtpOpts.From}");
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Require that the current access token was issued after a successful MFA step
+    // This is indicated by the presence of the "amr" (Authentication Methods Reference) claim with value "mfa".
+    options.AddPolicy("mfa", policy => policy.RequireClaim("amr", "mfa"));
+});
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<AuthenticationAPI.Services.Throttle.IThrottleService, AuthenticationAPI.Services.Throttle.MemoryThrottleService>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
@@ -317,39 +357,49 @@ builder.WebHost.ConfigureKestrel(o =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-// Enable Swagger in all environments for now (prod testing). Protect behind auth later if needed.
-app.UseSwagger();
-// Wire Swagger to API versions
-var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-app.UseSwaggerUI(options =>
+// Honor X-Forwarded-* headers when behind reverse proxies (prod)
+if (!app.Environment.IsDevelopment())
 {
-    foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
     {
-        var group = description.GroupName; // e.g., v1
-        options.SwaggerEndpoint($"/swagger/{group}/swagger.json", $"Authentication API {group.ToUpperInvariant()}");
-    }
-});
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    });
+}
+
+// Configure the HTTP request pipeline.
+// Swagger: enabled by default in Development; disable in Production unless explicitly turned on
+if (app.Environment.IsDevelopment() || string.Equals(configuration["Features:Swagger"], "true", StringComparison.OrdinalIgnoreCase))
+{
+    app.UseSwagger();
+    // Wire Swagger to API versions
+    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+    app.UseSwaggerUI(options =>
+    {
+        foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+        {
+            var group = description.GroupName; // e.g., v1
+            options.SwaggerEndpoint($"/swagger/{group}/swagger.json", $"Authentication API {group.ToUpperInvariant()}");
+        }
+    });
+}
 
 // Security headers (basic set)
 app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
     ctx.Response.Headers["X-Frame-Options"] = "DENY";
-    ctx.Response.Headers["X-XSS-Protection"] = "0"; // modern browsers ignore/obsolete
+    ctx.Response.Headers["X-XSS-Protection"] = "0";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     ctx.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=()";
-    // CSP: strict by default; allow basic inline for the dev console under /dev
-    var path = ctx.Request.Path.Value ?? string.Empty;
-    if (path.StartsWith("/dev", StringComparison.OrdinalIgnoreCase))
+
+    // CSP differs slightly by environment
+    var csp = "default-src 'self'; script-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self';";
+    if (app.Environment.IsDevelopment())
     {
-        // Allow WebSocket for hot reload and fetch to same-origin; permit data: and blob: images for QR rendering
-        ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self' wss:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'";
+        csp = "default-src 'self'; script-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net ws://localhost:* wss://localhost:*;";
     }
-    else
-    {
-        ctx.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none';";
-    }
+    ctx.Response.Headers["Content-Security-Policy"] = csp;
+
     await next();
 });
 app.UseGlobalExceptionHandling();
@@ -389,6 +439,28 @@ app.Use(async (ctx, next) =>
 app.UseStaticFiles();
 app.UseCors("Default");
 
+// Enforce explicit CORS origins in production
+if (!app.Environment.IsDevelopment())
+{
+    var configuredOrigins = (configuration["Cors:AllowedOrigins"] ?? string.Empty)
+        .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    if (configuredOrigins.Length == 0)
+    {
+        throw new InvalidOperationException("CORS is not configured. Set Cors:AllowedOrigins for production (semicolon-separated).");
+    }
+
+    // Block access to any /dev assets in production
+    app.Use(async (ctx, next) =>
+    {
+        if (ctx.Request.Path.StartsWithSegments("/dev", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+        await next();
+    });
+}
+
 // Do not cache authentication-related responses
 app.Use(async (ctx, next) =>
 {
@@ -408,6 +480,13 @@ app.Use(async (ctx, next) =>
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// HTTPS/HSTS + proxy headers for production
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
 var enableRateLimit = builder.Environment.IsDevelopment()
     ? string.Equals(configuration["Features:RateLimit"], "true", StringComparison.OrdinalIgnoreCase)
     : true;
@@ -439,50 +518,61 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 
 // Convenience root redirect to Swagger UI
-app.MapGet("/", () => Results.Redirect("/swagger"));
-// Dev console entry
-app.MapGet("/dev", () => Results.Redirect("/dev/index.html"));
+// Default entry to UI
+app.MapGet("/", () => Results.Redirect("/index.html"));
+// Admin panel entry
+app.MapGet("/admin", () => Results.Redirect("/admin.html"));
 // Lightweight ping that does not touch the database (useful for quick 200 check)
 app.MapGet("/api/ping", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }));
 
 using (var scope = app.Services.CreateScope())
 {
     // Ensure database is up-to-date in Development to avoid 500s from schema drift
-    try
+    var autoMigrate = app.Environment.IsDevelopment() ?
+        string.Equals(configuration["Features:AutoMigrate"], "true", StringComparison.OrdinalIgnoreCase) :
+        string.Equals(configuration["Features:AutoMigrate"], "true", StringComparison.OrdinalIgnoreCase);
+    if (autoMigrate)
     {
-        var dbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.ApplicationDbContext>();
-        await dbCtx.Database.MigrateAsync();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[Startup] Migration failed: {ex.Message}");
-    }
-
-    try
-    {
-        var appDbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.AppDbContext>();
-        await appDbCtx.Database.MigrateAsync();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[Startup] AppDb migration failed: {ex.Message}");
-    }
-
-    try
-    {
-        await Seed.SeedRoles(scope.ServiceProvider);
-        await Seed.SeedPermissions(scope.ServiceProvider);
-        // Only seed admin user if credentials are provided
-        var adminEmail = configuration["SeedAdmin:Email"];
-        var adminPassword = configuration["SeedAdmin:Password"];
-        if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
+        try
         {
-            await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail, adminPassword);
+            var dbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.ApplicationDbContext>();
+            await dbCtx.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Startup] Migration failed: {ex.Message}");
+        }
+
+        try
+        {
+            var appDbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.AppDbContext>();
+            await appDbCtx.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Startup] AppDb migration failed: {ex.Message}");
         }
     }
-    catch (Exception ex)
+
+    var doSeed = string.Equals(configuration["Features:Seed"], "true", StringComparison.OrdinalIgnoreCase);
+    if (doSeed)
     {
-        Console.WriteLine($"[Startup] Seeding failed: {ex.Message}");
+        try
+        {
+            await Seed.SeedRoles(scope.ServiceProvider);
+            await Seed.SeedPermissions(scope.ServiceProvider);
+            // Only seed admin user if credentials are provided
+            var adminEmail = configuration["SeedAdmin:Email"];
+            var adminPassword = configuration["SeedAdmin:Password"];
+            if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
+            {
+                await Seed.SeedAdminUser(scope.ServiceProvider, adminEmail, adminPassword);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Startup] Seeding failed: {ex.Message}");
+        }
     }
     // Seed signing key if none
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

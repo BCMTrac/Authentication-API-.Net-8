@@ -17,7 +17,7 @@ Content-Type: {{json}}
   "password": "{{password}}"
 }
 
-### Request Email Confirmation (check smtp4dev for the token)
+### Request Email Confirmation (check your SMTP inbox for the token)
 POST {{base}}/api/v1/authenticate/request-email-confirm
 Content-Type: {{json}}
 
@@ -25,7 +25,7 @@ Content-Type: {{json}}
   "email": "{{email}}"
 }
 
-### Confirm Email (paste token from smtp4dev below)
+### Confirm Email (paste token from your inbox below)
 @confirm_token = CfDJ8C5OvvvVXLdJvgw2nk4E5T6BgXIcK4qXbOsOQaVH0az12sRsJYyheOfnQsdCA2gfXoNMAhpf+cj7mQvIjQgRF3RFhc5C1IlOR0gkOpFCl2taDgIr9RjPtwExcvwEVUq/tBABlVbt2z7c2S99JwQmD8VxX1vMqSD9xjMsjV4gkdFRWK4bGbdFjS18a6oY12ZpKg9UCWpr7WoGmsMcO/jJYOPot/YXgBL48eO4q2mSpWQZwFIHcDIjLfrpEiuyCirodg==
 
 POST {{base}}/api/v1/authenticate/confirm-email
@@ -83,7 +83,7 @@ Content-Type: {{json}}
   "email": "{{email}}"
 }
 
-### Password Reset Confirm (paste reset token from smtp4dev)
+### Password Reset Confirm (paste reset token from your inbox)
 @reset_token = PASTE_RESET_TOKEN
 POST {{base}}/api/v1/authenticate/confirm-password-reset
 Content-Type: {{json}}
