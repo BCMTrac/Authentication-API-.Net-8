@@ -22,6 +22,9 @@ public class UiController : Controller
     [HttpGet("/reset-password")]
     public IActionResult ResetPassword() => View();
 
+    [HttpGet("/activate")]
+    public IActionResult Activate() => View();
+
     // Serve JS/CSS from Assets via controller 
     // Static assets are served from wwwroot via UseStaticFiles (standard ASP.NET Core)
 }

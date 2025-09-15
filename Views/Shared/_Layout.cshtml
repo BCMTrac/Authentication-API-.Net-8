@@ -1,6 +1,7 @@
 @{
     Layout = null;
 }
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,7 +22,7 @@
         <div class="auth-container shadow-glass animate-pop">
             <div class="text-center mb-4">
                 <div class="brand-lockup">
-                    <span class="brand-logo"></span>
+                    <img class="brand-logo-img" src="/assets/logo2.png" alt="BCMTrac" onerror="this.style.display='none'">
                     <span class="brand-name">BCMTrac</span>
                 </div>
             </div>
@@ -32,6 +33,10 @@
             </div>
         </div>
     </div>
+    <script>
+        window.GOOGLE_CLIENT_ID = '@(Configuration["Google:ClientId"] ?? "")';
+    </script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="/js/bg.js"></script>
 </body>
 </html>

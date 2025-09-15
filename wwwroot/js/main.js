@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const googleBtn = document.getElementById('google-login');
   const logoutButton = document.getElementById('logout-button');
   const logoutAllButton = document.getElementById('logout-all-button');
+  const magicLinkStart = document.getElementById('magic-link-start');
   const mfaInputContainer = document.getElementById('mfa-input-container');
   const alertPlaceholder = document.getElementById('alert-placeholder');
   const userInfo = document.getElementById('user-info');
@@ -142,10 +143,49 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(err){ showAlert(err.message); }
   });
 
-  // Google SSO (placeholder – requires config + GIS)
-  googleBtn?.addEventListener('click', async ()=>{
-    showAlert('Google Sign-In will be available once configured.','info');
+  // Magic link start
+  magicLinkStart?.addEventListener('click', async (e)=>{
+    e.preventDefault(); clearAlert();
+    let email = document.getElementById('login-identifier').value.trim();
+    if(!email || !email.includes('@')) email = prompt('Enter your email address for a magic sign-in link:') || '';
+    email = email.trim(); if(!email) return;
+    try{
+      const r = await apiFetch('/authenticate/magic/start', { method:'POST', body:{ email } });
+      if(!r.ok) throw new Error('Could not send magic link.');
+      showAlert('If this email exists, a one-time sign-in link was sent.','success');
+    }catch(err){ showAlert(err.message); }
   });
+
+  // Google SSO (placeholder – requires config + GIS)
+  function googleReady(){
+    if(!window.GOOGLE_CLIENT_ID || typeof google === 'undefined' || !google?.accounts?.id) return false;
+    google.accounts.id.initialize({ client_id: window.GOOGLE_CLIENT_ID, callback: async (resp)=>{
+      if(!resp || !resp.credential) return;
+      try{ const r = await apiFetch('/authenticate/google', { method:'POST', body:{ idToken: resp.credential } });
+        if(!r.ok) throw new Error('Google sign-in failed.');
+        const data = await r.json();
+        if(data.token){ saveTokens(data.token, data.refreshToken); showDashboard(); }
+      }catch(err){ showAlert(err.message || 'Google sign-in failed.'); }
+    }});
+    return true;
+  }
+  googleBtn?.addEventListener('click', ()=>{ if(googleReady()){ try{ google.accounts.id.prompt(); } catch{ showAlert('Google prompt blocked. Check popup settings.','warning'); } } else { showAlert('Google Sign-In not configured.','info'); } });
+
+  // Handle magic link verify via query params
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('magicToken');
+    const email = params.get('email');
+    if(token && email){
+      (async()=>{
+        try{ const r = await apiFetch('/authenticate/magic/verify',{ method:'POST', body:{ email, token } });
+          if(!r.ok) throw new Error('Magic link invalid or expired.');
+          const data = await r.json();
+          if(data.token){ saveTokens(data.token, data.refreshToken); window.history.replaceState({}, document.title, window.location.pathname); showDashboard(); }
+        }catch(err){ showAlert(err.message); }
+      })();
+    }
+  })();
 
   // Change password (dashboard)
   changePasswordForm?.addEventListener('submit', async e => {
@@ -206,4 +246,3 @@ document.addEventListener('DOMContentLoaded', () => {
   function init() { loadTokens(); if (authTokens.token) showDashboard(); else switchView('login-view'); }
   init();
 });
-

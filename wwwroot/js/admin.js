@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSendReset = document.getElementById('btn-send-reset');
   const sessionsBody = document.getElementById('sessions-body');
   const sessionsRevokeAllBtn = document.getElementById('sessions-revoke-all');
+  const inviteEmail = document.getElementById('invite-email');
+  const inviteFullname = document.getElementById('invite-fullname');
+  const inviteRoles = document.getElementById('invite-roles');
+  const inviteSend = document.getElementById('invite-send');
   let auth = { token: null, refresh: null };
   let selectedUserId = null;
 
@@ -33,6 +37,19 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderResults(items){ results.innerHTML=''; if(!items.length){ const li=document.createElement('li'); li.className='list-group-item'; li.textContent='No users found'; results.append(li); return;} for(const u of items){ const li=document.createElement('li'); li.className='list-group-item d-flex justify-content-between align-items-center user-result'; li.innerHTML=`<div><div><strong>${u.userName}</strong> <span class="muted">(${u.email??'no-email'})</span></div><div class="small muted">${u.emailConfirmed?'Email confirmed':'Email unconfirmed'} • ${u.mfaEnabled?'MFA':'No MFA'} ${u.lockoutEnd?'• Locked':''}</div></div><i class="fa fa-chevron-right muted"></i>`; li.addEventListener('click',()=>selectUser(u.id)); results.append(li);} }
   function renderRoles(roles){ rolesList.innerHTML=''; for(const r of roles){ const s=document.createElement('span'); s.className='badge bg-secondary role-badge'; s.textContent=r; s.style.cursor='pointer'; s.title='Click to remove'; s.addEventListener('click', async()=>{ if(!selectedUserId) return; const res=await apiFetch(`${API.admin}/users/${selectedUserId}/roles/remove`,{method:'POST',body:{role:r}}); if(!res.ok) return showAlert('Failed to remove role'); await refreshSelectedUser(); }); rolesList.append(s);} }
   async function refreshSelectedUser(){ if(selectedUserId) await selectUser(selectedUserId,true); }
+
+  // Invite member
+  inviteSend?.addEventListener('click', async ()=>{
+    const email = (inviteEmail?.value||'').trim(); if(!email){ showAlert('Email is required.'); return; }
+    const fullName = (inviteFullname?.value||'').trim() || null;
+    const roles = (inviteRoles?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+    try{
+      const r = await apiFetch(`${API.auth}/invite`, { method:'POST', body:{ email, fullName, roles } });
+      if(!r.ok){ const d=await r.json().catch(()=>({})); throw new Error(d.error||'Failed to send invite.'); }
+      showAlert('Invite sent (if the email is valid).','success');
+      if(inviteEmail) inviteEmail.value=''; if(inviteFullname) inviteFullname.value=''; if(inviteRoles) inviteRoles.value='';
+    }catch(err){ showAlert(err.message); }
+  });
   async function selectUser(id){ selectedUserId=id; try{ const res=await apiFetch(`${API.admin}/users/${id}`); if(!res.ok) throw new Error('Failed to load user'); const u=await res.json(); userDetails.innerHTML=`<div class="d-flex justify-content-between align-items-start"><div><div class="h5 mb-1">${u.userName}</div><div class="small"><i class="fa fa-envelope me-1"></i>${u.email??'no-email'} • ${u.emailConfirmed?'Email confirmed':'Email unconfirmed'}</div><div class="small">${u.mfaEnabled?'MFA Enabled':'MFA Disabled'} • ${u.lockoutEnd?'Locked':'Unlocked'}</div></div><span class="badge bg-primary role-badge">ID: ${u.id}</span></div>`; userActions.classList.remove('d-none'); renderRoles(u.roles||[]); const sres=await apiFetch(`${API.admin}/users/${id}/sessions`); const sessions=sres.ok?await sres.json():[]; sessionsBody.innerHTML=''; for(const s of sessions){ const tr=document.createElement('tr'); tr.innerHTML=`<td class="id-col">${s.id}</td><td>${formatDate(s.createdUtc)}</td><td>${formatDate(s.lastSeenUtc)}</td><td>${s.revokedAtUtc?formatDate(s.revokedAtUtc):''}</td><td>${s.ip??''}</td><td class="ua-col" title="${s.userAgent??''}">${s.userAgent??''}</td><td class="text-end"><button class="btn btn-sm btn-outline-danger">Revoke</button></td>`; tr.querySelector('button').addEventListener('click', async()=>{ const rr=await apiFetch(`${API.admin}/users/${id}/sessions/${s.id}/revoke`,{method:'POST'}); if(!rr.ok) return showAlert('Failed to revoke session'); await refreshSelectedUser(); }); sessionsBody.append(tr);} }catch(e){ showAlert(e.message||'Failed to load user'); } }
   function formatDate(dt){ if(!dt) return ''; try{ return new Date(dt).toLocaleString(); }catch{ return dt; } }
   searchBtn.addEventListener('click', async()=>{ try{ const q=encodeURIComponent((searchInput.value||'').trim()); const res=await apiFetch(`${API.admin}/users/search?q=${q}`); if(!res.ok) throw new Error('Search failed'); renderResults(await res.json()); }catch(e){ showAlert(e.message||'Search failed'); } });
@@ -49,4 +66,3 @@ document.addEventListener('DOMContentLoaded', () => {
   sessionsRevokeAllBtn.addEventListener('click', async()=>{ if(!selectedUserId) return; if(!confirm('Revoke all sessions for this user?')) return; const r=await apiFetch(`${API.admin}/users/${selectedUserId}/sessions/revoke-all`,{method:'POST'}); if(!r.ok) return showAlert('Failed to revoke sessions'); await refreshSelectedUser(); });
   (async function init(){ if(await ensureAdmin()){ searchInput.focus(); } })();
 });
-

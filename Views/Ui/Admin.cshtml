@@ -17,6 +17,22 @@
 
 <div id="admin-view" class="d-none">
     <div class="row g-3 mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Invite Member</h5>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-12 col-md-4"><label class="form-label">Email</label><input id="invite-email" class="form-control" type="email" placeholder="name@example.com" /></div>
+                        <div class="col-12 col-md-3"><label class="form-label">Full name</label><input id="invite-fullname" class="form-control" type="text" placeholder="Optional" /></div>
+                        <div class="col-12 col-md-3"><label class="form-label">Roles</label><input id="invite-roles" class="form-control" type="text" placeholder="e.g. Owner, Trustee" /></div>
+                        <div class="col-12 col-md-2"><button id="invite-send" class="btn btn-primary w-100"><i class="fa fa-paper-plane me-1"></i>Send invite</button></div>
+                    </div>
+                    <div class="form-text mt-1">Creates a user and emails an activation link to set a password.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mb-3">
         <div class="col-12 col-lg-5">
             <div class="card h-100">
                 <div class="card-body">

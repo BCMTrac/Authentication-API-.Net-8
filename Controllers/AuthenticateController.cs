@@ -594,6 +594,134 @@ namespace AuthenticationAPI.Controllers
             }
         }
 
+        // ---- Magic Link (passwordless) ----
+        [HttpPost("magic/start")]
+        [AllowAnonymous]
+        [EnableRateLimiting("otp")]
+        public async Task<IActionResult> MagicStart([FromBody] EmailRequestDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var key1m = $"magic:1m:{dto.Email}";
+            var key1d = $"magic:1d:{dto.Email}";
+            var allow1m = await _throttle.AllowAsync(key1m, 1, TimeSpan.FromMinutes(1));
+            var allow1d = await _throttle.AllowAsync(key1d, 5, TimeSpan.FromDays(1));
+            if (!allow1m || !allow1d) return Ok(new { sent = true });
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return Ok(new { sent = true });
+            try
+            {
+                var token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, "magic-login");
+                var req = HttpContext.Request;
+                var baseUrl = _configuration["MagicLink:Url"] ?? $"{req.Scheme}://{req.Host.Value}/";
+                var link = $"{baseUrl}?email={Uri.EscapeDataString(user.Email!)}&magicToken={Uri.EscapeDataString(token)}";
+                var (html, _) = await _templates.RenderAsync("email-confirm", new Dictionary<string,string>
+                {
+                    ["Title"] = "Your sign-in link",
+                    ["Intro"] = "Click the button below to sign in. This link expires in 30 minutes.",
+                    ["ActionText"] = "Sign in",
+                    ["ActionUrl"] = link
+                });
+                await _email.SendAsync(user.Email!, "Your sign-in link", html);
+            }
+            catch { }
+            return Ok(new { sent = true });
+        }
+
+        [HttpPost("magic/verify")]
+        [AllowAnonymous]
+        [EnableRateLimiting("otp")]
+        public async Task<IActionResult> MagicVerify([FromBody] EmailConfirmDto dto)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return Unauthorized();
+            var ok = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, "magic-login", NormalizeToken(dto.Token));
+            if (!ok) return Unauthorized();
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("token_version", user.TokenVersion.ToString())
+            };
+            var roleIds = await _roleManager.Roles.Where(r => userRoles.Contains(r.Name!)).Select(r => r.Id).ToListAsync();
+            var permissions = await _appDb.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId)).Include(rp => rp.Permission).Select(rp => rp.Permission!.Name).Distinct().ToListAsync();
+            foreach (var p in permissions) claims.Add(new Claim("scope", p));
+            var token = GetToken(claims);
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var ua = Request.Headers["User-Agent"].ToString();
+            var session = await _sessions.CreateAsync(user, ip, ua);
+            var (refresh, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
+            if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
+            {
+                var cookieOpts = new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, Expires = refreshExp, Path = "/api/v1/authenticate" };
+                Response.Cookies.Append("rt", refresh, cookieOpts);
+            }
+            return Ok(new TokenSetResponse { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo, RefreshToken = refresh, RefreshTokenExpiration = refreshExp });
+        }
+
+        public record InviteRequestDto(string Email, string? FullName, string[]? Roles);
+        public record ActivateRequestDto(string Email, string Token, string Password, string? FullName);
+
+        [HttpPost("invite")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Invite([FromBody] InviteRequestDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Email)) return BadRequest();
+            var existing = await _userManager.FindByEmailAsync(dto.Email);
+            if (existing != null) return Conflict(new { error = "User already exists" });
+            var user = new ApplicationUser { UserName = dto.Email, Email = dto.Email, EmailConfirmed = false, FullName = dto.FullName };
+            var create = await _userManager.CreateAsync(user);
+            if (!create.Succeeded) return StatusCode(500, new { error = string.Join(", ", create.Errors.Select(e => e.Description)) });
+            if (dto.Roles != null)
+            {
+                foreach (var r in dto.Roles)
+                {
+                    if (!await _roleManager.RoleExistsAsync(r)) await _roleManager.CreateAsync(new IdentityRole(r));
+                    await _userManager.AddToRoleAsync(user, r);
+                }
+            }
+            try
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var req = HttpContext.Request;
+                var baseUrl = _configuration["Activation:Url"] ?? $"{req.Scheme}://{req.Host.Value}/activate";
+                var link = $"{baseUrl}?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
+                var (html, _) = await _templates.RenderAsync("invite", new Dictionary<string,string>
+                {
+                    ["Title"] = "You're invited to BCMTrac",
+                    ["Intro"] = "Click below to activate your account and set a password.",
+                    ["ActionText"] = "Activate account",
+                    ["ActionUrl"] = link
+                });
+                await _email.SendAsync(user.Email!, "Invitation to BCMTrac", html);
+            }
+            catch { }
+            return Ok(new { invited = true });
+        }
+
+        [HttpPost("activate")]
+        [AllowAnonymous]
+        [EnableRateLimiting("otp")]
+        public async Task<IActionResult> Activate([FromBody] ActivateRequestDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.Password)) return BadRequest();
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return BadRequest(new { error = "Invalid activation link" });
+            var norm = NormalizeToken(dto.Token);
+            var res = await _userManager.ConfirmEmailAsync(user, norm);
+            if (!res.Succeeded && !user.EmailConfirmed) return BadRequest(new { error = "Activation failed" });
+            if (!string.IsNullOrWhiteSpace(dto.FullName)) { user.FullName = dto.FullName; await _userManager.UpdateAsync(user); }
+            var hasPass = await _userManager.HasPasswordAsync(user);
+            IdentityResult pwdRes;
+            if (!hasPass) pwdRes = await _userManager.AddPasswordAsync(user, dto.Password);
+            else { var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user); pwdRes = await _userManager.ResetPasswordAsync(user, resetToken, dto.Password); }
+            if (!pwdRes.Succeeded) return BadRequest(new { error = string.Join(", ", pwdRes.Errors.Select(e => e.Description)) });
+            return Ok();
+        }
+
         [HttpPost("logout-all")]
         [Authorize]
         public async Task<IActionResult> LogoutAll()
