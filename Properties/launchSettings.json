@@ -5,7 +5,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "http://localhost:5266",
+      "applicationUrl": "https://localhost:7443",
       "environmentVariables": {
   "ASPNETCORE_ENVIRONMENT": "Development",
   "ConnectionStrings__DefaultConnection": "Server=BRANDONWINDOWS\\SQLEXPRESS;Database=AuthenticationDb;Trusted_Connection=True;TrustServerCertificate=True;"
