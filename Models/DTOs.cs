@@ -57,11 +57,11 @@ namespace AuthenticationAPI.Models
         [Required, StringLength(2048)] public string Token { get; set; } = string.Empty;
     }
     
-    // Refresh token request (body required; cookies not used)
+    // Refresh token request (token optional: cookie can be used)
     public class RefreshRequest : StrictDtoBase
     {
-        [Required, StringLength(1024)]
-        public string RefreshToken { get; set; } = null!;
+        [StringLength(1024)]
+        public string? RefreshToken { get; set; }
     }
     
     // Password reset request

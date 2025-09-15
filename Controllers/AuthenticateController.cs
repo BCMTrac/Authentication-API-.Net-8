@@ -237,6 +237,7 @@ namespace AuthenticationAPI.Controllers
 
         [HttpPost]
         [Route("register")]
+        [EnableRateLimiting("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);

@@ -41,4 +41,8 @@
     <Compile Remove="Services\Email\SendGridEmailSender.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="tests\**\*.cs" />
+  </ItemGroup>
+
 </Project>

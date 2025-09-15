@@ -32,11 +32,16 @@ using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Extensions.AspNetCore.DataProtection.Blobs;
 using Azure.Extensions.AspNetCore.DataProtection.Keys;
 using FluentValidation.AspNetCore;
-
-// Load .env if present (supports local dev and on-server env-file usage) BEFORE building configuration
-try { Env.Load(); } catch { /* optional */ }
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
+// Load .env explicitly from content root so env vars are available to configuration
+try
+{
+    var envPath = Path.Combine(builder.Environment.ContentRootPath, ".env");
+    if (File.Exists(envPath)) Env.Load(envPath);
+}
+catch { /* optional */ }
 var configurationBuilder = new ConfigurationBuilder()
     .AddConfiguration(builder.Configuration)
     .AddEnvironmentVariables();
@@ -57,7 +62,6 @@ if (!string.IsNullOrWhiteSpace(keyVaultUrl))
 }
 
 var configuration = configurationBuilder.Build();
-builder.Configuration = configuration;
 
 // Structured logging (basic JSON via built-in) - Serilog can replace later
 builder.Logging.ClearProviders();
@@ -129,12 +133,12 @@ builder.Services.AddControllersWithViews(o =>
         opts.JsonSerializerOptions.IgnoreReadOnlyFields = false;
         // Unknown properties should not be ignored; captured via [JsonExtensionData]
         opts.JsonSerializerOptions.UnknownTypeHandling = System.Text.Json.Serialization.JsonUnknownTypeHandling.JsonNode; // keep strict parsing
-    })
-    .AddFluentValidation(fv =>
-    {
-        // Automatically registers all validators in this assembly
-        fv.RegisterValidatorsFromAssemblyContaining<AuthenticationAPI.Validators.RegisterModelValidator>();
     });
+
+// FluentValidation (new recommended API)
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<AuthenticationAPI.Validators.RegisterModelValidator>();
 
 // API versioning
 builder.Services.AddApiVersioning(o =>
@@ -317,9 +321,10 @@ else if (dpStorage == "azure")
         var blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(blobConn);
         var container = blobServiceClient.GetBlobContainerClient(containerName);
         container.CreateIfNotExists();
-        dpBuilder.PersistKeysToAzureBlobStorage(container, "keys.xml");
 
         var cred = new Azure.Identity.DefaultAzureCredential();
+        var blobUri = new Uri($"{container.Uri}/keys.xml");
+        dpBuilder.PersistKeysToAzureBlobStorage(blobUri, cred);
         dpBuilder.ProtectKeysWithAzureKeyVault(new Uri(keyId), cred);
     }
     catch (Exception ex)
@@ -340,13 +345,24 @@ if (useHibp)
 }
 // Shorten default Identity token lifetime to limit replay window
 builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromMinutes(30));
-// Email provider: use SMTP only (Everlytic)
+// Email provider: require SMTP in Production; support mapping from legacy env names
 var smtpSection = configuration.GetSection(SmtpOptions.SectionName);
 var smtpOpts = smtpSection.Get<SmtpOptions>() ?? new SmtpOptions();
+// Map legacy flat env vars if Smtp section not fully provided
+Func<string,string?> EnvOrCfg = key => configuration[key] ?? Environment.GetEnvironmentVariable(key);
+if (string.IsNullOrWhiteSpace(smtpOpts.Host)) smtpOpts.Host = EnvOrCfg("SMTPServer") ?? EnvOrCfg("SMTPIP") ?? smtpOpts.Host;
+if (smtpOpts.Port <= 0 && int.TryParse(EnvOrCfg("SMTPPort"), out var p)) smtpOpts.Port = p;
+if (string.IsNullOrWhiteSpace(smtpOpts.From)) smtpOpts.From = EnvOrCfg("SMTPFrom") ?? smtpOpts.From;
+if (string.IsNullOrWhiteSpace(smtpOpts.Username)) smtpOpts.Username = EnvOrCfg("SMTPUsername") ?? smtpOpts.From;
+if (string.IsNullOrWhiteSpace(smtpOpts.Password)) smtpOpts.Password = EnvOrCfg("SMTPPassword") ?? smtpOpts.Password;
+var useSslRaw = configuration["Smtp:UseSsl"] ?? EnvOrCfg("SMTPUseSsl");
+if (string.IsNullOrWhiteSpace(useSslRaw) && smtpOpts.Port == 25) smtpOpts.UseSsl = false;
 if (string.IsNullOrWhiteSpace(smtpOpts.Host) || smtpOpts.Port <= 0 || string.IsNullOrWhiteSpace(smtpOpts.From))
 {
-    throw new InvalidOperationException("SMTP is not configured. Set Smtp:Host, Smtp:Port, and Smtp:From.");
+    Console.WriteLine($"[SMTP] Missing config. Host='{smtpOpts.Host ?? "(null)"}' Port='{smtpOpts.Port}' From='{smtpOpts.From ?? "(null)"}'");
+    throw new InvalidOperationException("SMTP is not configured. Set Smtp:Host, Smtp:Port, Smtp:From (or legacy SMTPServer/SMTPPort/SMTPFrom).");
 }
+
 builder.Services.AddSingleton<IEmailSender>(new AuthenticationAPI.Services.Email.SmtpEmailSender(smtpOpts));
 Console.WriteLine($"[Startup] Using SMTP for email: {smtpOpts.Host}:{smtpOpts.Port} as {smtpOpts.FromName ?? smtpOpts.From}");
 
