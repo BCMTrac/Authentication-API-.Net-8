@@ -20,7 +20,6 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using AuthenticationAPI.Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
-using DotNetEnv;
 using AuthenticationAPI.Models.Options;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Runtime.InteropServices;
@@ -35,33 +34,12 @@ using FluentValidation.AspNetCore;
 using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
-// Load .env explicitly from content root so env vars are available to configuration
-try
-{
-    var envPath = Path.Combine(builder.Environment.ContentRootPath, ".env");
-    if (File.Exists(envPath)) Env.Load(envPath);
-}
-catch { /* optional */ }
-var configurationBuilder = new ConfigurationBuilder()
-    .AddConfiguration(builder.Configuration)
-    .AddEnvironmentVariables();
-
-// Optional: Azure Key Vault integration for configuration secrets
-var keyVaultUrl = builder.Configuration["Azure:KeyVault:VaultUrl"];
-if (!string.IsNullOrWhiteSpace(keyVaultUrl))
-{
-    try
-    {
-        var cred = new Azure.Identity.DefaultAzureCredential();
-        configurationBuilder.AddAzureKeyVault(new Uri(keyVaultUrl), cred);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[Startup] Azure Key Vault not added: {ex.Message}");
-    }
-}
-
-var configuration = configurationBuilder.Build();
+// Build configuration strictly from appsettings (no env consumption)
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .Build();
 
 // Structured logging (basic JSON via built-in) - Serilog can replace later
 builder.Logging.ClearProviders();
@@ -353,30 +331,17 @@ if (useHibp)
 }
 // Shorten default Identity token lifetime to limit replay window
 builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromMinutes(30));
-// Email provider: require SMTP in Production; support mapping from legacy env names
-var smtpSection = configuration.GetSection(SmtpOptions.SectionName);
-var smtpOpts = smtpSection.Get<SmtpOptions>() ?? new SmtpOptions();
-// Map legacy flat env vars if Smtp section not fully provided
-Func<string,string?> EnvOrCfg = key => configuration[key] ?? Environment.GetEnvironmentVariable(key);
-if (string.IsNullOrWhiteSpace(smtpOpts.Host)) smtpOpts.Host = EnvOrCfg("SMTPServer") ?? EnvOrCfg("SMTPIP") ?? smtpOpts.Host;
-if (smtpOpts.Port <= 0 && int.TryParse(EnvOrCfg("SMTPPort"), out var p)) smtpOpts.Port = p;
-if (string.IsNullOrWhiteSpace(smtpOpts.From)) smtpOpts.From = EnvOrCfg("SMTPFrom") ?? smtpOpts.From;
-if (string.IsNullOrWhiteSpace(smtpOpts.Username)) smtpOpts.Username = EnvOrCfg("SMTPUsername") ?? smtpOpts.From;
-if (string.IsNullOrWhiteSpace(smtpOpts.Password)) smtpOpts.Password = EnvOrCfg("SMTPPassword") ?? smtpOpts.Password;
-var useSslRaw = configuration["Smtp:UseSsl"] ?? EnvOrCfg("SMTPUseSsl");
-if (string.IsNullOrWhiteSpace(useSslRaw) && smtpOpts.Port == 25) smtpOpts.UseSsl = false;
-// Normalize whitespace
-smtpOpts.Host = smtpOpts.Host?.Trim() ?? string.Empty;
-smtpOpts.From = smtpOpts.From?.Trim() ?? string.Empty;
-smtpOpts.Username = smtpOpts.Username?.Trim();
+// Email provider: require SMTP from appsettings only
+var smtpOpts = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>() ?? new SmtpOptions();
+
 if (string.IsNullOrWhiteSpace(smtpOpts.Host) || smtpOpts.Port <= 0 || string.IsNullOrWhiteSpace(smtpOpts.From))
 {
     Console.WriteLine($"[SMTP] Missing config. Host='{(string.IsNullOrEmpty(smtpOpts.Host)?"(empty)":smtpOpts.Host)}' Port='{smtpOpts.Port}' From='{(string.IsNullOrEmpty(smtpOpts.From)?"(empty)":smtpOpts.From)}'");
-    throw new InvalidOperationException("SMTP is not configured. Set Smtp:Host, Smtp:Port, Smtp:From (or legacy SMTPServer/SMTPPort/SMTPFrom).");
+    throw new InvalidOperationException("SMTP is not configured in appsettings. Set Smtp:Host, Smtp:Port, Smtp:From (optional: Smtp:FromName, Smtp:Username, Smtp:Password, Smtp:UseSsl).");
 }
 
 builder.Services.AddSingleton<IEmailSender>(new AuthenticationAPI.Services.Email.SmtpEmailSender(smtpOpts));
-Console.WriteLine($"[Startup] Using SMTP for email: {smtpOpts.Host}:{smtpOpts.Port} as {smtpOpts.FromName ?? smtpOpts.From}");
+Console.WriteLine($"[Startup] Using SMTP for email: {smtpOpts.Host}:{smtpOpts.Port} as {(string.IsNullOrEmpty(smtpOpts.FromName)? smtpOpts.From : smtpOpts.FromName)}");
 
 builder.Services.AddAuthorization(options =>
 {
@@ -456,8 +421,7 @@ if (!app.Environment.IsDevelopment())
 }
 // Respect proxy headers when enabled via config or env
 var enableForwarded = !app.Environment.IsDevelopment()
-    || string.Equals(configuration["ReverseProxy:Enabled"], "true", StringComparison.OrdinalIgnoreCase)
-    || string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"), "true", StringComparison.OrdinalIgnoreCase);
+    || string.Equals(configuration["ReverseProxy:Enabled"], "true", StringComparison.OrdinalIgnoreCase);
 if (enableForwarded)
 {
     app.UseForwardedHeaders(new ForwardedHeadersOptions
