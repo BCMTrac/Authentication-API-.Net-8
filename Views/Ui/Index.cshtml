@@ -3,75 +3,86 @@
 }
 
 <div id="login-view">
-    <h3 class="mb-4 text-center">Sign In</h3>
-    <form id="login-form">
+    <div class="text-center mb-3">
+        <h2 class="page-title">Welcome back</h2>
+        <p class="subtle">Sign in to your estate account</p>
+    </div>
+
+    <div class="tenant-field mb-3">
+        <label class="form-label small text-muted">Estate code <span class="text-muted" title="Your estate’s code. Ask a trustee if unsure."><i class="fa-regular fa-circle-question"></i></span></label>
+        <input type="text" class="form-control" id="tenant-code" placeholder="e.g. palm-grove" autocomplete="organization" />
+    </div>
+
+    <div class="sso-buttons mb-3">
+        <button id="google-login" class="btn btn-google w-100 btn-lg mb-2">
+            <i class="fa-brands fa-google me-2"></i> Continue with Google
+        </button>
+        <button id="microsoft-login" class="btn btn-microsoft w-100 btn-lg" disabled title="Coming soon">
+            <i class="fa-brands fa-microsoft me-2"></i> Continue with Microsoft
+        </button>
+    </div>
+
+    <div class="divider"><span>or continue with email</span></div>
+
+    <form id="login-form" class="mt-3">
         <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="login-identifier" placeholder="Username or Email" required>
-            <label for="login-identifier">Username or Email</label>
+            <input type="text" class="form-control" id="login-identifier" placeholder="Email or Username" required autocomplete="username">
+            <label for="login-identifier">Email or Username</label>
         </div>
-        <div class="form-floating mb-3">
-            <input type="password" class="form-control" id="login-password" placeholder="Password" required>
+        <div class="form-floating mb-2">
+            <input type="password" class="form-control" id="login-password" placeholder="Password" required autocomplete="current-password">
             <label for="login-password">Password</label>
         </div>
-        <div class="form-floating mb-3 d-none" id="mfa-input-container">
-            <input type="text" class="form-control" id="login-mfa" placeholder="MFA Code">
-            <label for="login-mfa">MFA Code</label>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="remember-me">
+                <label class="form-check-label" for="remember-me">Remember me</label>
+            </div>
+            <a class="link-underline" href="#" id="show-forgot-password">Forgot password?</a>
         </div>
-        <button type="submit" class="btn btn-primary w-100 btn-lg">Login</button>
-    </form>
-    <div class="text-center mt-3">
-        <a href="#" id="show-forgot-password">Forgot Password?</a>
-        <span class="mx-2 text-muted">•</span>
-        <a href="#" id="resend-confirm-link">Resend confirmation email</a>
-    </div>
-    <div class="mt-4 text-center">
-        <p>Don't have an account? <a href="#" id="show-register">Sign Up</a></p>
-    </div>
-</div>
 
-<div id="register-view" class="d-none">
-    <h3 class="mb-4 text-center">Create Account</h3>
-    <form id="register-form">
-        <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="register-username" placeholder="Username" required>
-            <label for="register-username">Username</label>
+        <div class="mfa-step d-none" id="mfa-input-container">
+            <label class="form-label">Authenticator code</label>
+            <div class="otp-grid" aria-label="6-digit code">
+                <input inputmode="numeric" maxlength="1" class="otp" />
+                <input inputmode="numeric" maxlength="1" class="otp" />
+                <input inputmode="numeric" maxlength="1" class="otp" />
+                <input inputmode="numeric" maxlength="1" class="otp" />
+                <input inputmode="numeric" maxlength="1" class="otp" />
+                <input inputmode="numeric" maxlength="1" class="otp" />
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="use-recovery">Use recovery code</button>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="trust-device">
+                    <label class="form-check-label" for="trust-device">Trust this device</label>
+                </div>
+            </div>
         </div>
-        <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="register-fullname" placeholder="Full Name">
-            <label for="register-fullname">Full Name</label>
-        </div>
-        <div class="form-floating mb-3">
-            <input type="email" class="form-control" id="register-email" placeholder="Email" required>
-            <label for="register-email">Email</label>
-        </div>
-        <div class="form-floating mb-3">
-            <input type="password" class="form-control" id="register-password" placeholder="Password" required>
-            <label for="register-password">Password</label>
-        </div>
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" value="" id="register-terms" required>
-            <label class="form-check-label" for="register-terms">
-                I accept the <a href="#">Terms and Conditions</a>
-            </label>
-        </div>
-        <button type="submit" class="btn btn-primary w-100 btn-lg">Register</button>
+
+        <button type="submit" class="btn btn-primary w-100 btn-lg btn-cta">
+            <i class="fa-solid fa-lock me-2"></i>
+            <span class="btn-text">Sign in</span>
+            <span class="btn-spinner d-none spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        </button>
     </form>
-    <div class="mt-4 text-center">
-        <p>Already have an account? <a href="#" id="show-login-from-register">Sign In</a></p>
+
+    <div class="text-center mt-3 small">
+        <a class="link-underline" href="/email-confirm">Activate with invite / Confirm email</a>
     </div>
 </div>
 
 <div id="forgot-password-view" class="d-none">
-    <h3 class="mb-4 text-center">Reset Password</h3>
+    <h3 class="mb-3 text-center">Reset your password</h3>
     <form id="forgot-password-form">
         <div class="form-floating mb-3">
-            <input type="email" class="form-control" id="forgot-email" placeholder="Enter your email" required>
-            <label for="forgot-email">Enter your email</label>
+            <input type="email" class="form-control" id="forgot-email" placeholder="Enter your email" required autocomplete="email">
+            <label for="forgot-email">Email</label>
         </div>
-        <button type="submit" class="btn btn-primary w-100 btn-lg">Send Reset Link</button>
+        <button type="submit" class="btn btn-primary w-100 btn-lg">Send reset link</button>
     </form>
-    <div class="mt-4 text-center">
-        <p><a href="#" id="show-login-from-forgot">Back to Sign In</a></p>
+    <div class="mt-3 text-center">
+        <a href="#" id="show-login-from-forgot">Back to sign in</a>
     </div>
 </div>
 

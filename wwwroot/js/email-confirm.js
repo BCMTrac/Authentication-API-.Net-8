@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tokenInput = document.getElementById('token');
   const confirmAccountBtn = document.getElementById('confirm-account-btn');
   const confirmChangeBtn = document.getElementById('confirm-change-btn');
+  const resendBtn = document.getElementById('resend-confirm-btn');
   const confirmView = document.getElementById('confirm-view');
   const successView = document.getElementById('success-view');
   const alertPlaceholder = document.getElementById('alert-placeholder');
@@ -31,5 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   confirmAccountBtn.addEventListener('click', ()=>{ const email=emailInput.value.trim(); const token=tokenInput.value.trim(); if(!email||!token) return showAlert('Email and token are required.'); handleConfirm('confirm-email', { email, token }); });
   confirmChangeBtn.addEventListener('click', ()=>{ const email=emailInput.value.trim(); const token=tokenInput.value.trim(); if(!email||!token) return showAlert('New email and token are required.'); handleConfirm('change-email/confirm', { newEmail: email, token }); });
+  resendBtn.addEventListener('click', async ()=>{
+    const email = emailInput.value.trim();
+    if(!email) return showAlert('Enter your email to resend confirmation.','warning');
+    try {
+      const res = await fetch(`${API_BASE_URL}/request-email-confirm`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
+      if (!res.ok) throw new Error('Could not send confirmation.');
+      showAlert('If this email exists, a new confirmation has been sent.','success');
+    } catch(err){ showAlert(err.message || 'Something went wrong'); }
+  });
 });
-

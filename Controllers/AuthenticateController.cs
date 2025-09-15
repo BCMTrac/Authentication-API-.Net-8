@@ -14,6 +14,7 @@ using AuthenticationAPI.Services.Email;
 using Microsoft.AspNetCore.RateLimiting;
 using QRCoder; // add QR code generator types
 using Microsoft.AspNetCore.Http;
+using Google.Apis.Auth;
 
 namespace AuthenticationAPI.Controllers
 {
@@ -519,6 +520,78 @@ namespace AuthenticationAPI.Controllers
                 });
             }
             return Ok();
+        }
+
+        public record GoogleLoginRequest(string IdToken);
+
+        [HttpPost("google")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest req)
+        {
+            if (req == null || string.IsNullOrWhiteSpace(req.IdToken)) return BadRequest();
+            var clientId = _configuration["Google:ClientId"];
+            if (string.IsNullOrWhiteSpace(clientId)) return StatusCode(501, new { error = "Google SSO not configured" });
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { clientId }
+                };
+                var payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken, settings);
+                // Optional hosted domain restriction
+                var allowedHd = _configuration["Google:HostedDomain"];
+                if (!string.IsNullOrWhiteSpace(allowedHd) && !string.Equals(payload.HostedDomain, allowedHd, StringComparison.OrdinalIgnoreCase))
+                    return Unauthorized();
+
+                var email = payload.Email;
+                if (string.IsNullOrWhiteSpace(email)) return Unauthorized();
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    user = new ApplicationUser
+                    {
+                        UserName = email,
+                        Email = email,
+                        EmailConfirmed = true,
+                        FullName = payload.Name ?? email
+                    };
+                    var create = await _userManager.CreateAsync(user);
+                    if (!create.Succeeded) return StatusCode(500, new { error = "Could not create user" });
+                }
+                // Issue tokens and session
+                var userRoles = await _userManager.GetRolesAsync(user);
+                var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName!),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim("token_version", user.TokenVersion.ToString())
+                };
+                foreach (var userRole in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+
+                var roleIds = await _roleManager.Roles.Where(r => userRoles.Contains(r.Name!)).Select(r => r.Id).ToListAsync();
+                var permissions = await _appDb.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId)).Include(rp => rp.Permission).Select(rp => rp.Permission!.Name).Distinct().ToListAsync();
+                foreach (var p in permissions) authClaims.Add(new Claim("scope", p));
+
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                var ua = Request.Headers["User-Agent"].ToString();
+                var session = await _sessions.CreateAsync(user, ip, ua);
+                authClaims.Add(new Claim("sid", session.Id.ToString()));
+
+                var token = GetToken(authClaims);
+                var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
+
+                if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    var cookieOpts = new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, Expires = refreshExp, Path = "/api/v1/authenticate" };
+                    Response.Cookies.Append("rt", refreshToken, cookieOpts);
+                }
+                return Ok(new TokenSetResponse { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo, RefreshToken = refreshToken, RefreshTokenExpiration = refreshExp });
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized();
+            }
         }
 
         [HttpPost("logout-all")]

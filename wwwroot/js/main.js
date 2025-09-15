@@ -1,25 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
   const API_BASE_URL = '/api/v1';
   const loginView = document.getElementById('login-view');
-  const registerView = document.getElementById('register-view');
   const forgotPasswordView = document.getElementById('forgot-password-view');
   const loggedInView = document.getElementById('logged-in-view');
-  const views = [loginView, registerView, forgotPasswordView, loggedInView];
+  const views = [loginView, forgotPasswordView, loggedInView];
+
   const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
   const forgotPasswordForm = document.getElementById('forgot-password-form');
   const changePasswordForm = document.getElementById('change-password-form');
-  const showRegisterLink = document.getElementById('show-register');
-  const showLoginFromRegisterLink = document.getElementById('show-login-from-register');
   const showForgotPasswordLink = document.getElementById('show-forgot-password');
   const showLoginFromForgotLink = document.getElementById('show-login-from-forgot');
-  const resendConfirmLink = document.getElementById('resend-confirm-link');
+  const googleBtn = document.getElementById('google-login');
   const logoutButton = document.getElementById('logout-button');
   const logoutAllButton = document.getElementById('logout-all-button');
   const mfaInputContainer = document.getElementById('mfa-input-container');
   const alertPlaceholder = document.getElementById('alert-placeholder');
   const userInfo = document.getElementById('user-info');
   const mfaManagementView = document.getElementById('mfa-management-view');
+
   let authTokens = { token: null, refreshToken: null };
 
   function saveTokens(token, refreshToken) {
@@ -47,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
     wrapper.innerHTML = [`<div class="alert alert-${type} alert-dismissible" role="alert">`,
       `   <div>${message}</div>`,
       '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
-      '</div>'].join('');
+      '</div>`].join('');
+    alertPlaceholder.innerHTML = '';
     alertPlaceholder.append(wrapper);
   }
   function clearAlert() { alertPlaceholder.innerHTML = ''; }
@@ -74,70 +73,105 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  showRegisterLink.addEventListener('click', e => { e.preventDefault(); switchView('register-view'); });
-  showLoginFromRegisterLink.addEventListener('click', e => { e.preventDefault(); switchView('login-view'); });
+  // View toggles
   showForgotPasswordLink.addEventListener('click', e => { e.preventDefault(); switchView('forgot-password-view'); });
   showLoginFromForgotLink.addEventListener('click', e => { e.preventDefault(); switchView('login-view'); });
-  resendConfirmLink.addEventListener('click', async e => {
-    e.preventDefault(); clearAlert();
-    let email = document.getElementById('login-identifier').value || '';
-    if (!email.includes('@')) email = prompt('Enter your account email to resend confirmation:') || '';
-    email = email.trim(); if (!email) return;
-    try {
-      const res = await apiFetch('/authenticate/request-email-confirm', { method: 'POST', body: { email } });
-      if (!res.ok) throw new Error('Could not send confirmation email.');
-      showAlert('If the email exists and is unconfirmed, a confirmation email has been sent.', 'success');
-    } catch (err) { showAlert(err.message); }
+
+  // OTP helpers
+  function collectOtp(){
+    const boxes = mfaInputContainer.querySelectorAll('.otp');
+    return Array.from(boxes).map(i=>i.value.trim()).join('');
+  }
+  function resetOtp(){
+    const boxes = mfaInputContainer.querySelectorAll('.otp');
+    boxes.forEach(b=>b.value='');
+    if (boxes[0]) boxes[0].focus();
+  }
+  mfaInputContainer.querySelectorAll?.('.otp').forEach((el, idx, arr)=>{
+    el.addEventListener('input', ()=>{ if(el.value && idx < arr.length-1) arr[idx+1].focus(); });
+    el.addEventListener('keydown', (e)=>{ if(e.key==='Backspace' && !el.value && idx>0) arr[idx-1].focus(); });
   });
 
-  loginForm.addEventListener('submit', async e => {
+  // Login flow (email/password -> optional MFA)
+  loginForm.addEventListener('submit', async (e)=>{
     e.preventDefault(); clearAlert();
-    const identifier = document.getElementById('login-identifier').value;
+    const identifier = document.getElementById('login-identifier').value.trim();
     const password = document.getElementById('login-password').value;
-    const mfaCode = document.getElementById('login-mfa').value;
-    const body = { identifier, password }; if (mfaCode) body.mfaCode = mfaCode;
+    let mfaCode = undefined;
+    if (!mfaInputContainer.classList.contains('d-none')) {
+      const otp = collectOtp();
+      if (otp && otp.length === 6) mfaCode = otp;
+    }
+    const btn = loginForm.querySelector('.btn-cta');
+    const text = btn.querySelector('.btn-text');
+    const spinner = btn.querySelector('.btn-spinner');
+    btn.disabled = true; spinner.classList.remove('d-none'); text.textContent = 'Signing in…';
     try {
-      const resp = await apiFetch('/authenticate/login', { method: 'POST', body });
-      const data = await resp.json(); if (!resp.ok) throw new Error(data.error || data.message || 'Login failed');
-      if (data.mfaRequired) { mfaInputContainer.classList.remove('d-none'); showAlert('MFA code required', 'info'); }
-      else if (data.token) { saveTokens(data.token, data.refreshToken || authTokens.refreshToken); await showDashboard(); }
-    } catch (err) { showAlert(err.message); }
+      const res = await apiFetch('/authenticate/login', { method:'POST', body: { identifier, password, mfaCode } });
+      const data = await res.json().catch(()=>({}));
+      if (res.ok && data.mfaRequired) {
+        // Show MFA step inline
+        mfaInputContainer.classList.remove('d-none');
+        resetOtp();
+        showAlert('Enter your authenticator code to continue.','info');
+        return;
+      }
+      if (!res.ok) throw new Error('Invalid credentials or code.');
+      if (data.token) {
+        saveTokens(data.token, data.refreshToken);
+        showDashboard();
+        return;
+      }
+      throw new Error('Unexpected response.');
+    } catch (err){
+      showAlert(err.message || 'Sign-in failed.');
+      loginView.classList.add('animate-pop'); setTimeout(()=>loginView.classList.remove('animate-pop'), 220);
+    } finally {
+      btn.disabled = false; spinner.classList.add('d-none'); text.textContent = 'Sign in';
+    }
   });
 
-  registerForm.addEventListener('submit', async e => {
+  // Forgot password
+  forgotPasswordForm.addEventListener('submit', async (e)=>{
     e.preventDefault(); clearAlert();
-    const body = { username: document.getElementById('register-username').value, fullName: document.getElementById('register-fullname').value, email: document.getElementById('register-email').value, password: document.getElementById('register-password').value, termsAccepted: document.getElementById('register-terms').checked };
+    const email = document.getElementById('forgot-email').value.trim();
     try {
-      const resp = await apiFetch('/authenticate/register', { method: 'POST', body }); const data = await resp.json();
-      if (!resp.ok) throw new Error(data.message || 'Registration failed');
-      showAlert('Registration successful! Please check your email to confirm your account.', 'success'); switchView('login-view');
-    } catch (err) { showAlert(err.message); }
+      const res = await apiFetch('/authenticate/request-password-reset', { method:'POST', body:{ email } });
+      if (!res.ok) throw new Error('Could not send reset link.');
+      showAlert('If this email exists, a reset link has been sent.','success');
+    } catch(err){ showAlert(err.message); }
   });
 
-  forgotPasswordForm.addEventListener('submit', async e => {
-    e.preventDefault(); clearAlert(); const email = document.getElementById('forgot-email').value;
-    try {
-      const resp = await apiFetch('/authenticate/request-password-reset', { method: 'POST', body: { email } }); if (!resp.ok) throw new Error('Something went wrong.');
-      showAlert('If an account with that email exists, a password reset link has been sent.', 'success'); switchView('login-view');
-    } catch (err) { showAlert(err.message); }
+  // Google SSO (placeholder – requires config + GIS)
+  googleBtn?.addEventListener('click', async ()=>{
+    showAlert('Google Sign-In will be available once configured.','info');
   });
 
-  logoutButton.addEventListener('click', async e => { e.preventDefault(); await handleLogout(); });
-  logoutAllButton.addEventListener('click', async e => {
-    e.preventDefault(); try { const resp = await apiFetch('/authenticate/logout-all', { method: 'POST' }); if (!resp.ok) throw new Error('Could not log out all devices.'); handleLogout(); showAlert('Successfully logged out of all devices.', 'success'); } catch (err) { showAlert(err.message); }
-  });
-
-  changePasswordForm.addEventListener('submit', async e => {
+  // Change password (dashboard)
+  changePasswordForm?.addEventListener('submit', async e => {
     e.preventDefault(); clearAlert();
-    const body = { currentPassword: document.getElementById('current-password').value, newPassword: document.getElementById('new-password').value };
-    try { const resp = await apiFetch('/authenticate/change-password', { method: 'POST', body }); if (!resp.ok) { const data = await resp.json(); throw new Error(data.errors ? data.errors.join(', ') : (data.message || 'Password change failed.')); }
-      showAlert('Password changed successfully.', 'success'); changePasswordForm.reset();
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    try {
+      const resp = await apiFetch('/authenticate/change-password', { method:'POST', body:{ currentPassword, newPassword } });
+      if (!resp.ok) throw new Error('Password change failed.');
+      showAlert('Password updated.','success');
+      changePasswordForm.reset();
     } catch (err) { showAlert(err.message); }
   });
 
+  // Logout flows
+  async function handleLogout() { try { if (authTokens.refreshToken) await apiFetch('/authenticate/logout', { method: 'POST', body: { refreshToken: authTokens.refreshToken } }); else await apiFetch('/authenticate/logout', { method: 'POST', body: {} }); } catch(_){} finally { clearTokens(); switchView('login-view'); } }
+  logoutButton?.addEventListener('click', handleLogout);
+  logoutAllButton?.addEventListener('click', async ()=>{ try { await apiFetch('/authenticate/logout-all', { method:'POST' }); } catch(_){} await handleLogout(); });
+
+  // Dashboard rendering
   async function showDashboard() {
     switchView('logged-in-view');
-    try { const resp = await apiFetch('/users/me'); if (!resp.ok) throw new Error('Could not fetch user data.'); const user = await resp.json();
+    try {
+      const resp = await apiFetch('/users/me');
+      if (!resp.ok) throw new Error('Could not fetch user data.');
+      const user = await resp.json();
       userInfo.innerHTML = `<p><strong>Username:</strong> ${user.userName}</p><p><strong>Email:</strong> ${user.email} (${user.emailConfirmed ? 'Verified' : 'Not Verified'})</p><p><strong>MFA Enabled:</strong> ${user.mfaEnabled ? 'Yes' : 'No'}</p>`;
       renderMfaManagement(user.mfaEnabled);
     } catch (err) { showAlert(err.message, 'warning'); }
@@ -168,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   async function disableMfa() { if (!confirm('Are you sure you want to disable MFA?')) return; try { const resp = await apiFetch('/authenticate/mfa/disable', { method: 'POST' }); if (!resp.ok) throw new Error('Could not disable MFA.'); showAlert('MFA has been disabled.', 'success'); showDashboard(); } catch (err) { showAlert(err.message); } }
   async function regenerateRecoveryCodes() { if (!confirm('This will invalidate your old recovery codes. Are you sure?')) return; try { const resp = await apiFetch('/authenticate/mfa/recovery/regenerate', { method: 'POST' }); if (!resp.ok) throw new Error('Could not regenerate codes.'); const data = await resp.json(); mfaManagementView.querySelector('.card-body').innerHTML = `<div class=\"alert alert-success\">New Recovery Codes Generated!</div><h5>Save these new codes!</h5><div class=\"recovery-codes p-3 bg-light rounded\">${data.recoveryCodes.join('<br>')}</div><button id=\"mfa-done-btn\" class=\"btn btn-primary mt-3\">Done</button>`; document.getElementById('mfa-done-btn').addEventListener('click', showDashboard); } catch (err) { showAlert(err.message); } }
-  async function handleLogout() { try { if (authTokens.refreshToken) await apiFetch('/authenticate/logout', { method: 'POST', body: { refreshToken: authTokens.refreshToken } }); else await apiFetch('/authenticate/logout', { method: 'POST', body: {} }); } catch(_){} finally { clearTokens(); switchView('login-view'); } }
+
   function init() { loadTokens(); if (authTokens.token) showDashboard(); else switchView('login-view'); }
   init();
 });
