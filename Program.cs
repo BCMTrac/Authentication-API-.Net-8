@@ -80,8 +80,16 @@ builder.Services.Configure<AuthenticationAPI.Models.Options.BridgeOptions>(
 builder.Services.Configure<AuthenticationAPI.Models.Options.ThrottleOptions>(
     configuration.GetSection(AuthenticationAPI.Models.Options.ThrottleOptions.SectionName));
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("AppDb")));
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    var cs = configuration.GetConnectionString("DefaultConnection");
+    options.UseSqlServer(cs, sql => sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null));
+});
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    var cs = configuration.GetConnectionString("AppDb");
+    options.UseSqlServer(cs, sql => sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null));
+});
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -357,9 +365,13 @@ if (string.IsNullOrWhiteSpace(smtpOpts.Username)) smtpOpts.Username = EnvOrCfg("
 if (string.IsNullOrWhiteSpace(smtpOpts.Password)) smtpOpts.Password = EnvOrCfg("SMTPPassword") ?? smtpOpts.Password;
 var useSslRaw = configuration["Smtp:UseSsl"] ?? EnvOrCfg("SMTPUseSsl");
 if (string.IsNullOrWhiteSpace(useSslRaw) && smtpOpts.Port == 25) smtpOpts.UseSsl = false;
+// Normalize whitespace
+smtpOpts.Host = smtpOpts.Host?.Trim() ?? string.Empty;
+smtpOpts.From = smtpOpts.From?.Trim() ?? string.Empty;
+smtpOpts.Username = smtpOpts.Username?.Trim();
 if (string.IsNullOrWhiteSpace(smtpOpts.Host) || smtpOpts.Port <= 0 || string.IsNullOrWhiteSpace(smtpOpts.From))
 {
-    Console.WriteLine($"[SMTP] Missing config. Host='{smtpOpts.Host ?? "(null)"}' Port='{smtpOpts.Port}' From='{smtpOpts.From ?? "(null)"}'");
+    Console.WriteLine($"[SMTP] Missing config. Host='{(string.IsNullOrEmpty(smtpOpts.Host)?"(empty)":smtpOpts.Host)}' Port='{smtpOpts.Port}' From='{(string.IsNullOrEmpty(smtpOpts.From)?"(empty)":smtpOpts.From)}'");
     throw new InvalidOperationException("SMTP is not configured. Set Smtp:Host, Smtp:Port, Smtp:From (or legacy SMTPServer/SMTPPort/SMTPFrom).");
 }
 
@@ -627,3 +639,6 @@ static Task WriteHealthResponse(HttpContext context, HealthReport report)
     });
     return context.Response.WriteAsync(json);
 }
+
+// Make Program visible to WebApplicationFactory in tests
+public partial class Program { }

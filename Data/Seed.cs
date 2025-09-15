@@ -69,8 +69,9 @@ public static class Seed
         var authDb = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    var fullNameFromEnv = configuration["SeedAdmin:FullName"];
-    var phoneFromEnv = configuration["SeedAdmin:Phone"];
+        var fullNameFromEnv = configuration["SeedAdmin:FullName"];
+        var phoneFromEnv = configuration["SeedAdmin:Phone"];
+        var userNameFromEnv = configuration["SeedAdmin:Username"];
 
         // Ensure Admin role exists
         if (!await roleManager.RoleExistsAsync("Admin"))
@@ -106,7 +107,7 @@ public static class Seed
         {
             admin = new ApplicationUser
             {
-                UserName = email,
+                UserName = string.IsNullOrWhiteSpace(userNameFromEnv) ? email : userNameFromEnv,
                 Email = email,
                 EmailConfirmed = true,
                 FullName = string.IsNullOrWhiteSpace(fullNameFromEnv) ? null : fullNameFromEnv,
