@@ -1,0 +1,41 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section HeadStyles {
+    <link rel="stylesheet" href="/css/email-confirm.css" />
+}
+
+<div id="confirm-view">
+    <h3 class="mb-3 text-center">Confirm Your Email</h3>
+    <p class="text-muted text-center mb-4">This page can confirm either your account email or a requested email change.</p>
+    <div class="card">
+        <div class="card-body">
+            <form id="confirm-form" class="mb-3">
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control" id="email" placeholder="Email" required>
+                    <label for="email">Email</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="token" placeholder="Token" required>
+                    <label for="token">Token</label>
+                </div>
+            </form>
+            <div class="confirm-actions d-flex gap-2 justify-content-center">
+                <button id="confirm-account-btn" class="btn btn-primary">Confirm Account</button>
+                <button id="confirm-change-btn" class="btn btn-outline-primary">Confirm Change</button>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-3">
+        <a href="/">Back to Sign In</a>
+    </div>
+</div>
+
+<div id="success-view" class="d-none text-center">
+    <h3 class="mb-3">Email Confirmed</h3>
+    <p class="mb-4">Your email address has been confirmed successfully.</p>
+    <a href="/" class="btn btn-primary">Continue to Sign In</a>
+    </div>
+
+<script src="/js/email-confirm.js"></script>
+

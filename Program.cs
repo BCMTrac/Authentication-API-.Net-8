@@ -26,6 +26,12 @@ using Microsoft.AspNetCore.HttpOverrides;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.CookiePolicy;
+using Azure.Identity;
+using Azure.Storage.Blobs;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Extensions.AspNetCore.DataProtection.Blobs;
+using Azure.Extensions.AspNetCore.DataProtection.Keys;
+using FluentValidation.AspNetCore;
 
 // Load .env if present (supports local dev and on-server env-file usage) BEFORE building configuration
 try { Env.Load(); } catch { /* optional */ }
@@ -67,6 +73,8 @@ builder.Services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitO
 builder.Services.Configure<KeyRotationOptions>(configuration.GetSection(KeyRotationOptions.SectionName));
 builder.Services.Configure<AuthenticationAPI.Models.Options.BridgeOptions>(
     configuration.GetSection(AuthenticationAPI.Models.Options.BridgeOptions.SectionName));
+builder.Services.Configure<AuthenticationAPI.Models.Options.ThrottleOptions>(
+    configuration.GetSection(AuthenticationAPI.Models.Options.ThrottleOptions.SectionName));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("AppDb")));
@@ -110,7 +118,7 @@ builder.Services.AddHsts(options =>
     options.MaxAge = TimeSpan.FromDays(180);
 });
 
-builder.Services.AddControllers(o =>
+builder.Services.AddControllersWithViews(o =>
 {
     o.Filters.Add<AuthenticationAPI.Infrastructure.Filters.InputNormalizationFilter>();
 })
@@ -121,6 +129,11 @@ builder.Services.AddControllers(o =>
         opts.JsonSerializerOptions.IgnoreReadOnlyFields = false;
         // Unknown properties should not be ignored; captured via [JsonExtensionData]
         opts.JsonSerializerOptions.UnknownTypeHandling = System.Text.Json.Serialization.JsonUnknownTypeHandling.JsonNode; // keep strict parsing
+    })
+    .AddFluentValidation(fv =>
+    {
+        // Automatically registers all validators in this assembly
+        fv.RegisterValidatorsFromAssemblyContaining<AuthenticationAPI.Validators.RegisterModelValidator>();
     });
 
 // API versioning
@@ -344,7 +357,20 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("mfa", policy => policy.RequireClaim("amr", "mfa"));
 });
 builder.Services.AddMemoryCache();
-builder.Services.AddSingleton<AuthenticationAPI.Services.Throttle.IThrottleService, AuthenticationAPI.Services.Throttle.MemoryThrottleService>();
+// Choose throttle provider
+var throttleOpts = configuration.GetSection(AuthenticationAPI.Models.Options.ThrottleOptions.SectionName).Get<AuthenticationAPI.Models.Options.ThrottleOptions>()
+                  ?? new AuthenticationAPI.Models.Options.ThrottleOptions();
+if (string.Equals(throttleOpts.Provider, "redis", StringComparison.OrdinalIgnoreCase))
+{
+    if (string.IsNullOrWhiteSpace(throttleOpts.RedisConnectionString))
+        throw new InvalidOperationException("Throttle:RedisConnectionString is required when Provider=redis.");
+    builder.Services.AddSingleton<AuthenticationAPI.Services.Throttle.IThrottleService>(sp =>
+        new AuthenticationAPI.Services.Throttle.RedisThrottleService(throttleOpts.RedisConnectionString!));
+}
+else
+{
+    builder.Services.AddSingleton<AuthenticationAPI.Services.Throttle.IThrottleService, AuthenticationAPI.Services.Throttle.MemoryThrottleService>();
+}
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
 // Global server-side request size ceiling (defense-in-depth)
@@ -356,15 +382,6 @@ builder.WebHost.ConfigureKestrel(o =>
 });
 
 var app = builder.Build();
-
-// Honor X-Forwarded-* headers when behind reverse proxies (prod)
-if (!app.Environment.IsDevelopment())
-{
-    app.UseForwardedHeaders(new ForwardedHeadersOptions
-    {
-        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-    });
-}
 
 // Configure the HTTP request pipeline.
 // Swagger: enabled by default in Development; disable in Production unless explicitly turned on
@@ -410,7 +427,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 // Respect proxy headers when enabled via config or env
-var enableForwarded = string.Equals(configuration["ReverseProxy:Enabled"], "true", StringComparison.OrdinalIgnoreCase)
+var enableForwarded = !app.Environment.IsDevelopment()
+    || string.Equals(configuration["ReverseProxy:Enabled"], "true", StringComparison.OrdinalIgnoreCase)
     || string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"), "true", StringComparison.OrdinalIgnoreCase);
 if (enableForwarded)
 {
@@ -480,13 +498,6 @@ app.Use(async (ctx, next) =>
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-// HTTPS/HSTS + proxy headers for production
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHsts();
-    app.UseHttpsRedirection();
-}
 var enableRateLimit = builder.Environment.IsDevelopment()
     ? string.Equals(configuration["Features:RateLimit"], "true", StringComparison.OrdinalIgnoreCase)
     : true;
@@ -504,6 +515,9 @@ if (enableAudit)
 }
 
 app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Ui}/{action=Index}/{id?}");
 
 // Health endpoints
 app.MapHealthChecks("/health/live", new HealthCheckOptions
@@ -517,11 +531,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     ResponseWriter = WriteHealthResponse
 });
 
-// Convenience root redirect to Swagger UI
-// Default entry to UI
-app.MapGet("/", () => Results.Redirect("/index.html"));
-// Admin panel entry
-app.MapGet("/admin", () => Results.Redirect("/admin.html"));
+// MVC handles UI routes now via UiController
 // Lightweight ping that does not touch the database (useful for quick 200 check)
 app.MapGet("/api/ping", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }));
 
