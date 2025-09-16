@@ -20,29 +20,7 @@ public class AdminLockUnlockTests : IClassFixture<TestApplicationFactory>
     private static string NewEmail() => $"user_{Guid.NewGuid():N}@example.com";
     private static string NewUser() => $"user_{Guid.NewGuid():N}";
 
-    private async Task<string> EnsureAdminAsync()
-    {
-        var client = _factory.CreateClient();
-        var email = NewEmail();
-        var username = NewUser();
-        var password = "Adm1n$tr0ngP@ss!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            if (!await roleMgr.RoleExistsAsync("Admin")) await roleMgr.CreateAsync(new IdentityRole("Admin"));
-            var user = await userMgr.FindByEmailAsync(email);
-            var token = await userMgr.GenerateEmailConfirmationTokenAsync(user!);
-            (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-            await userMgr.AddToRoleAsync(user!, "Admin");
-        }
-        var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
-        login.StatusCode.Should().Be(HttpStatusCode.OK);
-        var json = await login.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        return doc.RootElement.GetProperty("token").GetString()!;
-    }
+    private Task<string> EnsureAdminAsync() => AdminTokenFactory.CreateAdminAsync(_factory);
 
     [Fact]
     public async Task Admin_Locks_And_Unlocks_User()

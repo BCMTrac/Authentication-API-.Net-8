@@ -5,10 +5,15 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
 using AuthenticationAPI.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace AuthenticationAPI.IntegrationTests;
@@ -21,29 +26,7 @@ public class AdminRoleManagementTests : IClassFixture<TestApplicationFactory>
     private static string NewEmail() => $"user_{Guid.NewGuid():N}@example.com";
     private static string NewUser() => $"user_{Guid.NewGuid():N}";
 
-    private async Task<string> EnsureAdminAsync()
-    {
-        var client = _factory.CreateClient();
-        var email = NewEmail();
-        var username = NewUser();
-        var password = "Adm1n$tr0ngP@ss!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            if (!await roleMgr.RoleExistsAsync("Admin")) await roleMgr.CreateAsync(new IdentityRole("Admin"));
-            var user = await userMgr.FindByEmailAsync(email);
-            var token = await userMgr.GenerateEmailConfirmationTokenAsync(user!);
-            (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-            (await userMgr.AddToRoleAsync(user!, "Admin")).Succeeded.Should().BeTrue();
-        }
-        var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
-        login.StatusCode.Should().Be(HttpStatusCode.OK);
-        var json = await login.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        return doc.RootElement.GetProperty("token").GetString()!;
-    }
+    private Task<string> EnsureAdminAsync() => AdminTokenFactory.CreateAdminAsync(_factory);
 
     [Fact]
     public async Task Admin_Adds_And_Removes_Role()

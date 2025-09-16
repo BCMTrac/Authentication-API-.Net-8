@@ -155,6 +155,10 @@ namespace AuthenticationAPI.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(AuthConstants.ClaimTypes.TokenVersion, user.TokenVersion.ToString())
             };
+            foreach (var r in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, r));
+            }
 
             foreach (var userRole in userRoles) claims.Add(new Claim(ClaimTypes.Role, userRole));
 
