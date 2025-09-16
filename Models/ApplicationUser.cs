@@ -6,10 +6,8 @@ namespace AuthenticationAPI.Models
     {
     public string? FullName { get; set; }
     public string? GoogleId { get; set; }
-    public ICollection<UserTenant> UserTenants { get; set; } = new List<UserTenant>();
-    public ICollection<UserTenant> UserTenants { get; set; } = new List<UserTenant>();
-    public ICollection<UserTenant> UserTenants { get; set; } = new List<UserTenant>();
-    public ICollection<UserTenant> UserTenants { get; set; } = new List<UserTenant>();
+    // Not mapped by EF (ignored in DbContext). Used for onboarding convenience.
+    public string? TenantId { get; set; }
     public ICollection<UserTenant> UserTenants { get; set; } = new List<UserTenant>(); // For future multi-tenant support
     public int TokenVersion { get; set; } = 0; // Increment to invalidate existing access tokens
     public bool MfaEnabled { get; set; } = false; // TOTP enabled flag

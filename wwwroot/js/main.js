@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await apiFetch('/authenticate/logout', { method: 'POST', body: {} });
             }
         } catch(e){
-            // Log silently or handle error, but proceed to clear tokens
+			// Log silently
         } finally {
             clearTokens();
             switchView('login-view');

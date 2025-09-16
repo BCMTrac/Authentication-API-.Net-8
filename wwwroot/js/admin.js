@@ -1,12 +1,4 @@
-// New admin.js content
 document.addEventListener('DOMContentLoaded', () => {
-  // ... (DOM Elements are the same)
-
-  // ... (State is the same)
-
-  // ... (API Config is the same)
-
-  // ... (Utility Functions are the same)
 
   async function handleApiAction(action, successMessage, buttonEl) {
     let originalBtnText = '';
@@ -35,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ... (UI Rendering functions are the same, but I will re-paste the sessions one to fix a bug)
   function renderUserSessions(sessions) {
     sessionsTableBody.innerHTML = '';
     sessions.forEach(session => {
@@ -67,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]);
             if (!confirmed) return;
         } catch {
-            return; // Modal dismissed
+            return; 
         }
         handleApiAction(
             () => apiFetch(`${API.admin}/users/${selectedUserId}/sessions/${session.id}/revoke`, { method: 'POST' }),
@@ -79,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Event Listeners (updated to pass button element) ---
+  //Event Listeners 
 
   searchBtn.addEventListener('click', (e) => {
     const query = encodeURIComponent((searchInput.value || '').trim());
@@ -95,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
   searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') searchBtn.click(); });
 
   inviteSendBtn?.addEventListener('click', (e) => {
-    // ... (validation logic is the same)
     handleApiAction(
         () => apiFetch(`${API.auth}/invite`, { method: 'POST', body: { email, fullName, roles } }),
         'Invite sent successfully.',
@@ -104,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   roleAddBtn.addEventListener('click', (e) => {
-    // ... (validation logic is the same)
     handleApiAction(
         () => apiFetch(`${API.admin}/users/${selectedUserId}/roles/add`, { method: 'POST', body: { role } }),
         `Role "${role}" added.`,
@@ -113,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   tempPasswordBtn.addEventListener('click', (e) => {
-    // ... (validation logic is the same)
     handleApiAction(
         () => apiFetch(`${API.admin}/users/${selectedUserId}/password/set-temporary`, { method: 'POST', body: { newPassword } }),
         'Temporary password has been set.',
@@ -153,15 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnDisableMfa.addEventListener('click', async (e) => {
     if (!selectedUserId) return;
-    // ... (confirmation modal logic is the same)
     handleApiAction(() => apiFetch(`${API.admin}/users/${selectedUserId}/mfa/disable`, { method: 'POST' }), 'MFA has been disabled for the user.', e.currentTarget);
   });
 
   sessionsRevokeAllBtn.addEventListener('click', async (e) => {
     if (!selectedUserId) return;
-    // ... (confirmation modal logic is the same)
     handleApiAction(() => apiFetch(`${API.admin}/users/${selectedUserId}/sessions/revoke-all`, { method: 'POST' }), 'All user sessions have been revoked.', e.currentTarget);
   });
-
-  // ... (Init function is the same)
 });

@@ -1,5 +1,7 @@
 using AuthenticationAPI.Models;
+using AuthenticationAPI.Data;
 using AuthenticationAPI.Services;
+using AuthenticationAPI.Services.Email;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

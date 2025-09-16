@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   const resetForm = document.getElementById('reset-form');
-  const alertPlaceholder = document.getElementById('alert-placeholder'); // Still needed for append
+  const alertPlaceholder = document.getElementById('alert-placeholder'); 
   const resetView = document.getElementById('reset-view');
   const successView = document.getElementById('success-view');
 
-  // showAlert, setValidation are now in utils.js
+
 
   resetForm.addEventListener('submit', async e => {
     e.preventDefault();
-    alertPlaceholder.innerHTML = ''; // clearAlert is not needed as showAlert handles clearing
+    alertPlaceholder.innerHTML = ''; 
 
     const newPasswordInput = document.getElementById('reset-new-password');
     const confirmPasswordInput = document.getElementById('reset-confirm-password');
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isValid = true;
 
     if (newPassword.length < 6) {
-      setValidation(newPasswordInput, 'Password must be at least 6 characters long.');
+      setValidation(newPasswordInput, 'Password must be at least 12 characters long.');
       isValid = false;
     }
     if (newPassword !== confirmPassword) {

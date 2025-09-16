@@ -7,9 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const resendBtn = document.getElementById('resend-confirm-btn');
   const confirmView = document.getElementById('confirm-view');
   const successView = document.getElementById('success-view');
-  const alertPlaceholder = document.getElementById('alert-placeholder'); // Still needed for append
-
-  // showAlert is now in utils.js
+  const alertPlaceholder = document.getElementById('alert-placeholder'); 
+ 
 
   const params = new URLSearchParams(window.location.search);
   const qsEmail = params.get('email');
@@ -22,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Confirming...';
     try {
-      const res = await apiFetch(`${API_BASE_URL}/${endpoint}`, { method: 'POST', body: body }, false); // No auth token needed for email confirmation
+      const res = await apiFetch(`${API_BASE_URL}/${endpoint}`, { method: 'POST', body: body }, false);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         const errorMsg = data.message || (data.errors ? data.errors.join(', ') : 'Confirmation failed.');
@@ -74,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   resendBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim();
-    setValidation(emailInput, null); // Clear validation for email input
+    setValidation(emailInput, null); 
 
     if (!email) {
       setValidation(emailInput, 'Enter your email to resend confirmation.');

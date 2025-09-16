@@ -101,4 +101,10 @@ namespace AuthenticationAPI.Models
         [Required, RegularExpression(@"^[0-9]{6}$")]
         public string Code { get; set; } = string.Empty;
     }
+
+    public class GoogleLoginRequest : StrictDtoBase
+    {
+        [Required]
+        public string IdToken { get; set; } = string.Empty;
+    }
 }

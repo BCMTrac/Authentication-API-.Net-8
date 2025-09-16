@@ -49,7 +49,7 @@ public class JwksController : ControllerBase
         }
         catch
         {
-            return new { }; // filtered out by consumer
+            return new { }; 
         }
     }
 }

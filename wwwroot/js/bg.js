@@ -1,4 +1,4 @@
-// Lightweight animated gradient / particle-ish background
+// Lightweight animated gradient - particle-ish background
 (function(){
   const overlay = document.querySelector('.bg-overlay');
   if(!overlay) return;

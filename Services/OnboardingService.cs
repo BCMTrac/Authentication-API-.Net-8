@@ -2,6 +2,7 @@ using AuthenticationAPI.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
 using AuthenticationAPI.Exceptions;
+using System.Linq;
 
 namespace AuthenticationAPI.Services
 {

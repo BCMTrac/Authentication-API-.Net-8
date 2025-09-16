@@ -17,3 +17,11 @@ obj/
 # OS
 .DS_Store
 Thumbs.db
+
+# VS 
+.vs
+.vscode
+
+# Git
+.github
+.gitignore

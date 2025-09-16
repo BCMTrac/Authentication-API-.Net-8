@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setValidation(currentPasswordInput, 'Please enter your current password.');
             isValid = false;
         }
-        if (newPassword.length < 6) {
+        if (newPassword.length < 12) {
             setValidation(newPasswordInput, 'New password must be at least 6 characters long.');
             isValid = false;
         }

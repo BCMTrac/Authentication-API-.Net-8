@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return false; // Indicate not ready
     }
 
-    // --- Event Listeners ---
+    //Event Listeners
     showPasswordLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
         passwordLoginForm.classList.toggle('d-none');
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     passwordLoginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        // Clear previous alerts and validation
+        //Clear previous alerts and validation
         alertPlaceholder.innerHTML = '';
         const emailInput = document.getElementById('admin-login-email');
         const passwordInput = document.getElementById('admin-login-password');
@@ -98,6 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!isValid) return;
 
+        // Store password temporarily for MFA step
+        window._adminLoginPassword = password;
+
         const btn = passwordLoginForm.querySelector('.btn-cta');
         const text = btn.querySelector('.btn-text');
         const spinner = btn.querySelector('.btn-spinner');
@@ -109,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (res.ok && data.mfaRequired) {
                 adminMfaInputContainer.classList.remove('d-none');
-                passwordLoginForm.classList.add('d-none'); // Hide password form
+                passwordLoginForm.classList.add('d-none'); 
                 resetOtp();
                 showAlert('Enter your authenticator code to continue.', 'info');
                 return;
@@ -149,9 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Re-attempt login with MFA code
             const email = document.getElementById('admin-login-email').value.trim();
-            const password = document.getElementById('admin-login-password').value; // Password might not be available if form was hidden
-            // A better approach would be to store identifier/password in a temp variable after first login attempt
-            // For now, re-using the email from the input. Password is not sent again for MFA step.
+            const password = window._adminLoginPassword || ''; // Use stored password for MFA step
             const res = await apiFetch('/authenticate/login', { method: 'POST', body: { identifier: email, password: password, mfaCode: mfaCode } });
             const data = await res.json().catch(() => ({}));
 
@@ -173,12 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Recovery Code Logic
+    //Recovery Code Logic
     adminUseRecoveryBtn?.addEventListener('click', async () => {
         const recoveryCode = await showPromptModal('Enter Recovery Code', 'Please enter one of your recovery codes:', '');
-        if (!recoveryCode) return; // User cancelled
+        if (!recoveryCode) return; //User cancelled
 
-        const btn = adminUseRecoveryBtn; // Use the recovery button itself for spinner
+        const btn = adminUseRecoveryBtn; //Use the recovery button itself for spinner
         const originalText = btn.textContent;
         btn.disabled = true; btn.textContent = 'Verifying...';
 
@@ -194,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (data.token) {
                 saveTokens(data.token, data.refreshToken);
-                window.location.href = '/admin'; // Redirect to admin dashboard
+                window.location.href = '/admin'; 
                 return;
             }
             throw new Error('Unexpected recovery code response.');

@@ -23,6 +23,6 @@ namespace AuthenticationAPI.Models
 
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 
-        public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
+    public ICollection<UserTenant> UserTenants { get; set; } = new List<UserTenant>();
     }
 }

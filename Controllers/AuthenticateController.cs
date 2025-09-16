@@ -4,6 +4,9 @@ using AuthenticationAPI.Models;
 using AuthenticationAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using AuthenticationAPI.Services;
+using AuthenticationAPI.Services.Email;
+using AuthenticationAPI.Services.Throttle;
+using AuthenticationAPI.Models.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -338,7 +341,7 @@ namespace AuthenticationAPI.Controllers
                 Response.Cookies.Append("rt", newRefresh, cookieOpts);
             }
 
-            if (_bridgeOptions.Enabled)
+            if (_bridgeOptions.Enabled && stored.SessionId.HasValue)
             {
                 foreach (var name in _bridgeOptions.HeaderNames)
                 {

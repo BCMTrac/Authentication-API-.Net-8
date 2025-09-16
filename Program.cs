@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using AuthenticationAPI.Infrastructure.Swagger;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Text.Json;
+using AuthenticationAPI.Infrastructure.Filters;
 
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
@@ -27,14 +28,18 @@ using FluentValidation;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.Extensions.Logging;
+using AuthenticationAPI.Validators;
+using AuthenticationAPI.Infrastructure.Health;
+using AuthenticationAPI.Services.Throttle;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var configuration = new ConfigurationBuilder()
-    .SetBasePath(builder.Environment.ContentRootPath)
+// Use the host configuration so test overrides (WebApplicationFactory) apply
+builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .Build();
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+var configuration = builder.Configuration;
 
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(options =>
@@ -176,7 +181,7 @@ builder.Services.AddRateLimiter(options =>
     options.OnRejected = async (ctx, token) =>
     {
         ctx.HttpContext.Response.ContentType = "application/problem+json";
-        var problem = System.Text.Json.JsonSerializer.Serialize(new
+            var problem = System.Text.Json.JsonSerializer.Serialize(new
         {
             type = "https://httpstatuses.io/429",
             title = "Too Many Requests",
@@ -302,7 +307,7 @@ else if (dpStorage == "azure")
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "[Startup] Azure Data Protection configuration failed.");
+        Console.Error.WriteLine($"[Startup] Azure Data Protection configuration failed: {ex.Message}");
         throw;
     }
 }
@@ -417,7 +422,10 @@ if (enableForwarded)
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
     });
 }
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment() || string.Equals(configuration["Features:HttpsRedirect"], "true", StringComparison.OrdinalIgnoreCase))
+{
+    app.UseHttpsRedirection();
+}
 app.Use(async (ctx, next) =>
 {
     if (ctx.Request.Method == HttpMethods.Post || ctx.Request.Method == HttpMethods.Put || ctx.Request.Method == HttpMethods.Patch)
@@ -576,3 +584,5 @@ static Task WriteHealthResponse(HttpContext context, HealthReport report)
     });
     return context.Response.WriteAsync(json);
 }
+
+public partial class Program { }

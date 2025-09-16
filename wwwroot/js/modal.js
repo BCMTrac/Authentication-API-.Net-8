@@ -33,8 +33,6 @@ function showConfirmationModal(title, body, buttons = []) {
     });
 
     modalElement.addEventListener('hidden.bs.modal', () => {
-      // Re-throwing an error inside a promise doesn't do much.
-      // We can consider this a rejection.
       reject('Modal dismissed');
     }, { once: true });
 
@@ -77,7 +75,6 @@ function showPromptModal(title, body, initialValue = '') {
             })
             .catch(() => resolve(null)); // Dismissed
         
-        // Focus the input
         const modalElement = document.getElementById('app-modal');
         modalElement.addEventListener('shown.bs.modal', () => {
             document.getElementById('modal-prompt-input')?.focus();

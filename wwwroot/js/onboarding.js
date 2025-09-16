@@ -53,14 +53,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Step 3: Bulk invites (Placeholder)
             if (onboardingData[3].userInvites) {
-                // TODO: Implement bulk invite API call
                 console.log('Bulk invites not implemented. Data:', onboardingData[3].userInvites);
                 showAlert('Bulk user invite endpoint is not yet implemented.', 'warning');
             }
 
             showAlert('Onboarding complete! You can now manage the new tenant and users.', 'success');
             createBtn.innerHTML = 'Done!';
-            // Optional: Redirect or clear the form
 
         } catch (err) {
             showAlert(err.message || 'An unexpected error occurred during onboarding.', 'danger');
@@ -68,9 +66,5 @@ document.addEventListener('DOMContentLoaded', () => {
             createBtn.innerHTML = 'Create Tenant & Send Invites';
         }
     }
-
-    // ... (Event listeners are the same)
-
-    // Initialize first step
     showStep(1);
 });

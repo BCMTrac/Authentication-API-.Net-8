@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "m6pYToSP7po=",
+  "dgSpecHash": "KZ9ITEy16WI=",
   "success": true,
-  "projectFilePath": "C:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj",
+  "projectFilePath": "c:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\brand\\.nuget\\packages\\azure.core\\1.44.1\\azure.core.1.44.1.nupkg.sha512",
     "C:\\Users\\brand\\.nuget\\packages\\azure.extensions.aspnetcore.configuration.secrets\\1.3.0\\azure.extensions.aspnetcore.configuration.secrets.1.3.0.nupkg.sha512",
@@ -19,6 +19,11 @@
     "C:\\Users\\brand\\.nuget\\packages\\google.apis\\1.64.0\\google.apis.1.64.0.nupkg.sha512",
     "C:\\Users\\brand\\.nuget\\packages\\google.apis.auth\\1.64.0\\google.apis.auth.1.64.0.nupkg.sha512",
     "C:\\Users\\brand\\.nuget\\packages\\google.apis.core\\1.64.0\\google.apis.core.1.64.0.nupkg.sha512",
+    "C:\\Users\\brand\\.nuget\\packages\\hangfire\\1.8.14\\hangfire.1.8.14.nupkg.sha512",
+    "C:\\Users\\brand\\.nuget\\packages\\hangfire.aspnetcore\\1.8.14\\hangfire.aspnetcore.1.8.14.nupkg.sha512",
+    "C:\\Users\\brand\\.nuget\\packages\\hangfire.core\\1.8.14\\hangfire.core.1.8.14.nupkg.sha512",
+    "C:\\Users\\brand\\.nuget\\packages\\hangfire.netcore\\1.8.14\\hangfire.netcore.1.8.14.nupkg.sha512",
+    "C:\\Users\\brand\\.nuget\\packages\\hangfire.sqlserver\\1.8.14\\hangfire.sqlserver.1.8.14.nupkg.sha512",
     "C:\\Users\\brand\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\brand\\.nuget\\packages\\konscious.security.cryptography.argon2\\1.3.0\\konscious.security.cryptography.argon2.1.3.0.nupkg.sha512",
     "C:\\Users\\brand\\.nuget\\packages\\konscious.security.cryptography.blake2\\1.1.0\\konscious.security.cryptography.blake2.1.1.0.nupkg.sha512",

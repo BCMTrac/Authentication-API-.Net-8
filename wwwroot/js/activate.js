@@ -2,9 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const activateForm = document.getElementById('activate-form');
   const view = document.getElementById('activate-view');
   const success = document.getElementById('activate-success');
-  const alertPlaceholder = document.getElementById('alert-placeholder'); // Still needed for append
+  const alertPlaceholder = document.getElementById('alert-placeholder'); 
 
-  // showAlert, setValidation are now in utils.js
 
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
@@ -37,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setValidation(fullNameInput, 'Full name is required.');
         isValid = false;
     }
-    if (password.length < 6) {
-        setValidation(passwordInput, 'Password must be at least 6 characters long.');
+    if (password.length < 12) {
+        setValidation(passwordInput, 'Password must be at least 12 characters long.');
         isValid = false;
     }
     if (!terms) {

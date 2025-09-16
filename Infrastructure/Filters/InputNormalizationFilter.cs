@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -10,42 +9,32 @@ using Microsoft.Extensions.Configuration;
 
 namespace AuthenticationAPI.Infrastructure.Filters;
 
-/// <summary>
-/// Normalizes all incoming string fields (trim + collapse internal whitespace + Unicode NFKC),
-/// enforces payload size limits, rejects control characters, and enforces additionalProperties=false
-/// by detecting unknown JSON fields via JsonExtensionData in DTO base type.
-/// </summary>
 public sealed class InputNormalizationFilter : IActionFilter
 {
     private readonly long _maxBodyBytes;
-    private static readonly Regex CollapseWs = new Regex("\\s+", RegexOptions.Compiled);
+    private static readonly Regex CollapseWs = new("\\s+", RegexOptions.Compiled);
 
     public InputNormalizationFilter(IConfiguration configuration)
     {
-        _maxBodyBytes = configuration.GetValue<long>("Validation:MaxPayloadSizeBytes", 20 * 1024); // Default to 20 KB
+        _maxBodyBytes = configuration.GetValue<long>("Validation:MaxPayloadSizeBytes", 20 * 1024);
     }
 
     public void OnActionExecuting(ActionExecutingContext context)
     {
-        // Guard request size via Content-Length when present; if not present, stream length may be unknown.
-        if (context.HttpContext.Request.ContentLength.HasValue)
+        if (context.HttpContext.Request.ContentLength.HasValue &&
+            context.HttpContext.Request.ContentLength.Value > _maxBodyBytes)
         {
-            if (context.HttpContext.Request.ContentLength.Value > _maxBodyBytes)
-            {
-                context.Result = new StatusCodeResult(StatusCodes.Status413PayloadTooLarge);
-                return;
-            }
+            context.Result = new StatusCodeResult(StatusCodes.Status413PayloadTooLarge);
+            return;
         }
 
         try
         {
-            // Normalize and validate all string arguments recursively
             foreach (var key in context.ActionArguments.Keys.ToList())
             {
                 var value = context.ActionArguments[key];
                 if (value is null) continue;
-                var normalized = NormalizeObject(value, propertyPath: key);
-                context.ActionArguments[key] = normalized;
+                context.ActionArguments[key] = NormalizeObject(value, key);
             }
         }
         catch (ValidationException vex)
@@ -61,7 +50,6 @@ public sealed class InputNormalizationFilter : IActionFilter
             return;
         }
 
-        // Enforce additionalProperties=false: if any DTO carries extension data, reject
         foreach (var arg in context.ActionArguments.Values)
         {
             if (arg is null) continue;
@@ -75,7 +63,6 @@ public sealed class InputNormalizationFilter : IActionFilter
                     Detail = "The request contained properties that are not allowed.",
                     Instance = context.HttpContext.Request.Path
                 };
-                // Add field names into errors for visibility
                 problem.Errors.Add("additionalProperties", extra.Keys.ToArray());
                 context.Result = new ObjectResult(problem) { StatusCode = problem.Status };
                 return;
@@ -85,23 +72,65 @@ public sealed class InputNormalizationFilter : IActionFilter
 
     public void OnActionExecuted(ActionExecutedContext context) { }
 
-    private static object NormalizeObject(object obj, string propertyPath)
+    private static object NormalizeObject(object obj, string path)
     {
-        if (obj is string s)
-        {
-            return NormalizeString(s, propertyPath);
-        }
+        if (obj is string s) return NormalizeString(s, path);
 
         var t = obj.GetType();
-        // Avoid normalizing framework primitives/structs
-        if (t.IsPrimitive || t.IsEnum)
-            return obj;
+        if (t.IsPrimitive || t.IsEnum) return obj;
 
-        if (obj is IEnumerable<object?> enumerable)
+        if (obj is System.Collections.IList list)
         {
-            var list = new List<object?>();
-            int idx = 0;
-            foreach (var item in enumerable)
+            for (var i = 0; i < list.Count; i++)
             {
-                if (item is null) { list.Add(null); continue; }
-                list.Add(NormalizeObject(item, propertyPath + $
+                var item = list[i];
+                if (item is null) continue;
+                var normalized = NormalizeObject(item, path + "[" + i + "]");
+                if (!ReferenceEquals(item, normalized)) list[i] = normalized;
+            }
+            return obj;
+        }
+
+        foreach (var prop in t.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            if (!prop.CanRead) continue;
+            var childPath = string.IsNullOrEmpty(path) ? prop.Name : path + "." + prop.Name;
+            object? current;
+            try { current = prop.GetValue(obj); } catch { continue; }
+            if (current is null) continue;
+
+            if (prop.PropertyType == typeof(string))
+            {
+                if (!prop.CanWrite) continue;
+                prop.SetValue(obj, NormalizeString((string)current, childPath));
+            }
+            else if (!prop.PropertyType.IsPrimitive && !prop.PropertyType.IsEnum && prop.CanWrite)
+            {
+                var normalized = NormalizeObject(current, childPath);
+                if (!ReferenceEquals(current, normalized)) prop.SetValue(obj, normalized);
+            }
+        }
+        return obj;
+    }
+
+    private static string NormalizeString(string input, string path)
+    {
+        var s = input.Normalize(System.Text.NormalizationForm.FormKC).Trim();
+        s = CollapseWs.Replace(s, " ");
+        foreach (var ch in s)
+        {
+            if (char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t')
+                throw new ValidationException($"Field '{path}' contains control characters.");
+        }
+        return s;
+    }
+
+    private static IDictionary<string, JsonElement>? GetExtensionData(object dto)
+    {
+        var prop = dto.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            .FirstOrDefault(p => string.Equals(p.Name, "ExtensionData", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(p.Name, "AdditionalData", StringComparison.OrdinalIgnoreCase));
+        if (prop == null) return null;
+        return prop.GetValue(dto) as IDictionary<string, JsonElement>;
+    }
+}
