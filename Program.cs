@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 using AuthenticationAPI.Infrastructure.Swagger;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Text.Json;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
+
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
@@ -22,26 +22,20 @@ using AuthenticationAPI.Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
 using AuthenticationAPI.Models.Options;
 using Microsoft.AspNetCore.HttpOverrides;
-using System.Runtime.InteropServices;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.CookiePolicy;
-using Azure.Identity;
-using Azure.Storage.Blobs;
-using Azure.Extensions.AspNetCore.Configuration.Secrets;
-using Azure.Extensions.AspNetCore.DataProtection.Blobs;
-using Azure.Extensions.AspNetCore.DataProtection.Keys;
 using FluentValidation.AspNetCore;
 using FluentValidation;
+using Hangfire;
+using Hangfire.SqlServer;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
-// Build configuration strictly from appsettings (no env consumption)
+
 var configuration = new ConfigurationBuilder()
     .SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .Build();
 
-// Structured logging (basic JSON via built-in) - Serilog can replace later
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(options =>
 {
@@ -49,14 +43,13 @@ builder.Logging.AddJsonConsole(options =>
     options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
 });
 
-// Options
 builder.Services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
 builder.Services.Configure<KeyRotationOptions>(configuration.GetSection(KeyRotationOptions.SectionName));
-builder.Services.Configure<AuthenticationAPI.Models.Options.BridgeOptions>(
-    configuration.GetSection(AuthenticationAPI.Models.Options.BridgeOptions.SectionName));
-builder.Services.Configure<AuthenticationAPI.Models.Options.ThrottleOptions>(
-    configuration.GetSection(AuthenticationAPI.Models.Options.ThrottleOptions.SectionName));
+builder.Services.Configure<BridgeOptions>(
+    configuration.GetSection(BridgeOptions.SectionName));
+builder.Services.Configure<ThrottleOptions>(
+    configuration.GetSection(ThrottleOptions.SectionName));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -77,13 +70,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         }
         options.User.RequireUniqueEmail = true;
         options.SignIn.RequireConfirmedEmail = true;
-    // Enforce strong password policy in all environments
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 12;
-        // Lockout policy
         options.Lockout.AllowedForNewUsers = true;
         options.Lockout.MaxFailedAccessAttempts = 10;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
@@ -91,7 +82,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, AuthenticationAPI.Infrastructure.Security.Argon2PasswordHasher<ApplicationUser>>();
+builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, Argon2PasswordHasher<ApplicationUser>>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -100,7 +91,6 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer();
 builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
-// HSTS configuration for production
 builder.Services.AddHsts(options =>
 {
     options.Preload = true;
@@ -110,23 +100,20 @@ builder.Services.AddHsts(options =>
 
 builder.Services.AddControllersWithViews(o =>
 {
-    o.Filters.Add<AuthenticationAPI.Infrastructure.Filters.InputNormalizationFilter>();
+    o.Filters.Add<InputNormalizationFilter>();
 })
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Disallow;
         opts.JsonSerializerOptions.AllowTrailingCommas = false;
         opts.JsonSerializerOptions.IgnoreReadOnlyFields = false;
-        // Unknown properties should not be ignored; captured via [JsonExtensionData]
-        opts.JsonSerializerOptions.UnknownTypeHandling = System.Text.Json.Serialization.JsonUnknownTypeHandling.JsonNode; // keep strict parsing
+        opts.JsonSerializerOptions.UnknownTypeHandling = System.Text.Json.Serialization.JsonUnknownTypeHandling.JsonNode;
     });
 
-// FluentValidation (new recommended API)
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
-builder.Services.AddValidatorsFromAssemblyContaining<AuthenticationAPI.Validators.RegisterModelValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterModelValidator>();
 
-// API versioning
 builder.Services.AddApiVersioning(o =>
 {
     o.AssumeDefaultVersionWhenUnspecified = true;
@@ -135,7 +122,7 @@ builder.Services.AddApiVersioning(o =>
 });
 builder.Services.AddVersionedApiExplorer(o =>
 {
-    o.GroupNameFormat = "'v'VVV"; // e.g., v1, v1.0
+    o.GroupNameFormat = "'v'VVV";
     o.SubstituteApiVersionInUrl = true;
 });
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -160,7 +147,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    // NOTE: SwaggerDoc entries will be added dynamically per API version below
     var jwtScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -206,7 +192,6 @@ builder.Services.AddRateLimiter(options =>
         opt.Window = TimeSpan.FromSeconds(rlOptions.WindowSeconds);
         opt.QueueLimit = rlOptions.QueueLimit;
     });
-    // Route-specific fixed window policies by IP
     options.AddPolicy("login", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: $"{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}:{httpContext.Request.Headers["X-Login-Id"].ToString()}",
@@ -260,12 +245,17 @@ builder.Services.AddCors(policy =>
 });
 
 builder.Services.AddHealthChecks()
-    .AddCheck<AuthenticationAPI.Infrastructure.Health.DatabaseHealthCheck>("db")
-    .AddCheck<AuthenticationAPI.Infrastructure.Health.KeyRingHealthCheck>("keys");
+    .AddCheck<DatabaseHealthCheck>("db")
+    .AddCheck<KeyRingHealthCheck>("keys");
 
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IKeyRingService, KeyRingService>();
 builder.Services.AddScoped<IClientAppService, ClientAppService>();
+builder.Services.AddScoped<IUserAccountService, UserAccountService>();
+builder.Services.AddScoped<IOnboardingService, OnboardingService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IRecoveryCodeService, RecoveryCodeService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddSingleton<IKeyRingCache, KeyRingCache>();
@@ -273,7 +263,7 @@ builder.Services.AddSingleton<ITotpService, TotpService>();
 builder.Services.AddSingleton<IPasswordBreachChecker, NoOpPasswordBreachChecker>();
 builder.Services.AddSingleton<IEmailTemplateRenderer, EmailTemplateRenderer>();
 builder.Services.AddHostedService<KeyRotationHostedService>();
-// Data Protection keys persistence (so MFA secrets survive restarts)
+
 var dpBuilder = builder.Services.AddDataProtection()
     .SetApplicationName("AuthenticationAPI")
     .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
@@ -284,19 +274,16 @@ if (dpStorage == "file")
     Directory.CreateDirectory(path);
     dpBuilder.PersistKeysToFileSystem(new DirectoryInfo(path));
 
-    // Encrypt keys at rest when safe to do so (no breaking change for existing keys)
     if (OperatingSystem.IsWindows())
     {
-        // Use user profile scope in Development; production can switch to certificate/KeyVault via config
         dpBuilder.ProtectKeysWithDpapi();
     }
 }
 else if (dpStorage == "azure")
 {
-    // Protect keys with a Key Vault key and persist to Blob Storage
     var blobConn = configuration["Azure:Blob:ConnectionString"];
     var containerName = configuration["Azure:Blob:Container"] ?? "dataprotection";
-    var keyId = configuration["Azure:KeyVault:KeyId"]; // e.g., https://<vault>.vault.azure.net/keys/<keyname>/<version>
+    var keyId = configuration["Azure:KeyVault:KeyId"];
     var vaultUrlCfg = configuration["Azure:KeyVault:VaultUrl"];
     if (string.IsNullOrWhiteSpace(blobConn) || string.IsNullOrWhiteSpace(keyId) || string.IsNullOrWhiteSpace(vaultUrlCfg))
     {
@@ -315,85 +302,89 @@ else if (dpStorage == "azure")
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Startup] Azure DP config failed: {ex.Message}");
+        logger.LogError(ex, "[Startup] Azure Data Protection configuration failed.");
         throw;
     }
 }
-// Future options (placeholders): other providers can be plugged in here based on config
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
-// Optional: enable HIBP password breach checks if configured
 var useHibp = string.Equals(configuration["PasswordBreach:Provider"], "hibp", StringComparison.OrdinalIgnoreCase)
               || string.Equals(configuration["PasswordBreach:UseHibp"], "true", StringComparison.OrdinalIgnoreCase);
 if (useHibp)
 {
     builder.Services.AddSingleton<IPasswordBreachChecker, HibpPasswordBreachChecker>();
 }
-// Shorten default Identity token lifetime to limit replay window
 builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromMinutes(30));
-// Email provider: require SMTP from appsettings only
 var smtpOpts = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>() ?? new SmtpOptions();
 
 if (string.IsNullOrWhiteSpace(smtpOpts.Host) || smtpOpts.Port <= 0 || string.IsNullOrWhiteSpace(smtpOpts.From))
 {
-    Console.WriteLine($"[SMTP] Missing config. Host='{(string.IsNullOrEmpty(smtpOpts.Host)?"(empty)":smtpOpts.Host)}' Port='{smtpOpts.Port}' From='{(string.IsNullOrEmpty(smtpOpts.From)?"(empty)":smtpOpts.From)}'");
     throw new InvalidOperationException("SMTP is not configured in appsettings. Set Smtp:Host, Smtp:Port, Smtp:From (optional: Smtp:FromName, Smtp:Username, Smtp:Password, Smtp:UseSsl).");
 }
 
-builder.Services.AddSingleton<IEmailSender>(new AuthenticationAPI.Services.Email.SmtpEmailSender(smtpOpts));
-Console.WriteLine($"[Startup] Using SMTP for email: {smtpOpts.Host}:{smtpOpts.Port} as {(string.IsNullOrEmpty(smtpOpts.FromName)? smtpOpts.From : smtpOpts.FromName)}");
+builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+builder.Services.AddTransient<IEmailJob, EmailJob>();
 
 builder.Services.AddAuthorization(options =>
 {
-    // Require that the current access token was issued after a successful MFA step
-    // This is indicated by the presence of the "amr" (Authentication Methods Reference) claim with value "mfa".
-    options.AddPolicy("mfa", policy => policy.RequireClaim("amr", "mfa"));
+    options.AddPolicy(AuthConstants.Policies.Mfa, policy => policy.RequireClaim(AuthConstants.ClaimTypes.Amr, AuthConstants.AmrValues.Mfa));
 });
 builder.Services.AddMemoryCache();
-// Choose throttle provider
 var throttleOpts = configuration.GetSection(AuthenticationAPI.Models.Options.ThrottleOptions.SectionName).Get<AuthenticationAPI.Models.Options.ThrottleOptions>()
                   ?? new AuthenticationAPI.Models.Options.ThrottleOptions();
 if (string.Equals(throttleOpts.Provider, "redis", StringComparison.OrdinalIgnoreCase))
 {
     if (string.IsNullOrWhiteSpace(throttleOpts.RedisConnectionString))
         throw new InvalidOperationException("Throttle:RedisConnectionString is required when Provider=redis.");
-    builder.Services.AddSingleton<AuthenticationAPI.Services.Throttle.IThrottleService>(sp =>
-        new AuthenticationAPI.Services.Throttle.RedisThrottleService(throttleOpts.RedisConnectionString!));
+    builder.Services.AddSingleton<IThrottleService>(sp =>
+        new RedisThrottleService(throttleOpts.RedisConnectionString!));
 }
 else
 {
-    builder.Services.AddSingleton<AuthenticationAPI.Services.Throttle.IThrottleService, AuthenticationAPI.Services.Throttle.MemoryThrottleService>();
+    builder.Services.AddSingleton<IThrottleService, MemoryThrottleService>();
 }
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
 
-// Global server-side request size ceiling (defense-in-depth)
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
+    {
+        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        QueuePollInterval = TimeSpan.Zero,
+        UseRecommendedIsolationLevel = true,
+        DisableGlobalLocks = true
+    }));
+
+builder.Services.AddHangfireServer();
+
 builder.WebHost.ConfigureKestrel(o =>
 {
     o.Limits.MaxRequestBodySize = 20 * 1024;
-    // Remove the 'Server: Kestrel' header to reduce fingerprinting
     o.AddServerHeader = false;
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-// Swagger: enabled by default in Development; disable in Production unless explicitly turned on
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
 if (app.Environment.IsDevelopment() || string.Equals(configuration["Features:Swagger"], "true", StringComparison.OrdinalIgnoreCase))
 {
     app.UseSwagger();
-    // Wire Swagger to API versions
     var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
     app.UseSwaggerUI(options =>
     {
         foreach (var description in apiVersionProvider.ApiVersionDescriptions)
         {
-            var group = description.GroupName; // e.g., v1
+            var group = description.GroupName;
             options.SwaggerEndpoint($"/swagger/{group}/swagger.json", $"Authentication API {group.ToUpperInvariant()}");
         }
     });
+    app.UseHangfireDashboard();
 }
 
-// Security headers (basic set)
 app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
@@ -402,7 +393,6 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     ctx.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=()";
 
-    // CSP differs slightly by environment
     var csp = "default-src 'self'; script-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self';";
     if (app.Environment.IsDevelopment())
     {
@@ -414,12 +404,10 @@ app.Use(async (ctx, next) =>
 });
 app.UseGlobalExceptionHandling();
 app.UseCorrelationId();
-// HSTS in non-development environments
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
 }
-// Respect proxy headers when enabled via config or env
 var enableForwarded = !app.Environment.IsDevelopment()
     || string.Equals(configuration["ReverseProxy:Enabled"], "true", StringComparison.OrdinalIgnoreCase);
 if (enableForwarded)
@@ -430,7 +418,6 @@ if (enableForwarded)
     });
 }
 app.UseHttpsRedirection();
-// Enforce content type for JSON APIs
 app.Use(async (ctx, next) =>
 {
     if (ctx.Request.Method == HttpMethods.Post || ctx.Request.Method == HttpMethods.Put || ctx.Request.Method == HttpMethods.Patch)
@@ -449,7 +436,6 @@ app.Use(async (ctx, next) =>
 app.UseStaticFiles();
 app.UseCors("Default");
 
-// Enforce explicit CORS origins in production
 if (!app.Environment.IsDevelopment())
 {
     var configuredOrigins = (configuration["Cors:AllowedOrigins"] ?? string.Empty)
@@ -459,7 +445,6 @@ if (!app.Environment.IsDevelopment())
         throw new InvalidOperationException("CORS is not configured. Set Cors:AllowedOrigins for production (semicolon-separated).");
     }
 
-    // Block access to any /dev assets in production
     app.Use(async (ctx, next) =>
     {
         if (ctx.Request.Path.StartsWithSegments("/dev", StringComparison.OrdinalIgnoreCase))
@@ -471,7 +456,6 @@ if (!app.Environment.IsDevelopment())
     });
 }
 
-// Do not cache authentication-related responses
 app.Use(async (ctx, next) =>
 {
     var path = ctx.Request.Path.Value ?? string.Empty;
@@ -485,9 +469,6 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
-// Enforce secure cookie defaults for any cookie usage
-// Cookies are not used for auth; cookie policy middleware removed.
-
 app.UseAuthentication();
 app.UseAuthorization();
 var enableRateLimit = builder.Environment.IsDevelopment()
@@ -497,7 +478,6 @@ if (enableRateLimit)
 {
     app.UseRateLimiter();
 }
-// In Development, disable audit/idempotency unless explicitly enabled to avoid masking errors
 var enableAudit = builder.Environment.IsDevelopment()
     ? string.Equals(configuration["Features:AuditAndIdempotency"], "true", StringComparison.OrdinalIgnoreCase)
     : true;
@@ -511,10 +491,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Ui}/{action=Index}/{id?}");
 
-// Health endpoints
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
-    Predicate = _ => false, // always healthy if app is running
+    Predicate = _ => false,
     ResponseWriter = WriteHealthResponse
 });
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
@@ -523,13 +502,10 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     ResponseWriter = WriteHealthResponse
 });
 
-// MVC handles UI routes now via UiController
-// Lightweight ping that does not touch the database (useful for quick 200 check)
 app.MapGet("/api/ping", () => Results.Ok(new { ok = true, time = DateTime.UtcNow }));
 
 using (var scope = app.Services.CreateScope())
 {
-    // Ensure database is up-to-date in Development to avoid 500s from schema drift
     var autoMigrate = app.Environment.IsDevelopment() ?
         string.Equals(configuration["Features:AutoMigrate"], "true", StringComparison.OrdinalIgnoreCase) :
         string.Equals(configuration["Features:AutoMigrate"], "true", StringComparison.OrdinalIgnoreCase);
@@ -537,22 +513,22 @@ using (var scope = app.Services.CreateScope())
     {
         try
         {
-            var dbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.ApplicationDbContext>();
+            var dbCtx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             await dbCtx.Database.MigrateAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Startup] Migration failed: {ex.Message}");
+            logger.LogError(ex, "[Startup] Migration failed.");
         }
 
         try
         {
-            var appDbCtx = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Data.AppDbContext>();
+            var appDbCtx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await appDbCtx.Database.MigrateAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Startup] AppDb migration failed: {ex.Message}");
+            logger.LogError(ex, "[Startup] AppDb migration failed.");
         }
     }
 
@@ -563,7 +539,6 @@ using (var scope = app.Services.CreateScope())
         {
             await Seed.SeedRoles(scope.ServiceProvider);
             await Seed.SeedPermissions(scope.ServiceProvider);
-            // Only seed admin user if credentials are provided
             var adminEmail = configuration["SeedAdmin:Email"];
             var adminPassword = configuration["SeedAdmin:Password"];
             if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
@@ -573,17 +548,15 @@ using (var scope = app.Services.CreateScope())
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Startup] Seeding failed: {ex.Message}");
+            logger.LogError(ex, "[Startup] Seeding failed.");
         }
     }
-    // Seed signing key if none
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     if (!db.SigningKeys.Any())
     {
         var keyRing = scope.ServiceProvider.GetRequiredService<IKeyRingService>();
         await keyRing.RotateAsync();
     }
-    // Warm key cache
     var cache = scope.ServiceProvider.GetRequiredService<IKeyRingCache>();
     var allKeys = await scope.ServiceProvider.GetRequiredService<IKeyRingService>().GetAllActiveKeysAsync();
     cache.Set(allKeys);
@@ -603,6 +576,3 @@ static Task WriteHealthResponse(HttpContext context, HealthReport report)
     });
     return context.Response.WriteAsync(json);
 }
-
-// Make Program visible to WebApplicationFactory in tests
-public partial class Program { }

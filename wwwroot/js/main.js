@@ -1,248 +1,266 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const API_BASE_URL = '/api/v1';
-  const loginView = document.getElementById('login-view');
-  const forgotPasswordView = document.getElementById('forgot-password-view');
-  const loggedInView = document.getElementById('logged-in-view');
-  const views = [loginView, forgotPasswordView, loggedInView];
+    const loginView = document.getElementById('login-view');
+    const forgotPasswordView = document.getElementById('forgot-password-view');
+    const loggedInView = document.getElementById('logged-in-view');
+    const views = [loginView, forgotPasswordView, loggedInView];
 
-  const loginForm = document.getElementById('login-form');
-  const forgotPasswordForm = document.getElementById('forgot-password-form');
-  const changePasswordForm = document.getElementById('change-password-form');
-  const showForgotPasswordLink = document.getElementById('show-forgot-password');
-  const showLoginFromForgotLink = document.getElementById('show-login-from-forgot');
-  const googleBtn = document.getElementById('google-login');
-  const logoutButton = document.getElementById('logout-button');
-  const logoutAllButton = document.getElementById('logout-all-button');
-  const magicLinkStart = document.getElementById('magic-link-start');
-  const mfaInputContainer = document.getElementById('mfa-input-container');
-  const alertPlaceholder = document.getElementById('alert-placeholder');
-  const userInfo = document.getElementById('user-info');
-  const mfaManagementView = document.getElementById('mfa-management-view');
+    const loginForm = document.getElementById('login-form');
+    const forgotPasswordForm = document.getElementById('forgot-password-form');
+    const showForgotPasswordLink = document.getElementById('show-forgot-password');
+    const showLoginFromForgotLink = document.getElementById('show-login-from-forgot');
+    const googleBtn = document.getElementById('google-login');
+    const logoutButton = document.getElementById('logout-button');
+    const logoutAllButton = document.getElementById('logout-all-button');
+    const magicLinkStart = document.getElementById('magic-link-start');
+    const mfaInputContainer = document.getElementById('mfa-input-container');
+    const alertPlaceholder = document.getElementById('alert-placeholder');
+    const userInfo = document.getElementById('user-info');
 
-  let authTokens = { token: null, refreshToken: null };
-
-  function saveTokens(token, refreshToken) {
-    authTokens.token = token;
-    authTokens.refreshToken = refreshToken;
-    localStorage.setItem('auth_token', token);
-    if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
-  }
-  function loadTokens() {
-    authTokens.token = localStorage.getItem('auth_token');
-    authTokens.refreshToken = localStorage.getItem('refresh_token');
-  }
-  function clearTokens() {
-    authTokens.token = null;
-    authTokens.refreshToken = null;
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-  }
-  function switchView(targetView) {
-    views.forEach(v => v.classList.toggle('d-none', v.id !== targetView));
-    clearAlert();
-  }
-  function showAlert(message, type = 'danger') {
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = [`<div class="alert alert-${type} alert-dismissible" role="alert">`,
-      `   <div>${message}</div>`,
-      '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
-      '</div>`].join('');
-    alertPlaceholder.innerHTML = '';
-    alertPlaceholder.append(wrapper);
-  }
-  function clearAlert() { alertPlaceholder.innerHTML = ''; }
-
-  async function apiFetch(endpoint, options = {}) {
-    const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-    if (authTokens.token) headers['Authorization'] = `Bearer ${authTokens.token}`;
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers, body: options.body ? JSON.stringify(options.body) : null });
-    if (res.status === 401) return await refreshTokenAndRetry(endpoint, options);
-    return res;
-  }
-  async function refreshTokenAndRetry(originalEndpoint, originalOptions) {
-    try {
-      const body = authTokens.refreshToken ? { refreshToken: authTokens.refreshToken } : {};
-      const rr = await fetch(`${API_BASE_URL}/authenticate/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (!rr.ok) throw new Error('Refresh token failed');
-      const json = await rr.json();
-      if (json.token) { authTokens.token = json.token; localStorage.setItem('auth_token', json.token); }
-      if (json.refreshToken) { authTokens.refreshToken = json.refreshToken; localStorage.setItem('refresh_token', json.refreshToken); }
-      originalOptions.headers = { ...(originalOptions.headers || {}), 'Authorization': `Bearer ${json.token}` };
-      return await apiFetch(originalEndpoint, originalOptions);
-    } catch (e) {
-      handleLogout(); showAlert('Your session has expired. Please sign in again.', 'warning'); return Promise.reject('Session expired');
+    function switchView(targetView) {
+        views.forEach(v => v.classList.toggle('d-none', v.id !== targetView));
+        if(alertPlaceholder) alertPlaceholder.innerHTML = '';
     }
-  }
 
-  // View toggles
-  showForgotPasswordLink.addEventListener('click', e => { e.preventDefault(); switchView('forgot-password-view'); });
-  showLoginFromForgotLink.addEventListener('click', e => { e.preventDefault(); switchView('login-view'); });
+    // View toggles
+    showForgotPasswordLink.addEventListener('click', e => { e.preventDefault(); switchView('forgot-password-view'); });
+    showLoginFromForgotLink.addEventListener('click', e => { e.preventDefault(); switchView('login-view'); });
 
-  // OTP helpers
-  function collectOtp(){
-    const boxes = mfaInputContainer.querySelectorAll('.otp');
-    return Array.from(boxes).map(i=>i.value.trim()).join('');
-  }
-  function resetOtp(){
-    const boxes = mfaInputContainer.querySelectorAll('.otp');
-    boxes.forEach(b=>b.value='');
-    if (boxes[0]) boxes[0].focus();
-  }
-  mfaInputContainer.querySelectorAll?.('.otp').forEach((el, idx, arr)=>{
-    el.addEventListener('input', ()=>{ if(el.value && idx < arr.length-1) arr[idx+1].focus(); });
-    el.addEventListener('keydown', (e)=>{ if(e.key==='Backspace' && !el.value && idx>0) arr[idx-1].focus(); });
-  });
-
-  // Login flow (email/password -> optional MFA)
-  loginForm.addEventListener('submit', async (e)=>{
-    e.preventDefault(); clearAlert();
-    const identifier = document.getElementById('login-identifier').value.trim();
-    const password = document.getElementById('login-password').value;
-    let mfaCode = undefined;
-    if (!mfaInputContainer.classList.contains('d-none')) {
-      const otp = collectOtp();
-      if (otp && otp.length === 6) mfaCode = otp;
+    // OTP helpers
+    function collectOtp(){
+        const boxes = mfaInputContainer.querySelectorAll('.otp');
+        return Array.from(boxes).map(i=>i.value.trim()).join('');
     }
-    const btn = loginForm.querySelector('.btn-cta');
-    const text = btn.querySelector('.btn-text');
-    const spinner = btn.querySelector('.btn-spinner');
-    btn.disabled = true; spinner.classList.remove('d-none'); text.textContent = 'Signing in…';
-    try {
-      const res = await apiFetch('/authenticate/login', { method:'POST', body: { identifier, password, mfaCode } });
-      const data = await res.json().catch(()=>({}));
-      if (res.ok && data.mfaRequired) {
-        // Show MFA step inline
-        mfaInputContainer.classList.remove('d-none');
-        resetOtp();
-        showAlert('Enter your authenticator code to continue.','info');
-        return;
-      }
-      if (!res.ok) throw new Error('Invalid credentials or code.');
-      if (data.token) {
-        saveTokens(data.token, data.refreshToken);
-        showDashboard();
-        return;
-      }
-      throw new Error('Unexpected response.');
-    } catch (err){
-      showAlert(err.message || 'Sign-in failed.');
-      loginView.classList.add('animate-pop'); setTimeout(()=>loginView.classList.remove('animate-pop'), 220);
-    } finally {
-      btn.disabled = false; spinner.classList.add('d-none'); text.textContent = 'Sign in';
+    function resetOtp(){
+        const boxes = mfaInputContainer.querySelectorAll('.otp');
+        boxes.forEach(b=>b.value='');
+        if (boxes[0]) boxes[0].focus();
     }
-  });
+    mfaInputContainer.querySelectorAll?.('.otp').forEach((el, idx, arr)=>{
+        el.addEventListener('input', ()=>{ if(el.value && idx < arr.length-1) arr[idx+1].focus(); });
+        el.addEventListener('keydown', (e)=>{ if(e.key==='Backspace' && !el.value && idx>0) arr[idx-1].focus(); });
+    });
 
-  // Forgot password
-  forgotPasswordForm.addEventListener('submit', async (e)=>{
-    e.preventDefault(); clearAlert();
-    const email = document.getElementById('forgot-email').value.trim();
-    try {
-      const res = await apiFetch('/authenticate/request-password-reset', { method:'POST', body:{ email } });
-      if (!res.ok) throw new Error('Could not send reset link.');
-      showAlert('If this email exists, a reset link has been sent.','success');
-    } catch(err){ showAlert(err.message); }
-  });
+    // Login flow (email/password -> optional MFA)
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(alertPlaceholder) alertPlaceholder.innerHTML = '';
+        const tenantCodeInput = document.getElementById('tenant-code');
+        const tenantCode = tenantCodeInput.value.trim();
+        const identifierInput = document.getElementById('login-identifier');
+        const identifier = identifierInput.value.trim();
+        const password = document.getElementById('login-password').value;
 
-  // Magic link start
-  magicLinkStart?.addEventListener('click', async (e)=>{
-    e.preventDefault(); clearAlert();
-    let email = document.getElementById('login-identifier').value.trim();
-    if(!email || !email.includes('@')) email = prompt('Enter your email address for a magic sign-in link:') || '';
-    email = email.trim(); if(!email) return;
-    try{
-      const r = await apiFetch('/authenticate/magic/start', { method:'POST', body:{ email } });
-      if(!r.ok) throw new Error('Could not send magic link.');
-      showAlert('If this email exists, a one-time sign-in link was sent.','success');
-    }catch(err){ showAlert(err.message); }
-  });
+        setValidation(tenantCodeInput, null);
+        setValidation(identifierInput, null);
+        let isValid = true;
 
-  // Google SSO (placeholder – requires config + GIS)
-  function googleReady(){
-    if(!window.GOOGLE_CLIENT_ID || typeof google === 'undefined' || !google?.accounts?.id) return false;
-    google.accounts.id.initialize({ client_id: window.GOOGLE_CLIENT_ID, callback: async (resp)=>{
-      if(!resp || !resp.credential) return;
-      try{ const r = await apiFetch('/authenticate/google', { method:'POST', body:{ idToken: resp.credential } });
-        if(!r.ok) throw new Error('Google sign-in failed.');
-        const data = await r.json();
-        if(data.token){ saveTokens(data.token, data.refreshToken); showDashboard(); }
-      }catch(err){ showAlert(err.message || 'Google sign-in failed.'); }
-    }});
-    return true;
-  }
-  googleBtn?.addEventListener('click', ()=>{ if(googleReady()){ try{ google.accounts.id.prompt(); } catch{ showAlert('Google prompt blocked. Check popup settings.','warning'); } } else { showAlert('Google Sign-In not configured.','info'); } });
+        if (!tenantCode) {
+            setValidation(tenantCodeInput, 'Estate code is required.');
+            isValid = false;
+        }
+        if (!identifier || !password) {
+            showAlert('Please enter both your identifier and password.', 'warning');
+            isValid = false;
+        }
+        if (identifier.includes('@') && !isValidEmail(identifier)) {
+            setValidation(identifierInput, 'Please enter a valid email address.');
+            isValid = false;
+        }
+        if (!isValid) return;
 
-  // Handle magic link verify via query params
-  (function(){
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('magicToken');
-    const email = params.get('email');
-    if(token && email){
-      (async()=>{
-        try{ const r = await apiFetch('/authenticate/magic/verify',{ method:'POST', body:{ email, token } });
-          if(!r.ok) throw new Error('Magic link invalid or expired.');
-          const data = await r.json();
-          if(data.token){ saveTokens(data.token, data.refreshToken); window.history.replaceState({}, document.title, window.location.pathname); showDashboard(); }
-        }catch(err){ showAlert(err.message); }
-      })();
+        let mfaCode = undefined;
+        if (!mfaInputContainer.classList.contains('d-none')) {
+            const otp = collectOtp();
+            if (otp && otp.length === 6) mfaCode = otp;
+        }
+        const btn = loginForm.querySelector('.btn-cta');
+        const text = btn.querySelector('.btn-text');
+        const spinner = btn.querySelector('.btn-spinner');
+        btn.disabled = true; spinner.classList.remove('d-none'); text.textContent = 'Signing in…';
+        try {
+            const res = await apiFetch('/authenticate/login', { method: 'POST', body: { tenantCode, identifier, password, mfaCode } });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.mfaRequired) {
+                mfaInputContainer.classList.remove('d-none');
+                resetOtp();
+                showAlert('Enter your authenticator code to continue.', 'info');
+                return;
+            }
+            if (!res.ok) {
+                const errorMsg = data.error || data.message || 'Sign-in failed. Please check your credentials.';
+                throw new Error(errorMsg);
+            }
+            if (data.token) {
+                saveTokens(data.token, data.refreshToken);
+                showDashboard();
+                return;
+            }
+            throw new Error('Unexpected response.');
+        } catch (err) {
+            showAlert(err.message || 'Sign-in failed.');
+            loginView.classList.add('animate-pop'); setTimeout(() => loginView.classList.remove('animate-pop'), 220);
+        } finally {
+            btn.disabled = false; spinner.classList.add('d-none'); text.textContent = 'Sign in';
+        }
+    });
+
+    // Forgot password
+    forgotPasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(alertPlaceholder) alertPlaceholder.innerHTML = '';
+        const emailInput = document.getElementById('forgot-email');
+        const email = emailInput.value.trim();
+
+        setValidation(emailInput, null);
+        if (!isValidEmail(email)) {
+            setValidation(emailInput, 'Please enter a valid email address.');
+            return;
+        }
+
+        try {
+            const res = await apiFetch('/authenticate/request-password-reset', { method: 'POST', body: { email } });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.message || 'Could not send reset link.');
+            }
+            showAlert('If this email exists, a reset link has been sent.', 'success');
+        } catch (err) { showAlert(err.message); }
+    });
+
+    // Magic link start
+    magicLinkStart?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if(alertPlaceholder) alertPlaceholder.innerHTML = '';
+        let email = document.getElementById('login-identifier').value.trim();
+        if (!email || !email.includes('@')) {
+            email = await showPromptModal('Magic Sign-In', 'Enter your email address to receive a magic sign-in link:', email);
+        }
+        if (!email) return;
+        email = email.trim();
+        if (!email) return;
+
+        try {
+            const r = await apiFetch('/authenticate/magic/start', { method: 'POST', body: { email } });
+            if (!r.ok) {
+                const data = await r.json().catch(() => ({}));
+                throw new Error(data.message || 'Could not send magic link.');
+            }
+            showAlert('If this email exists, a one-time sign-in link was sent.', 'success');
+        } catch (err) { showAlert(err.message); }
+    });
+
+    // Google SSO
+    function googleReady(){
+        if(!window.GOOGLE_CLIENT_ID || typeof google === 'undefined' || !google?.accounts?.id) return false;
+        google.accounts.id.initialize({ client_id: window.GOOGLE_CLIENT_ID, callback: async (resp)=>{
+            if(!resp || !resp.credential) return;
+            try{ const r = await apiFetch('/authenticate/google', { method:'POST', body:{ idToken: resp.credential } });
+                if(!r.ok) {
+                    const data = await r.json().catch(()=>({}));
+                    throw new Error(data.message || 'Google sign-in failed.');
+                }
+                const data = await r.json();
+                if(data.token){ saveTokens(data.token, data.refreshToken); showDashboard(); }
+            }catch(err){ showAlert(err.message || 'Google sign-in failed.'); }
+        }});
+        return true;
     }
-  })();
+    googleBtn?.addEventListener('click', ()=>{ if(googleReady()){ try{ google.accounts.id.prompt(); } catch{ showAlert('Google prompt blocked. Check popup settings.','warning'); } } else { showAlert('Google Sign-In not configured.','info'); } });
 
-  // Change password (dashboard)
-  changePasswordForm?.addEventListener('submit', async e => {
-    e.preventDefault(); clearAlert();
-    const currentPassword = document.getElementById('current-password').value;
-    const newPassword = document.getElementById('new-password').value;
-    try {
-      const resp = await apiFetch('/authenticate/change-password', { method:'POST', body:{ currentPassword, newPassword } });
-      if (!resp.ok) throw new Error('Password change failed.');
-      showAlert('Password updated.','success');
-      changePasswordForm.reset();
-    } catch (err) { showAlert(err.message); }
-  });
+    // Handle magic link verify via query params
+    (function(){
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('magicToken');
+        const email = params.get('email');
+        if(token && email){
+            (async()=>{
+                try{ const r = await apiFetch('/authenticate/magic/verify',{ method:'POST', body:{ email, token } });
+                    if(!r.ok) {
+                        const data = await r.json().catch(()=>({}));
+                        throw new Error(data.message || 'Magic link invalid or expired.');
+                    }
+                    const data = await r.json();
+                    if(data.token){ saveTokens(data.token, data.refreshToken); window.history.replaceState({}, document.title, window.location.pathname); showDashboard(); }
+                }catch(err){ showAlert(err.message); }
+            })();
+        }
+    })();
 
-  // Logout flows
-  async function handleLogout() { try { if (authTokens.refreshToken) await apiFetch('/authenticate/logout', { method: 'POST', body: { refreshToken: authTokens.refreshToken } }); else await apiFetch('/authenticate/logout', { method: 'POST', body: {} }); } catch(_){} finally { clearTokens(); switchView('login-view'); } }
-  logoutButton?.addEventListener('click', handleLogout);
-  logoutAllButton?.addEventListener('click', async ()=>{ try { await apiFetch('/authenticate/logout-all', { method:'POST' }); } catch(_){} await handleLogout(); });
-
-  // Dashboard rendering
-  async function showDashboard() {
-    switchView('logged-in-view');
-    try {
-      const resp = await apiFetch('/users/me');
-      if (!resp.ok) throw new Error('Could not fetch user data.');
-      const user = await resp.json();
-      userInfo.innerHTML = `<p><strong>Username:</strong> ${user.userName}</p><p><strong>Email:</strong> ${user.email} (${user.emailConfirmed ? 'Verified' : 'Not Verified'})</p><p><strong>MFA Enabled:</strong> ${user.mfaEnabled ? 'Yes' : 'No'}</p>`;
-      renderMfaManagement(user.mfaEnabled);
-    } catch (err) { showAlert(err.message, 'warning'); }
-  }
-  function renderMfaManagement(isEnabled) {
-    if (isEnabled) {
-      mfaManagementView.innerHTML = `<div class="card"><div class="card-body"><h5 class="card-title">MFA is Enabled</h5><button id="disable-mfa-btn" class="btn btn-warning">Disable MFA</button><button id="regen-recovery-btn" class="btn btn-secondary">Regenerate Recovery Codes</button></div></div>`;
-      document.getElementById('disable-mfa-btn').addEventListener('click', disableMfa);
-      document.getElementById('regen-recovery-btn').addEventListener('click', regenerateRecoveryCodes);
-    } else {
-      mfaManagementView.innerHTML = `<div class="card"><div class="card-body"><h5 class="card-title">Enable Two-Factor Authentication</h5><p>Add an extra layer of security to your account.</p><button id="enable-mfa-btn" class="btn btn-success">Enable MFA</button><div id="mfa-enroll-flow" class="d-none mt-3"></div></div></div>`;
-      document.getElementById('enable-mfa-btn').addEventListener('click', startMfaEnrollment);
+    // Logout flows
+    async function handleLogout() {
+        const tokens = loadTokens();
+        try {
+            if (tokens.refreshToken) {
+                await apiFetch('/authenticate/logout', { method: 'POST', body: { refreshToken: tokens.refreshToken } });
+            } else {
+                await apiFetch('/authenticate/logout', { method: 'POST', body: {} });
+            }
+        } catch(e){
+            // Log silently or handle error, but proceed to clear tokens
+        } finally {
+            clearTokens();
+            switchView('login-view');
+        }
     }
-  }
-  async function startMfaEnrollment() {
-    try { const resp = await apiFetch('/authenticate/mfa/enroll/start', { method: 'POST' }); if (!resp.ok) throw new Error('Could not start MFA enrollment.'); const data = await resp.json();
-      const enroll = document.getElementById('mfa-enroll-flow'); enroll.classList.remove('d-none');
-      enroll.innerHTML = `<p>1. Scan this QR code with your authenticator app:</p><div id="qr-code-container" class="text-center"><img src="${API_BASE_URL}/mfa/qr?otpauthUrl=${encodeURIComponent(data.otpauthUrl)}" alt="MFA QR Code"></div><p>2. Enter the code from your app to confirm:</p><form id="confirm-mfa-form"><div class="input-group mb-3"><input type="text" id="mfa-confirm-code" class="form-control" placeholder="6-digit code" required><button type="submit" class="btn btn-primary">Confirm & Enable</button></div></form>`;
-      document.getElementById('confirm-mfa-form').addEventListener('submit', confirmMfaEnrollment);
-    } catch (err) { showAlert(err.message); }
-  }
-  async function confirmMfaEnrollment(e) {
-    e.preventDefault(); const code = document.getElementById('mfa-confirm-code').value;
-    try { const resp = await apiFetch('/authenticate/mfa/enroll/confirm', { method: 'POST', body: { code } }); if (!resp.ok) throw new Error('Invalid MFA code.'); const data = await resp.json();
-      mfaManagementView.innerHTML = `<div class="alert alert-success">MFA Enabled Successfully!</div><h5>Save these recovery codes!</h5><p>Store them somewhere safe. You can use them to access your account if you lose your device.</p><div class="recovery-codes p-3 bg-light rounded">${data.recoveryCodes.join('<br>')}</div><button id="mfa-done-btn" class="btn btn-primary mt-3">Done</button>`;
-      document.getElementById('mfa-done-btn').addEventListener('click', showDashboard);
-    } catch (err) { showAlert(err.message); }
-  }
-  async function disableMfa() { if (!confirm('Are you sure you want to disable MFA?')) return; try { const resp = await apiFetch('/authenticate/mfa/disable', { method: 'POST' }); if (!resp.ok) throw new Error('Could not disable MFA.'); showAlert('MFA has been disabled.', 'success'); showDashboard(); } catch (err) { showAlert(err.message); } }
-  async function regenerateRecoveryCodes() { if (!confirm('This will invalidate your old recovery codes. Are you sure?')) return; try { const resp = await apiFetch('/authenticate/mfa/recovery/regenerate', { method: 'POST' }); if (!resp.ok) throw new Error('Could not regenerate codes.'); const data = await resp.json(); mfaManagementView.querySelector('.card-body').innerHTML = `<div class=\"alert alert-success\">New Recovery Codes Generated!</div><h5>Save these new codes!</h5><div class=\"recovery-codes p-3 bg-light rounded\">${data.recoveryCodes.join('<br>')}</div><button id=\"mfa-done-btn\" class=\"btn btn-primary mt-3\">Done</button>`; document.getElementById('mfa-done-btn').addEventListener('click', showDashboard); } catch (err) { showAlert(err.message); } }
+    logoutButton?.addEventListener('click', handleLogout);
+    logoutAllButton?.addEventListener('click', async ()=>{
+        try {
+            await apiFetch('/authenticate/logout-all', { method:'POST' });
+        } catch(e){
+            // Log silently
+        }
+        await handleLogout();
+    });
 
-  function init() { loadTokens(); if (authTokens.token) showDashboard(); else switchView('login-view'); }
-  init();
+    // Dashboard rendering
+    async function showDashboard() {
+        switchView('logged-in-view');
+        try {
+            const resp = await apiFetch('/users/me');
+            if (!resp.ok) {
+                const data = await resp.json().catch(() => ({}));
+                throw new Error(data.message || 'Could not fetch user data.');
+            }
+            const user = await resp.json();
+            userInfo.innerHTML = '';
+            const userP = document.createElement('p');
+            userP.innerHTML = '<strong>Username:</strong> ';
+            userP.appendChild(document.createTextNode(user.userName));
+            
+            const emailP = document.createElement('p');
+            emailP.innerHTML = '<strong>Email:</strong> ';
+            emailP.appendChild(document.createTextNode(`${user.email} (${user.emailConfirmed ? 'Verified' : 'Not Verified'})`));
+
+            const mfaP = document.createElement('p');
+            mfaP.innerHTML = '<strong>MFA Enabled:</strong> ';
+            mfaP.appendChild(document.createTextNode(user.mfaEnabled ? 'Yes' : 'No'));
+
+            userInfo.append(userP, emailP, mfaP);
+        } catch (err) { showAlert(err.message, 'warning'); }
+    }
+
+    function init() {
+        const initialTokens = loadTokens();
+        if (initialTokens.token) {
+            showDashboard();
+        } else {
+            switchView('login-view');
+        }
+
+        const rememberMeCheckbox = document.getElementById('remember-me');
+        const trustDeviceCheckbox = document.getElementById('trust-device');
+        if (rememberMeCheckbox) {
+            rememberMeCheckbox.checked = localStorage.getItem('rememberMe') === 'true';
+            rememberMeCheckbox.addEventListener('change', (e) => {
+                localStorage.setItem('rememberMe', e.target.checked);
+            });
+        }
+        if (trustDeviceCheckbox) {
+            trustDeviceCheckbox.checked = localStorage.getItem('trustDevice') === 'true';
+            trustDeviceCheckbox.addEventListener('change', (e) => {
+                localStorage.setItem('trustDevice', e.target.checked);
+            });
+        }
+    }
+    init();
 });

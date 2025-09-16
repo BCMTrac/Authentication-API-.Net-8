@@ -34,7 +34,6 @@ public static class Seed
         var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        // Ensure permissions
         foreach (var perm in Permissions)
         {
             if (!await appDb.Permissions.AnyAsync(p => p.Name == perm.name))
@@ -44,7 +43,7 @@ public static class Seed
         }
         await appDb.SaveChangesAsync();
 
-        // Assign all permissions to Admin role
+        
         var adminRole = await roleManager.FindByNameAsync("Admin");
         if (adminRole != null)
         {

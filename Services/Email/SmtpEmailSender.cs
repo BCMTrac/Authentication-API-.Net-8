@@ -1,33 +1,20 @@
-using System.Net;
-using System.Net.Mail;
-using AuthenticationAPI.Models.Options;
+using AuthenticationAPI.Services.Email;
+using Hangfire;
 
-namespace AuthenticationAPI.Services.Email;
-
-public sealed class SmtpEmailSender : IEmailSender
+namespace AuthenticationAPI.Services
 {
-	private readonly SmtpOptions _options;
-	public SmtpEmailSender(SmtpOptions options) => _options = options;
+    public class SmtpEmailSender : IEmailSender
+    {
+        private readonly IBackgroundJobClient _jobClient;
 
-	public async Task SendAsync(string to, string subject, string body, CancellationToken ct = default)
-	{
-		using var client = new SmtpClient(_options.Host, _options.Port)
-		{
-			EnableSsl = _options.UseSsl,
-			Credentials = (!string.IsNullOrWhiteSpace(_options.Username) && !string.IsNullOrWhiteSpace(_options.Password))
-				? new NetworkCredential(_options.Username, _options.Password)
-				: CredentialCache.DefaultNetworkCredentials
-		};
-		using var msg = new MailMessage()
-		{
-			From = new MailAddress(_options.From, string.IsNullOrWhiteSpace(_options.FromName) ? _options.From : _options.FromName),
-			Subject = subject,
-			Body = body
-		};
-		// Heuristic: mark as HTML if content looks like HTML
-		var looksHtml = !string.IsNullOrWhiteSpace(body) && (body.TrimStart().StartsWith("<html", StringComparison.OrdinalIgnoreCase) || body.TrimStart().StartsWith("<!doctype html", StringComparison.OrdinalIgnoreCase));
-		msg.IsBodyHtml = looksHtml;
-		msg.To.Add(new MailAddress(to));
-		await client.SendMailAsync(msg, ct);
-	}
+        public SmtpEmailSender(IBackgroundJobClient jobClient)
+        {
+            _jobClient = jobClient;
+        }
+
+        public void QueueSendAsync(string to, string subject, string body)
+        {
+            _jobClient.Enqueue<IEmailJob>(job => job.SendAsync(to, subject, body));
+        }
+    }
 }

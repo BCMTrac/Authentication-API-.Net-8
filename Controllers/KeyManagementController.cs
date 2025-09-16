@@ -21,7 +21,7 @@ public class KeyManagementController : ControllerBase
     public async Task<IActionResult> Rotate()
     {
         var key = await _keyRingService.RotateAsync();
-        // Refresh cache (simplified: load all active via key ring service)
+        
         var activeKeys = await _keyRingService.GetAllActiveKeysAsync();
         _cache.Set(activeKeys);
         return Ok(new { key.Kid, key.CreatedUtc });

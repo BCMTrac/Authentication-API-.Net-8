@@ -56,6 +56,13 @@ public class AuditLog
     public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
     public string? UserId { get; set; }
     public string? UserName { get; set; }
+    [MaxLength(100)]
+    public string Action { get; set; } = null!;
+    [MaxLength(100)]
+    public string? TargetEntityType { get; set; }
+    [MaxLength(128)]
+    public string? TargetEntityId { get; set; }
+    public string? Details { get; set; } // JSON blob for additional details
     public string Method { get; set; } = null!;
     public string Path { get; set; } = null!;
     public int StatusCode { get; set; }

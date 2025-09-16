@@ -7,14 +7,18 @@ using AuthenticationAPI.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using System.Net;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
-using AuthenticationAPI.Services.Email;
+
 using Microsoft.AspNetCore.RateLimiting;
-using QRCoder; // add QR code generator types
+using QRCoder;
 using Microsoft.AspNetCore.Http;
 using Google.Apis.Auth;
+using Microsoft.Extensions.Logging;
+using AuthenticationAPI.Infrastructure.Security;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AuthenticationAPI.Exceptions;
 
 namespace AuthenticationAPI.Controllers
 {
@@ -24,19 +28,21 @@ namespace AuthenticationAPI.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
         private readonly ApplicationDbContext _db;
         private readonly AppDbContext _appDb;
-    private readonly IRefreshTokenService _refreshTokenService;
-    private readonly IKeyRingService _keyRing;
-    private readonly ITotpService _totp;
-    private readonly IEmailSender _email;
-    private readonly IEmailTemplateRenderer _templates;
-    private readonly IMfaSecretProtector _protector;
-    private readonly IRecoveryCodeService _recoveryCodes;
-    private readonly AuthenticationAPI.Services.Throttle.IThrottleService _throttle;
-    private readonly ISessionService _sessions;
-    private readonly AuthenticationAPI.Models.Options.BridgeOptions _bridgeOptions;
+        private readonly IRefreshTokenService _refreshTokenService;
+        private readonly IKeyRingService _keyRing;
+        private readonly ITotpService _totp;
+        private readonly IEmailSender _email;
+        private readonly IEmailTemplateRenderer _templates;
+        private readonly IMfaSecretProtector _protector;
+        private readonly IRecoveryCodeService _recoveryCodes;
+        private readonly IThrottleService _throttle;
+        private readonly ISessionService _sessions;
+        private readonly BridgeOptions _bridgeOptions;
+        private readonly ILogger<AuthenticateController> _logger;
+        private readonly IUserAccountService _userAccountService;
 
         public AuthenticateController(
             UserManager<ApplicationUser> userManager,
@@ -51,9 +57,11 @@ namespace AuthenticationAPI.Controllers
             IEmailTemplateRenderer templates,
             IMfaSecretProtector protector,
             IRecoveryCodeService recoveryCodes,
-            AuthenticationAPI.Services.Throttle.IThrottleService throttle,
+            IThrottleService throttle,
             ISessionService sessions,
-            Microsoft.Extensions.Options.IOptions<AuthenticationAPI.Models.Options.BridgeOptions> bridgeOptions)
+            Microsoft.Extensions.Options.IOptions<BridgeOptions> bridgeOptions,
+            ILogger<AuthenticateController> logger,
+            IUserAccountService userAccountService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -70,23 +78,9 @@ namespace AuthenticationAPI.Controllers
             _throttle = throttle;
             _sessions = sessions;
             _bridgeOptions = bridgeOptions.Value;
+            _logger = logger;
+            _userAccountService = userAccountService;
         }
-
-        private static string NormalizeToken(string token)
-        {
-            if (string.IsNullOrWhiteSpace(token)) return token;
-            try
-            {
-                var decoded = WebUtility.UrlDecode(token);
-                return (decoded ?? token).Replace(' ', '+');
-            }
-            catch
-            {
-                return token;
-            }
-        }
-
-        // Cookies removed: refresh tokens are passed only in request bodies now.
 
         [HttpPost]
         [Route("login")]
@@ -94,301 +88,117 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            if (string.IsNullOrEmpty(model.Identifier) || string.IsNullOrEmpty(model.Password) || model.Password.Length > 256)
-            {
-                return Unauthorized(); // DoS guard / generic response
-            }
-            var looksLikeEmail = model.Identifier!.Contains('@');
-            ApplicationUser? user = looksLikeEmail
-                ? await _userManager.FindByEmailAsync(model.Identifier!)
-                : await _userManager.FindByNameAsync(model.Identifier!);
-            if (user == null)
-            {
-                // Generic auth failure
-                return Unauthorized();
-            }
-            // Enforce admin/user lockouts
-            if (await _userManager.IsLockedOutAsync(user))
-            {
-                return Unauthorized(new { error = "Account is locked" });
-            }
-            // Verify password and track failures for lockout policy
-            var validPassword = await _userManager.CheckPasswordAsync(user, model.Password);
-            if (!validPassword)
+
+            var user = await FindUserByIdentifier(model.Identifier);
+            if (user == null) throw new UserNotFoundException();
+            if (await _userManager.IsLockedOutAsync(user)) throw new AccountLockedException();
+
+            if (!await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 await _userManager.AccessFailedAsync(user);
-                return Unauthorized();
+                throw new BadRequestException("Invalid credentials.");
             }
+
             await _userManager.ResetAccessFailedCountAsync(user);
-            if (!user.EmailConfirmed)
-            {
-                return Unauthorized(new { error = "Email not confirmed" });
-            }
+
+            if (!user.EmailConfirmed) throw new EmailUnconfirmedException();
+
             if (user.MfaEnabled && string.IsNullOrWhiteSpace(model.MfaCode))
             {
                 return Ok(new { mfaRequired = true });
             }
-            bool mfaSucceeded = false;
-            if (user.MfaEnabled)
+
+            var mfaSucceeded = user.MfaEnabled ? await ValidateMfa(user, model.MfaCode) : (bool?)null;
+            if (mfaSucceeded == false) throw new InvalidMfaCodeException();
+
+            var tokenResponse = await CreateTokenResponse(user, mfaSucceeded ?? false);
+            return Ok(tokenResponse);
+        }
+
+        private async Task<ApplicationUser?> FindUserByIdentifier(string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier)) return null;
+            return identifier.Contains('@')
+                ? await _userManager.FindByEmailAsync(identifier)
+                : await _userManager.FindByNameAsync(identifier);
+        }
+
+        private async Task<bool> ValidateMfa(ApplicationUser user, string? mfaCode)
+        {
+            if (string.IsNullOrWhiteSpace(mfaCode)) throw new InvalidMfaCodeException();
+            if (string.IsNullOrWhiteSpace(user.MfaSecret)) throw new MfaNotInitializedException();
+
+            var secret = _protector.Unprotect(user.MfaSecret);
+            if (string.IsNullOrWhiteSpace(secret)) throw new MfaNotInitializedException();
+
+            if (_totp.ValidateCode(secret, mfaCode, out var ts))
             {
-                if (string.IsNullOrWhiteSpace(user.MfaSecret)) return Unauthorized(new { error = "MFA not initialized" });
-                var secret = _protector.Unprotect(user.MfaSecret);
-                if (string.IsNullOrWhiteSpace(secret)) return Unauthorized(new { error = "MFA secret unavailable" });
-                if (!_totp.ValidateCode(secret, model.MfaCode!, out var ts))
-                {
-                    // Check recovery codes fallback
-                    var used = await _recoveryCodes.RedeemAsync(user, model.MfaCode!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
-                    if (!used) return Unauthorized(new { error = "Invalid MFA code" });
-                    mfaSucceeded = true;
-                }
-                else
-                {
-                    // anti-replay: ensure not previously accepted
-                    if (ts <= user.MfaLastTimeStep)
-                        return Unauthorized(new { error = "Stale MFA code" });
-                    user.MfaLastTimeStep = ts;
-                    await _userManager.UpdateAsync(user);
-                    mfaSucceeded = true;
-                }
+                if (ts <= user.MfaLastTimeStep) throw new StaleMfaCodeException();
+                user.MfaLastTimeStep = ts;
+                await _userManager.UpdateAsync(user);
+                return true;
             }
 
-            var userRoles = await _userManager.GetRolesAsync(user);
+            return await _recoveryCodes.RedeemAsync(user, mfaCode, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+        }
 
-            var authClaims = new List<Claim>
+        private async Task<List<Claim>> GetUserClaimsAsync(ApplicationUser user)
+        {
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(AuthConstants.ClaimTypes.TokenVersion, user.TokenVersion.ToString())
             };
 
-            foreach (var userRole in userRoles)
-            {
-                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-            }
+            foreach (var userRole in userRoles) claims.Add(new Claim(ClaimTypes.Role, userRole));
 
-            // Add permission claims (scopes) aggregated from role permissions
-            var roleIds = await _roleManager.Roles
-                .Where(r => userRoles.Contains(r.Name!))
-                .Select(r => r.Id)
-                .ToListAsync();
+            var roleIds = await _roleManager.Roles.Where(r => userRoles.Contains(r.Name!)).Select(r => r.Id).ToListAsync();
+            var permissions = await _appDb.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId)).Include(rp => rp.Permission).Select(rp => rp.Permission!.Name).Distinct().ToListAsync();
+            foreach (var perm in permissions) claims.Add(new Claim("scope", perm));
 
-            var permissions = await _appDb.RolePermissions
-                .Where(rp => roleIds.Contains(rp.RoleId))
-                .Include(rp => rp.Permission)
-                .Select(rp => rp.Permission!.Name)
-                .Distinct()
-                .ToListAsync();
+            return claims;
+        }
 
-            foreach (var perm in permissions)
-            {
-                authClaims.Add(new Claim("scope", perm));
-            }
+        private async Task<TokenSetResponse> CreateTokenResponse(ApplicationUser user, bool mfaSucceeded)
+        {
+            var claims = await GetUserClaimsAsync(user);
 
-            authClaims.Add(new Claim("token_version", user.TokenVersion.ToString()));
             if (mfaSucceeded)
             {
-                authClaims.Add(new Claim("amr", "mfa"));
-                var epoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-                authClaims.Add(new Claim("auth_time", epoch));
+                claims.Add(new Claim(AuthConstants.ClaimTypes.Amr, AuthConstants.AmrValues.Mfa));
+                claims.Add(new Claim("auth_time", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()));
             }
-            // Create session and issue tokens
+
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var ua = Request.Headers["User-Agent"].ToString();
             var session = await _sessions.CreateAsync(user, ip, ua);
-            authClaims.Add(new Claim("sid", session.Id.ToString()));
-            var token = GetToken(authClaims);
+            claims.Add(new Claim(AuthConstants.ClaimTypes.SessionId, session.Id.ToString()));
+
+            var token = GetToken(claims);
             var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
 
-            // Optional: also set refresh token as HttpOnly cookie for XSS protection
             if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
             {
-                var cookieOpts = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = refreshExp,
-                    Path = "/api/v1/authenticate"
-                };
+                var cookieOpts = new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, Expires = refreshExp, Path = "/api/v1/authenticate" };
                 Response.Cookies.Append("rt", refreshToken, cookieOpts);
             }
 
-            // Legacy bridge headers for YARP to convert into cookies for the monolith
             if (_bridgeOptions.Enabled)
             {
-                foreach (var name in _bridgeOptions.HeaderNames)
-                {
-                    Response.Headers[name] = session.Id.ToString();
-                }
-                if (!string.IsNullOrWhiteSpace(_bridgeOptions.JwtHeaderName))
-                {
-                    Response.Headers[_bridgeOptions.JwtHeaderName] = new JwtSecurityTokenHandler().WriteToken(token);
-                }
+                foreach (var name in _bridgeOptions.HeaderNames) Response.Headers[name] = session.Id.ToString();
+                if (!string.IsNullOrWhiteSpace(_bridgeOptions.JwtHeaderName)) Response.Headers[_bridgeOptions.JwtHeaderName] = new JwtSecurityTokenHandler().WriteToken(token);
             }
-            // Return refresh token only in response body (no cookies)
 
-            return Ok(new TokenSetResponse
+            return new TokenSetResponse
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 Expiration = token.ValidTo,
                 RefreshToken = refreshToken,
                 RefreshTokenExpiration = refreshExp
-            });
-        }
-
-        [HttpPost]
-        [Route("register")]
-        [EnableRateLimiting("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel model)
-        {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            // Require explicit consent
-            if (!model.TermsAccepted)
-            {
-                return BadRequest(new ApiMessage { Message = "You must accept the terms and conditions." });
-            }
-            // Deny passwords that contain the username or email local part
-            var emailLocal = (model.Email?.Split('@').FirstOrDefault() ?? string.Empty);
-            if (!string.IsNullOrEmpty(model.Password))
-            {
-                var pwLower = model.Password.ToLowerInvariant();
-                if ((!string.IsNullOrWhiteSpace(emailLocal) && pwLower.Contains(emailLocal.ToLowerInvariant())) ||
-                    (!string.IsNullOrWhiteSpace(model.Username) && pwLower.Contains(model.Username.ToLowerInvariant())))
-                {
-                    return BadRequest(new ApiMessage { Message = "Password is too similar to account identifiers." });
-                }
-                // Basic weak pattern checks
-                var badFragments = new[] { "password", "qwerty", "123456", "letmein", "welcome" };
-                foreach (var frag in badFragments)
-                {
-                    if (pwLower.Contains(frag)) return BadRequest(new ApiMessage { Message = "Password contains common patterns; choose a stronger one." });
-                }
-            }
-
-            // Reserved usernames
-            var reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "admin","root","support","system","security","help","contact","postmaster","administrator"
             };
-            if (reserved.Contains(model.Username))
-            {
-                return BadRequest(new ApiMessage { Message = "Username is reserved. Choose another." });
-            }
-
-            // Block disposable/temporary email domains
-            static bool IsDisposableDomain(string? email)
-            {
-                if (string.IsNullOrWhiteSpace(email)) return false;
-                var at = email.LastIndexOf('@');
-                if (at < 0) return false;
-                var domain = email[(at+1)..];
-                var block = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    "mailinator.com","10minutemail.com","guerrillamail.com","yopmail.com","tempmail.com","trashmail.com","getnada.com","dispostable.com"
-                };
-                return block.Contains(domain);
-            }
-            if (IsDisposableDomain(model.Email))
-            {
-                return BadRequest(new ApiMessage { Message = "Disposable email domains are not allowed." });
-            }
-
-            // Optional compromised password check (no-op default)
-            var compromised = await HttpContext.RequestServices.GetRequiredService<IPasswordBreachChecker>().IsCompromisedAsync(model.Password);
-            if (compromised)
-            {
-                return BadRequest(new ApiMessage { Message = "This password appears in known breaches. Choose a different one." });
-            }
-
-            // Enforce uniqueness by email and username
-            var userExists = await _userManager.FindByNameAsync(model.Username);
-            if (userExists != null)
-                return BadRequest(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
-            var emailExists = await _userManager.FindByEmailAsync(model.Email!);
-            if (emailExists != null)
-            {
-                // Always generic to prevent email enumeration
-                return Ok(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
-            }
-
-            ApplicationUser user = new()
-            {
-                Email = model.Email,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.Username,
-                FullName = string.IsNullOrWhiteSpace(model.FullName) ? null : model.FullName,
-                TermsAcceptedUtc = DateTime.UtcNow,
-                MarketingOptInUtc = model.MarketingOptIn ? DateTime.UtcNow : null
-            };
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded)
-                return BadRequest(new ApiMessage { Message = "User creation failed" });
-
-            await _userManager.AddToRoleAsync(user, "User");
-
-            // Record initial password into history
-            await _db.Entry(user).ReloadAsync();
-            if (!string.IsNullOrWhiteSpace(user.PasswordHash))
-            {
-                _db.PasswordHistory.Add(new PasswordHistory { UserId = user.Id, Hash = user.PasswordHash! });
-                await _db.SaveChangesAsync();
-            }
-
-            // Optionally capture phone for future MFA via SMS (unconfirmed)
-            if (!string.IsNullOrWhiteSpace(model.Phone))
-            {
-                user.PhoneNumber = model.Phone;
-                await _userManager.UpdateAsync(user);
-            }
-
-            // Send email confirmation token; in Development, surface SMTP errors to help debug
-            try
-            {
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var confirmUrlBase = _configuration["Email:EmailConfirm:Url"] ?? string.Empty;
-                string? link = string.IsNullOrWhiteSpace(confirmUrlBase) ? null : $"{confirmUrlBase}?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
-                var (html, text) = await _templates.RenderAsync("email-confirm", new Dictionary<string,string>
-                {
-                    ["Title"] = "Confirm your email",
-                    ["Intro"] = "Thanks for signing up. Please confirm your email to activate your account.",
-                    ["ActionText"] = "Confirm Email",
-                    ["ActionUrl"] = link ?? string.Empty,
-                    ["Token"] = link == null ? token : string.Empty
-                });
-                await _email.SendAsync(user.Email!, "Confirm your email", html);
-            }
-            catch (Exception ex)
-            {
-                // In Development or Production, do not fail registration due to email delivery issues.
-                // Log and continue to return a generic response.
-                Console.WriteLine($"[EMAIL-ERR][register-confirm] to={user.Email} ex={ex.Message}");
-            }
-
-            return Ok(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
-        }
-
-        [HttpPost]
-        [Route("register-admin")]
-        public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel model)
-        {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            var userExists = await _userManager.FindByNameAsync(model.Username);
-            if (userExists != null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Status = "Error", Message = "User already exists!" });
-
-            ApplicationUser user = new()
-            {
-                Email = model.Email,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.Username
-            };
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded)
-                return BadRequest(new ApiMessage { Message = "Admin user creation failed" });
-
-            await _userManager.AddToRoleAsync(user, "Admin");
-
-            return Ok(new ApiMessage { Message = "Admin user created successfully!" });
         }
 
         private JwtSecurityToken GetToken(List<Claim> authClaims)
@@ -409,6 +219,71 @@ namespace AuthenticationAPI.Controllers
             return token;
         }
 
+        [HttpPost]
+        [Route("register")]
+        [EnableRateLimiting("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var compromised = await HttpContext.RequestServices.GetRequiredService<IPasswordBreachChecker>().IsCompromisedAsync(model.Password);
+            if (compromised) throw new BadRequestException("This password appears in known breaches. Choose a different one.");
+
+            var userExists = await _userManager.FindByNameAsync(model.Username);
+            if (userExists != null) throw new BadRequestException("A user with that username already exists.");
+            var emailExists = await _userManager.FindByEmailAsync(model.Email!);
+            if (emailExists != null) throw new EmailAlreadyInUseException();
+
+            ApplicationUser user = new()
+            {
+                Email = model.Email,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = model.Username,
+                FullName = string.IsNullOrWhiteSpace(model.FullName) ? null : model.FullName,
+                TermsAcceptedUtc = model.TermsAccepted ? DateTime.UtcNow : null,
+                MarketingOptInUtc = model.MarketingOptIn ? DateTime.UtcNow : null
+            };
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded) throw new UserCreationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            await _userManager.AddToRoleAsync(user, "User");
+
+            await _db.Entry(user).ReloadAsync();
+            if (!string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                _db.PasswordHistory.Add(new PasswordHistory { UserId = user.Id, Hash = user.PasswordHash! });
+                await _db.SaveChangesAsync();
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.Phone))
+            {
+                user.PhoneNumber = model.Phone;
+                await _userManager.UpdateAsync(user);
+            }
+
+            try
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmUrlBase = _configuration["Email:EmailConfirm:Url"] ?? string.Empty;
+                string? link = string.IsNullOrWhiteSpace(confirmUrlBase) ? null : $"{confirmUrlBase}?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
+                var (html, text) = await _templates.RenderAsync("email-confirm", new Dictionary<string,string>
+                {
+                    ["Title"] = "Confirm your email",
+                    ["Intro"] = "Thanks for signing up. Please confirm your email to activate your account.",
+                    ["ActionText"] = "Confirm Email",
+                    ["ActionUrl"] = link ?? string.Empty,
+                    ["Token"] = link == null ? token : string.Empty
+                });
+                _email.QueueSendAsync(user.Email!, "Confirm your email", html);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to queue confirmation email to {Email} during registration.", user.Email);
+            }
+
+            return Ok(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
+        }
+
         [HttpPost("refresh")]
         [EnableRateLimiting("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
@@ -418,13 +293,12 @@ namespace AuthenticationAPI.Controllers
             {
                 Request.Cookies.TryGetValue("rt", out provided);
             }
-            if (string.IsNullOrWhiteSpace(provided)) return Unauthorized();
+            if (string.IsNullOrWhiteSpace(provided)) throw new BadRequestException("Refresh token is missing.");
             var stored = await _refreshTokenService.ValidateAsync(provided);
             if (stored == null)
             {
-                // Detect refresh token reuse attempts and globally revoke if detected
                 await _refreshTokenService.HandleReuseAttemptAsync(provided);
-                return Unauthorized();
+                throw new InvalidTokenException("Refresh token is invalid or expired.");
             }
             if (stored.SessionId.HasValue)
             {
@@ -437,7 +311,7 @@ namespace AuthenticationAPI.Controllers
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("token_version", user.TokenVersion.ToString())
+                new Claim(AuthConstants.ClaimTypes.TokenVersion, user.TokenVersion.ToString())
             };
             var roleIds = await _roleManager.Roles
                 .Where(r => userRoles.Contains(r.Name!))
@@ -464,12 +338,11 @@ namespace AuthenticationAPI.Controllers
                 Response.Cookies.Append("rt", newRefresh, cookieOpts);
             }
 
-            if (_bridgeOptions.Enabled && stored.SessionId.HasValue)
+            if (_bridgeOptions.Enabled)
             {
-                var sid = stored.SessionId.Value.ToString();
                 foreach (var name in _bridgeOptions.HeaderNames)
                 {
-                    Response.Headers[name] = sid;
+                    Response.Headers[name] = stored.SessionId.Value.ToString();
                 }
             }
             return Ok(new TokenSetResponse
@@ -490,7 +363,6 @@ namespace AuthenticationAPI.Controllers
             {
                 Request.Cookies.TryGetValue("rt", out provided);
             }
-            // Revoke the session associated with the provided refresh token
             var stored = string.IsNullOrWhiteSpace(provided) ? null : await _refreshTokenService.ValidateAsync(provided!);
             if (stored == null)
             {
@@ -498,7 +370,7 @@ namespace AuthenticationAPI.Controllers
                 {
                     await _refreshTokenService.HandleReuseAttemptAsync(provided!);
                 }
-                return Ok(); // idempotent
+                return Ok();
             }
             if (stored.SessionId.HasValue)
             {
@@ -506,7 +378,6 @@ namespace AuthenticationAPI.Controllers
             }
             else
             {
-                // No session tracked: best-effort revoke this token only
                 await _refreshTokenService.RevokeAsync(provided!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "logout");
             }
             if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
@@ -522,29 +393,24 @@ namespace AuthenticationAPI.Controllers
             return Ok();
         }
 
-        public record GoogleLoginRequest(string IdToken);
-
         [HttpPost("google")]
         [AllowAnonymous]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest req)
         {
             if (req == null || string.IsNullOrWhiteSpace(req.IdToken)) return BadRequest();
             var clientId = _configuration["Google:ClientId"];
-            if (string.IsNullOrWhiteSpace(clientId)) return StatusCode(501, new { error = "Google SSO not configured" });
+            if (string.IsNullOrWhiteSpace(clientId)) throw new GoogleSsoNotConfiguredException();
             try
             {
-                var settings = new GoogleJsonWebSignature.ValidationSettings
-                {
-                    Audience = new[] { clientId }
-                };
+                var settings = new GoogleJsonWebSignature.ValidationSettings { Audience = new[] { clientId } };
                 var payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken, settings);
-                // Optional hosted domain restriction
+                
                 var allowedHd = _configuration["Google:HostedDomain"];
                 if (!string.IsNullOrWhiteSpace(allowedHd) && !string.Equals(payload.HostedDomain, allowedHd, StringComparison.OrdinalIgnoreCase))
-                    return Unauthorized();
+                    throw new GoogleSsoBlockedException();
 
                 var email = payload.Email;
-                if (string.IsNullOrWhiteSpace(email)) return Unauthorized();
+                if (string.IsNullOrWhiteSpace(email)) throw new BadRequestException("Email claim missing from Google payload.");
                 var user = await _userManager.FindByEmailAsync(email);
                 if (user == null)
                 {
@@ -556,16 +422,16 @@ namespace AuthenticationAPI.Controllers
                         FullName = payload.Name ?? email
                     };
                     var create = await _userManager.CreateAsync(user);
-                    if (!create.Succeeded) return StatusCode(500, new { error = "Could not create user" });
+                    if (!create.Succeeded) throw new UserCreationException(string.Join(", ", create.Errors.Select(e => e.Description)));
                 }
-                // Issue tokens and session
+                
                 var userRoles = await _userManager.GetRolesAsync(user);
                 var authClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.UserName!),
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim("token_version", user.TokenVersion.ToString())
+                    new Claim(AuthConstants.ClaimTypes.TokenVersion, user.TokenVersion.ToString())
                 };
                 foreach (var userRole in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, userRole));
 
@@ -576,7 +442,7 @@ namespace AuthenticationAPI.Controllers
                 var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                 var ua = Request.Headers["User-Agent"].ToString();
                 var session = await _sessions.CreateAsync(user, ip, ua);
-                authClaims.Add(new Claim("sid", session.Id.ToString()));
+                authClaims.Add(new Claim(AuthConstants.ClaimTypes.SessionId, session.Id.ToString()));
 
                 var token = GetToken(authClaims);
                 var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
@@ -588,13 +454,13 @@ namespace AuthenticationAPI.Controllers
                 }
                 return Ok(new TokenSetResponse { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo, RefreshToken = refreshToken, RefreshTokenExpiration = refreshExp });
             }
-            catch (InvalidJwtException)
+            catch (InvalidJwtException ex)
             {
-                return Unauthorized();
+                _logger.LogWarning(ex, "Invalid JWT received for Google SSO.");
+                throw new InvalidTokenException("Invalid Google ID token.");
             }
         }
 
-        // ---- Magic Link (passwordless) ----
         [HttpPost("magic/start")]
         [AllowAnonymous]
         [EnableRateLimiting("otp")]
@@ -605,12 +471,12 @@ namespace AuthenticationAPI.Controllers
             var key1d = $"magic:1d:{dto.Email}";
             var allow1m = await _throttle.AllowAsync(key1m, 1, TimeSpan.FromMinutes(1));
             var allow1d = await _throttle.AllowAsync(key1d, 5, TimeSpan.FromDays(1));
-            if (!allow1m || !allow1d) return Ok(new { sent = true });
+            if (!allow1m || !allow1d) return Ok(new SentResponse { Sent = true });
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return Ok(new { sent = true });
+            if (user == null) return Ok(new SentResponse { Sent = true });
             try
             {
-                var token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, "magic-login");
+                var token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, AuthConstants.TokenProviders.MagicLink);
                 var req = HttpContext.Request;
                 var baseUrl = _configuration["MagicLink:Url"] ?? $"{req.Scheme}://{req.Host.Value}/";
                 var link = $"{baseUrl}?email={Uri.EscapeDataString(user.Email!)}&magicToken={Uri.EscapeDataString(token)}";
@@ -621,10 +487,13 @@ namespace AuthenticationAPI.Controllers
                     ["ActionText"] = "Sign in",
                     ["ActionUrl"] = link
                 });
-                await _email.SendAsync(user.Email!, "Your sign-in link", html);
+                _email.QueueSendAsync(user.Email!, "Your sign-in link", html);
             }
-            catch { }
-            return Ok(new { sent = true });
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to queue magic link email to {Email}", dto.Email);
+            }
+            return Ok(new SentResponse { Sent = true });
         }
 
         [HttpPost("magic/verify")]
@@ -634,9 +503,9 @@ namespace AuthenticationAPI.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return Unauthorized();
-            var ok = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, "magic-login", NormalizeToken(dto.Token));
-            if (!ok) return Unauthorized();
+            if (user == null) throw new UserNotFoundException();
+            var ok = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, AuthConstants.TokenProviders.MagicLink, dto.Token);
+            if (!ok) throw new InvalidTokenException("Magic link is invalid or expired.");
 
             var userRoles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>
@@ -644,7 +513,7 @@ namespace AuthenticationAPI.Controllers
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("token_version", user.TokenVersion.ToString())
+                new Claim(AuthConstants.ClaimTypes.TokenVersion, user.TokenVersion.ToString())
             };
             var roleIds = await _roleManager.Roles.Where(r => userRoles.Contains(r.Name!)).Select(r => r.Id).ToListAsync();
             var permissions = await _appDb.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId)).Include(rp => rp.Permission).Select(rp => rp.Permission!.Name).Distinct().ToListAsync();
@@ -669,12 +538,12 @@ namespace AuthenticationAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Invite([FromBody] InviteRequestDto dto)
         {
-            if (dto == null || string.IsNullOrWhiteSpace(dto.Email)) return BadRequest();
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Email)) throw new BadRequestException("Email is required for invitation.");
             var existing = await _userManager.FindByEmailAsync(dto.Email);
-            if (existing != null) return Conflict(new { error = "User already exists" });
+            if (existing != null) throw new EmailAlreadyInUseException();
             var user = new ApplicationUser { UserName = dto.Email, Email = dto.Email, EmailConfirmed = false, FullName = dto.FullName };
             var create = await _userManager.CreateAsync(user);
-            if (!create.Succeeded) return StatusCode(500, new { error = string.Join(", ", create.Errors.Select(e => e.Description)) });
+            if (!create.Succeeded) throw new UserCreationException(string.Join(", ", create.Errors.Select(e => e.Description)));
             if (dto.Roles != null)
             {
                 foreach (var r in dto.Roles)
@@ -696,9 +565,12 @@ namespace AuthenticationAPI.Controllers
                     ["ActionText"] = "Activate account",
                     ["ActionUrl"] = link
                 });
-                await _email.SendAsync(user.Email!, "Invitation to BCMTrac", html);
+                _email.QueueSendAsync(user.Email!, "Invitation to BCMTrac", html);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to queue invitation email to {Email}", dto.Email);
+            }
             return Ok(new { invited = true });
         }
 
@@ -707,18 +579,17 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("otp")]
         public async Task<IActionResult> Activate([FromBody] ActivateRequestDto dto)
         {
-            if (dto == null || string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.Password)) return BadRequest();
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.Password)) throw new BadRequestException("Missing activation details.");
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return BadRequest(new { error = "Invalid activation link" });
-            var norm = NormalizeToken(dto.Token);
-            var res = await _userManager.ConfirmEmailAsync(user, norm);
-            if (!res.Succeeded && !user.EmailConfirmed) return BadRequest(new { error = "Activation failed" });
+            if (user == null) throw new UserNotFoundException("Invalid activation link.");
+            var res = await _userManager.ConfirmEmailAsync(user, dto.Token);
+            if (!res.Succeeded && !user.EmailConfirmed) throw new InvalidTokenException("Activation failed. The link may be invalid or expired.");
             if (!string.IsNullOrWhiteSpace(dto.FullName)) { user.FullName = dto.FullName; await _userManager.UpdateAsync(user); }
             var hasPass = await _userManager.HasPasswordAsync(user);
             IdentityResult pwdRes;
             if (!hasPass) pwdRes = await _userManager.AddPasswordAsync(user, dto.Password);
             else { var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user); pwdRes = await _userManager.ResetPasswordAsync(user, resetToken, dto.Password); }
-            if (!pwdRes.Succeeded) return BadRequest(new { error = string.Join(", ", pwdRes.Errors.Select(e => e.Description)) });
+            if (!pwdRes.Succeeded) throw new BadRequestException(string.Join(", ", pwdRes.Errors.Select(e => e.Description)));
             return Ok();
         }
 
@@ -727,67 +598,10 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> LogoutAll()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
+            if (user == null) throw new UnauthorizedAccessException();
             await _sessions.RevokeAllForUserAsync(user.Id, "logout-all");
-            user.TokenVersion += 1; // invalidate access tokens too
-            await _userManager.UpdateAsync(user);
-            return Ok();
-        }
-
-        [HttpPost("change-password")]
-        [Authorize]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
-        {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
-            // Prevent reuse of recent passwords and enforce optional minimum age based on config
-            var reuseWindow = int.TryParse(_configuration["PasswordHistory:ReuseWindowCount"], out var rw) ? Math.Max(1, rw) : 5;
-            var minAgeHours = int.TryParse(_configuration["PasswordHistory:MinAgeHours"], out var mh) ? Math.Max(0, mh) : 24;
-            var totalHistory = await _db.PasswordHistory.CountAsync(ph => ph.UserId == user.Id);
-            var recent = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
-                .OrderByDescending(ph => ph.CreatedUtc).Take(reuseWindow).ToListAsync();
-            var hasher = HttpContext.RequestServices.GetRequiredService<IPasswordHasher<ApplicationUser>>();
-
-            // Reuse window: block if new password matches any of the recent N hashes
-            foreach (var ph in recent)
-            {
-                var verdict = hasher.VerifyHashedPassword(user, ph.Hash, dto.NewPassword);
-                if (verdict == PasswordVerificationResult.Success)
-                {
-                    return BadRequest(new ApiMessage { Message = "New password must not match your recent passwords." });
-                }
-            }
-
-            // Minimum age: block only if there has been at least one previous change and the last change is too recent
-            if (minAgeHours > 0 && totalHistory > 1)
-            {
-                var last = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
-                    .OrderByDescending(ph => ph.CreatedUtc).FirstOrDefaultAsync();
-                if (last != null && (DateTime.UtcNow - last.CreatedUtc).TotalHours < minAgeHours)
-                {
-                    return BadRequest(new ApiMessage { Message = "Password was changed recently. Try again later." });
-                }
-            }
-            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
-            if (!result.Succeeded) return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
             user.TokenVersion += 1;
             await _userManager.UpdateAsync(user);
-            await _refreshTokenService.RevokeAllForUserAsync(user.Id, "password-changed");
-            // record history and cap to last 10
-            await _db.Entry(user).ReloadAsync(); // ensure PasswordHash updated
-            if (!string.IsNullOrWhiteSpace(user.PasswordHash))
-            {
-                _db.PasswordHistory.Add(new PasswordHistory { UserId = user.Id, Hash = user.PasswordHash! });
-                await _db.SaveChangesAsync();
-                var keep = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
-                    .OrderByDescending(ph => ph.CreatedUtc).Skip(10).ToListAsync();
-                if (keep.Any())
-                {
-                    _db.PasswordHistory.RemoveRange(keep);
-                    await _db.SaveChangesAsync();
-                }
-            }
             return Ok();
         }
 
@@ -797,12 +611,11 @@ namespace AuthenticationAPI.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
-            if (string.Equals(user.Email, dto.NewEmail, StringComparison.OrdinalIgnoreCase)) return BadRequest(new { error = "Email is unchanged" });
+            if (user == null) throw new UnauthorizedAccessException();
+            if (string.Equals(user.Email, dto.NewEmail, StringComparison.OrdinalIgnoreCase)) throw new BadRequestException("Email is unchanged.");
             var existing = await _userManager.FindByEmailAsync(dto.NewEmail);
-            if (existing != null) return BadRequest(new { error = "Email already in use" });
+            if (existing != null) throw new EmailAlreadyInUseException();
             var token = await _userManager.GenerateChangeEmailTokenAsync(user, dto.NewEmail);
-            // Send to the new address to prove control
             try
             {
                 var confirmUrlBase = _configuration["Email:EmailConfirm:Url"] ?? string.Empty;
@@ -815,11 +628,11 @@ namespace AuthenticationAPI.Controllers
                     ["ActionUrl"] = link ?? string.Empty,
                     ["Token"] = link == null ? token : string.Empty
                 });
-                await _email.SendAsync(dto.NewEmail, "Confirm your new email", html);
+                _email.QueueSendAsync(dto.NewEmail, "Confirm your new email", html);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Do not fail due to email delivery issues. Log removed for production.
+                _logger.LogWarning(ex, "Failed to queue change email confirmation to {Email}", dto.NewEmail);
             }
             return Ok(new SentResponse { Sent = true });
         }
@@ -830,12 +643,9 @@ namespace AuthenticationAPI.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
-            var normToken = NormalizeToken(dto.Token);
-            var result = await _userManager.ChangeEmailAsync(user, dto.NewEmail, normToken);
-            if (!result.Succeeded) return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
-            // Optional: also update username if you want email-as-username policy
-            // await _userManager.SetUserNameAsync(user, dto.NewEmail);
+            if (user == null) throw new UnauthorizedAccessException();
+            var result = await _userManager.ChangeEmailAsync(user, dto.NewEmail, dto.Token);
+            if (!result.Succeeded) throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
             user.TokenVersion += 1;
             await _userManager.UpdateAsync(user);
             await _refreshTokenService.RevokeAllForUserAsync(user.Id, "email-changed");
@@ -847,16 +657,13 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> GetMfaQr()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
-            if (!user.MfaEnabled || string.IsNullOrWhiteSpace(user.MfaSecret))
-                return BadRequest(new { error = "MFA not enabled" });
+            if (user == null) throw new UnauthorizedAccessException();
+            if (!user.MfaEnabled || string.IsNullOrWhiteSpace(user.MfaSecret)) throw new MfaNotInitializedException();
             var secret = _protector.Unprotect(user.MfaSecret);
-            if (string.IsNullOrWhiteSpace(secret))
-                return BadRequest(new { error = "MFA secret unavailable" });
+            if (string.IsNullOrWhiteSpace(secret)) throw new MfaNotInitializedException();
             var issuer = _configuration["Mfa:Issuer"] ?? _configuration["JWT:ValidIssuer"] ?? "AuthAPI";
             var otpauthUrl = _totp.GetOtpAuthUrl(secret, user.Email ?? user.UserName!, issuer);
 
-            // Generate QR code PNG server-side
             using var qrGenerator = new QRCodeGenerator();
             using var qrCodeData = qrGenerator.CreateQrCode(otpauthUrl, QRCodeGenerator.ECCLevel.Q);
             using var qrCode = new PngByteQRCode(qrCodeData);
@@ -868,16 +675,16 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> RevokeRefresh([FromBody] RefreshRequest request)
         {
             var provided = request.RefreshToken;
-            if (string.IsNullOrWhiteSpace(provided)) { return NotFound(); }
+            if (string.IsNullOrWhiteSpace(provided)) throw new BadRequestException("Refresh token is missing.");
             var ok = await _refreshTokenService.RevokeAsync(provided!, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", "manual");
-            return ok ? Ok() : NotFound();
+            if (!ok) throw new NotFoundException("Refresh token not found or already revoked.");
+            return Ok();
         }
 
         [HttpPost("request-password-reset")]
         [AllowAnonymous]
         public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequestDto dto)
         {
-            // Per-email throttle: 1/min and 5/day
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var resetKey1m = $"pwd-reset:1m:{dto.Email}";
             var resetKey1d = $"pwd-reset:1d:{dto.Email}";
@@ -885,9 +692,10 @@ namespace AuthenticationAPI.Controllers
             var allow1d = await _throttle.AllowAsync(resetKey1d, 5, TimeSpan.FromDays(1));
             if (!allow1m || !allow1d) return Ok(new SentResponse { Sent = true });
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return Ok(); // do not reveal existence
-            if (!user.EmailConfirmed) return Ok(); // send only to confirmed emails
-            if (await _userManager.IsLockedOutAsync(user)) return Ok();
+            if (user == null || !user.EmailConfirmed || await _userManager.IsLockedOutAsync(user)) 
+            {
+                return Ok(new SentResponse { Sent = true });
+            }
             try
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -901,11 +709,11 @@ namespace AuthenticationAPI.Controllers
                     ["ActionUrl"] = link ?? string.Empty,
                     ["Token"] = link == null ? token : string.Empty
                 });
-                await _email.SendAsync(user.Email!, "Password reset", html);
+                _email.QueueSendAsync(user.Email!, "Password reset", html);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Swallow; do not log in production.
+                _logger.LogWarning(ex, "Failed to queue password reset email to {Email}", dto.Email);
             }
             return Ok(new SentResponse { Sent = true });
         }
@@ -917,9 +725,7 @@ namespace AuthenticationAPI.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return BadRequest();
-            var normToken = NormalizeToken(dto.Token);
-            // Enforce password history reuse rules
+            if (user == null) throw new UserNotFoundException();
             var reuseWindow = int.TryParse(_configuration["PasswordHistory:ReuseWindowCount"], out var rw) ? Math.Max(1, rw) : 5;
             var keepCount = int.TryParse(_configuration["PasswordHistory:KeepCount"], out var kc) ? Math.Max(reuseWindow, kc) : 12;
             var recent = await _db.PasswordHistory.Where(ph => ph.UserId == user.Id)
@@ -930,16 +736,14 @@ namespace AuthenticationAPI.Controllers
                 var verdict = hasher.VerifyHashedPassword(user, ph.Hash, dto.NewPassword);
                 if (verdict == PasswordVerificationResult.Success)
                 {
-                    return BadRequest(new ApiMessage { Message = "New password must not match your recent passwords." });
+                    throw new BadRequestException("New password must not match your recent passwords.");
                 }
             }
-            var res = await _userManager.ResetPasswordAsync(user, normToken, dto.NewPassword);
-            if (!res.Succeeded) return BadRequest(new { errors = res.Errors.Select(e => e.Description) });
-            // Global session revoke on password reset and bump token version
+            var res = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!res.Succeeded) throw new BadRequestException(string.Join(", ", res.Errors.Select(e => e.Description)));
             user.TokenVersion += 1;
             await _userManager.UpdateAsync(user);
             await _refreshTokenService.RevokeAllForUserAsync(user.Id, "password-reset");
-            // record history and cap
             await _db.Entry(user).ReloadAsync();
             if (!string.IsNullOrWhiteSpace(user.PasswordHash))
             {
@@ -962,15 +766,13 @@ namespace AuthenticationAPI.Controllers
         public async Task<IActionResult> RequestEmailConfirm([FromBody] EmailRequestDto dto)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            // Per-email throttle: 1/min and 5/day (silent on refusal)
             var emailKey1m = $"email-confirm:1m:{dto.Email}";
             var emailKey1d = $"email-confirm:1d:{dto.Email}";
             var allow1m = await _throttle.AllowAsync(emailKey1m, 1, TimeSpan.FromMinutes(1));
             var allow1d = await _throttle.AllowAsync(emailKey1d, 5, TimeSpan.FromDays(1));
-            if (!allow1m || !allow1d) return Ok(new { sent = true });
+            if (!allow1m || !allow1d) return Ok(new SentResponse { Sent = true });
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return Ok();
+            if (user == null) return Ok(new SentResponse { Sent = true });
             try
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -984,11 +786,11 @@ namespace AuthenticationAPI.Controllers
                     ["ActionUrl"] = link ?? string.Empty,
                     ["Token"] = link == null ? token : string.Empty
                 });
-                await _email.SendAsync(user.Email!, "Email confirmation", html);
+                _email.QueueSendAsync(user.Email!, "Email confirmation", html);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Swallow; do not log in production.
+                _logger.LogWarning(ex, "Failed to queue email confirmation request to {Email}", dto.Email);
             }
             return Ok(new SentResponse { Sent = true });
         }
@@ -1000,48 +802,45 @@ namespace AuthenticationAPI.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return BadRequest(new { error = "Invalid email" });
+            if (user == null) throw new UserNotFoundException("Invalid email.");
             if (user.EmailConfirmed) return Ok(new { emailConfirmed = true });
             if (string.IsNullOrWhiteSpace(dto.Token) || dto.Token.Length > 2048 || dto.Token.Any(char.IsWhiteSpace))
             {
-                return BadRequest(new { message = "Invalid or expired confirmation token." });
+                throw new InvalidTokenException("Invalid or expired confirmation token.");
             }
             try
             {
-                var normToken = NormalizeToken(dto.Token);
-                var res = await _userManager.ConfirmEmailAsync(user, normToken);
+                var res = await _userManager.ConfirmEmailAsync(user, dto.Token);
                 if (!res.Succeeded)
                 {
-                    return BadRequest(new
-                    {
-                        message = "Invalid or expired confirmation token.",
-                        errors = res.Errors.Select(e => e.Description)
-                    });
+                    throw new InvalidTokenException(string.Join(", ", res.Errors.Select(e => e.Description)));
                 }
                 return Ok(new EmailConfirmedResponse { EmailConfirmed = true });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Normalize unexpected provider/store errors into a client-safe response
-                return BadRequest(new { message = "Email confirmation failed. Please request a new token and try again." });
+                _logger.LogError(ex, "An unexpected error occurred during email confirmation for {Email}", dto.Email);
+                throw new BadRequestException("Email confirmation failed. Please request a new token and try again.");
             }
         }
-
-        
 
         [HttpPost("mfa/enroll/start")]
         [Authorize]
         public async Task<IActionResult> MfaEnrollStart()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
-            if (user.MfaEnabled) return BadRequest(new { error = "Already enabled" });
-            var secret = _totp.GenerateSecret();
-            user.MfaSecret = _protector.Protect(secret);
-            await _userManager.UpdateAsync(user);
+            if (user == null) throw new UnauthorizedAccessException();
+            if (!user.MfaEnabled || string.IsNullOrWhiteSpace(user.MfaSecret)) throw new MfaNotInitializedException();
+            var secret = _protector.Unprotect(user.MfaSecret);
+            if (string.IsNullOrWhiteSpace(secret)) throw new MfaNotInitializedException();
             var issuer = _configuration["Mfa:Issuer"] ?? _configuration["JWT:ValidIssuer"] ?? "AuthAPI";
-            var url = _totp.GetOtpAuthUrl(secret, user.Email ?? user.UserName!, issuer);
-            return Ok(new OtpAuthResponse { Secret = secret, OtpauthUrl = url });
+            var otpauthUrl = _totp.GetOtpAuthUrl(secret, user.Email ?? user.UserName!, issuer);
+
+            using var qrGenerator = new QRCodeGenerator();
+            using var qrCodeData = qrGenerator.CreateQrCode(otpauthUrl, QRCodeGenerator.ECCLevel.Q);
+            using var qrCode = new PngByteQRCode(qrCodeData);
+            var qrCodeImage = qrCode.GetGraphic(20);
+            return File(qrCodeImage, "image/png");
         }
 
         [HttpPost("mfa/enroll/confirm")]
@@ -1051,11 +850,11 @@ namespace AuthenticationAPI.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
-            if (string.IsNullOrWhiteSpace(user.MfaSecret)) return BadRequest(new { error = "No secret generated" });
+            if (user == null) throw new UnauthorizedAccessException();
+            if (string.IsNullOrWhiteSpace(user.MfaSecret)) throw new MfaNotInitializedException();
             var secret = _protector.Unprotect(user.MfaSecret);
-            if (string.IsNullOrWhiteSpace(secret)) return BadRequest(new { error = "MFA secret unavailable" });
-            if (!_totp.ValidateCode(secret, dto.Code, out var ts)) return BadRequest(new { error = "Invalid code" });
+            if (string.IsNullOrWhiteSpace(secret)) throw new MfaNotInitializedException();
+            if (!_totp.ValidateCode(secret, dto.Code, out var ts)) throw new InvalidMfaCodeException();
             user.MfaEnabled = true;
             user.MfaLastTimeStep = ts;
             await _userManager.UpdateAsync(user);
@@ -1064,15 +863,14 @@ namespace AuthenticationAPI.Controllers
         }
 
         [HttpPost("mfa/disable")]
-        [Authorize(Policy = "mfa")]
+        [Authorize(Policy = AuthConstants.Policies.Mfa)]
         public async Task<IActionResult> MfaDisable()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
+            if (user == null) throw new UnauthorizedAccessException();
             user.MfaEnabled = false;
             user.MfaSecret = null;
             user.MfaLastTimeStep = -1;
-            // Optionally clear recovery codes
             var codes = _db.UserRecoveryCodes.Where(r => r.UserId == user.Id);
             _db.UserRecoveryCodes.RemoveRange(codes);
             await _db.SaveChangesAsync();
@@ -1081,11 +879,11 @@ namespace AuthenticationAPI.Controllers
         }
 
         [HttpPost("mfa/recovery/regenerate")]
-        [Authorize(Policy = "mfa")]
+        [Authorize(Policy = AuthConstants.Policies.Mfa)]
         public async Task<IActionResult> RegenerateRecoveryCodes()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
+            if (user == null) throw new UnauthorizedAccessException();
             var existing = _db.UserRecoveryCodes.Where(r => r.UserId == user.Id);
             _db.UserRecoveryCodes.RemoveRange(existing);
             await _db.SaveChangesAsync();

@@ -12,12 +12,14 @@
         <div class="card-body">
             <form id="confirm-form" class="mb-3">
                 <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="email" placeholder="Email" required>
+                    <input type="email" class="form-control" id="email" placeholder="Email" required autocomplete="email">
                     <label for="email">Email</label>
+                    <div class="invalid-feedback"></div>
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="token" placeholder="Token" required>
+                    <input type="text" class="form-control" id="token" placeholder="Token" required autocomplete="off">
                     <label for="token">Token</label>
+                    <div class="invalid-feedback"></div>
                 </div>
             </form>
             <div class="confirm-actions d-flex gap-2 justify-content-center">

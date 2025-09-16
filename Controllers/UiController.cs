@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileProviders;
 
 namespace AuthenticationAPI.Controllers;
 
-// Serves production-ready views (login, admin, email confirm, reset password)
+
 [ApiExplorerSettings(IgnoreApi = true)]
 public class UiController : Controller
 {
@@ -25,6 +26,17 @@ public class UiController : Controller
     [HttpGet("/activate")]
     public IActionResult Activate() => View();
 
-    // Serve JS/CSS from Assets via controller 
-    // Static assets are served from wwwroot via UseStaticFiles (standard ASP.NET Core)
+    [Authorize(Roles = "Admin")]
+    [HttpGet("/ui/onboarding")]
+    public IActionResult Onboarding() => View();
+
+    [HttpGet("/admin-login")]
+    public IActionResult AdminLogin() => View();
+
+    [HttpGet("/settings")]
+    [Authorize]
+    public IActionResult Settings() => View();
+
+     
+    
 }

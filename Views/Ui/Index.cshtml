@@ -11,6 +11,7 @@
     <div class="tenant-field mb-3">
         <label class="form-label small text-muted">Estate code <span class="text-muted" title="Your estate’s code. Ask a trustee if unsure."><i class="fa-regular fa-circle-question"></i></span></label>
         <input type="text" class="form-control" id="tenant-code" placeholder="e.g. palm-grove" autocomplete="organization" />
+        <div class="invalid-feedback"></div>
     </div>
 
     <div class="sso-buttons mb-3">
@@ -28,10 +29,12 @@
         <div class="form-floating mb-3">
             <input type="text" class="form-control" id="login-identifier" placeholder="Email or Username" required autocomplete="username">
             <label for="login-identifier">Email or Username</label>
+            <div class="invalid-feedback"></div>
         </div>
         <div class="form-floating mb-2">
             <input type="password" class="form-control" id="login-password" placeholder="Password" required autocomplete="current-password">
             <label for="login-password">Password</label>
+            <div class="invalid-feedback"></div>
         </div>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="form-check">
@@ -44,7 +47,7 @@
         <div class="mfa-step d-none" id="mfa-input-container">
             <label class="form-label">Authenticator code</label>
             <div class="otp-grid" aria-label="6-digit code">
-                <input inputmode="numeric" maxlength="1" class="otp" />
+                <input inputmode="numeric" maxlength="1" class="otp" autocomplete="one-time-code" />
                 <input inputmode="numeric" maxlength="1" class="otp" />
                 <input inputmode="numeric" maxlength="1" class="otp" />
                 <input inputmode="numeric" maxlength="1" class="otp" />
@@ -71,6 +74,8 @@
         <a class="link-underline me-2" href="#" id="magic-link-start">Magic link</a>
         ·
         <a class="link-underline ms-2" href="/email-confirm">Activate with invite / Confirm email</a>
+        ·
+        <a class="link-underline ms-2" href="/admin-login">Admin Login</a>
     </div>
 </div>
 
@@ -80,6 +85,7 @@
         <div class="form-floating mb-3">
             <input type="email" class="form-control" id="forgot-email" placeholder="Enter your email" required autocomplete="email">
             <label for="forgot-email">Email</label>
+            <div class="invalid-feedback"></div>
         </div>
         <button type="submit" class="btn btn-primary w-100 btn-lg">Send reset link</button>
     </form>
@@ -91,27 +97,12 @@
 <div id="logged-in-view" class="d-none">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0">Dashboard</h3>
-        <button id="logout-button" class="btn btn-sm btn-outline-secondary">Logout</button>
-    </div>
-    <div id="user-info" class="mb-4"></div>
-    <div id="mfa-management-view"></div>
-
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title">Change Password</h5>
-            <form id="change-password-form">
-                <div class="form-floating mb-3">
-                    <input type="password" class="form-control" id="current-password" placeholder="Current Password" required>
-                    <label for="current-password">Current Password</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input type="password" class="form-control" id="new-password" placeholder="New Password" required>
-                    <label for="new-password">New Password</label>
-                </div>
-                <button type="submit" class="btn btn-secondary">Update Password</button>
-            </form>
+        <div>
+            <a href="/settings" class="btn btn-sm btn-outline-secondary me-2">Account Settings</a>
+            <button id="logout-button" class="btn btn-sm btn-outline-secondary">Logout</button>
         </div>
     </div>
+    <div id="user-info" class="mb-4"></div>
     <div class="mt-3">
         <button id="logout-all-button" class="btn btn-sm btn-danger">Logout All Devices</button>
     </div>

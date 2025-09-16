@@ -50,7 +50,7 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
             {
                 var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
                 var user = await userManager.GetUserAsync(context.Principal!);
-                var versionClaim = context.Principal!.FindFirst("token_version")?.Value;
+                var versionClaim = context.Principal!.FindFirst(AuthConstants.ClaimTypes.TokenVersion)?.Value;
                 if (user == null || versionClaim == null || versionClaim != user.TokenVersion.ToString())
                 {
                     context.Fail("Token version mismatch (revoked)");

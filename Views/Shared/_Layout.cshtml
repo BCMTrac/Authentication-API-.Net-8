@@ -37,6 +37,25 @@
         window.GOOGLE_CLIENT_ID = '@(Configuration["Google:ClientId"] ?? "")';
     </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/modal.js"></script>
+    <script src="/js/utils.js"></script>
     <script src="/js/bg.js"></script>
+
+    <!-- App-wide Modal -->
+    <div class="modal fade" id="app-modal" tabindex="-1" aria-labelledby="app-modal-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="app-modal-label"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="app-modal-body">
+          </div>
+          <div class="modal-footer" id="app-modal-footer">
+          </div>
+        </div>
+      </div>
+    </div>
 </body>
 </html>

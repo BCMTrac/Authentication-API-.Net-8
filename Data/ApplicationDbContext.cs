@@ -14,20 +14,48 @@ namespace AuthenticationAPI.Data
         public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
         public DbSet<SigningKey> SigningKeys => Set<SigningKey>();
         public DbSet<ClientApp> ClientApps => Set<ClientApp>();
-    public DbSet<UserRecoveryCode> UserRecoveryCodes => Set<UserRecoveryCode>();
+        public DbSet<UserRecoveryCode> UserRecoveryCodes => Set<UserRecoveryCode>();
         public DbSet<Session> Sessions => Set<Session>();
         public DbSet<PasswordHistory> PasswordHistory => Set<PasswordHistory>();
+        public DbSet<Tenant> Tenants => Set<Tenant>();
+        public DbSet<UserTenant> UserTenants => Set<UserTenant>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            // 1) Shorten ASP.NET Identity key columns to safe sizes
+            
+            builder.Entity<Tenant>(b =>
+            {
+                b.HasIndex(t => t.Subdomain).IsUnique();
+                b.Property(t => t.Id).HasMaxLength(128);
+            });
+
+            
+            builder.Entity<UserTenant>(b =>
+            {
+                b.HasKey(ut => ut.Id);
+                b.HasIndex(ut => new { ut.UserId, ut.TenantId }).IsUnique();
+
+                b.HasOne(ut => ut.User)
+                    .WithMany(u => u.UserTenants)
+                    .HasForeignKey(ut => ut.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                b.HasOne(ut => ut.Tenant)
+                    .WithMany(t => t.UserTenants)
+                    .HasForeignKey(ut => ut.TenantId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            
             builder.Entity<ApplicationUser>(b =>
             {
                 b.Property(u => u.Id).HasMaxLength(128);
                 b.Property(u => u.NormalizedUserName).HasMaxLength(128);
                 b.Property(u => u.NormalizedEmail).HasMaxLength(128);
+                
+                b.Ignore(u => u.TenantId);
             });
             builder.Entity<IdentityRole>(b =>
             {
@@ -35,7 +63,7 @@ namespace AuthenticationAPI.Data
                 b.Property(r => r.NormalizedName).HasMaxLength(128);
             });
 
-            // 2) Configure entity indexes and relationships (identity + auth DB only)
+            
 
             builder.Entity<RefreshToken>()
                 .HasIndex(r => new { r.UserId, r.TokenHash }).IsUnique();
@@ -58,10 +86,9 @@ namespace AuthenticationAPI.Data
                 .HasOne(r => r.Session)
                 .WithMany()
                 .HasForeignKey(r => r.SessionId)
-                // Prevent cascade delete to avoid multiple cascade paths on Sessions
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure RefreshToken hash length to fit index key limits
+            
             builder.Entity<RefreshToken>(b =>
             {
                 b.Property(r => r.TokenHash)
@@ -70,14 +97,14 @@ namespace AuthenticationAPI.Data
                     .HasMaxLength(64);
             });
 
-            // Configure UserRecoveryCode hash length
+            
             builder.Entity<UserRecoveryCode>(b =>
             {
                 b.Property(rc => rc.CodeHash)
                     .HasMaxLength(64);
             });
 
-            // RolePermission/Permission moved to AppDbContext
+            
 
             builder.Entity<PasswordHistory>(b =>
             {

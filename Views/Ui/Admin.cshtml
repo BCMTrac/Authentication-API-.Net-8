@@ -5,6 +5,7 @@
 <div class="admin-header d-flex justify-content-between align-items-baseline mb-3">
     <div class="admin-logo">BCMTrac • Admin</div>
     <div>
+        <a href="/ui/onboarding" class="btn btn-sm btn-primary me-2"><i class="fa fa-plus me-1"></i>Onboard Client</a>
         <a href="/" class="btn btn-sm btn-outline-secondary"><i class="fa fa-door-open me-1"></i>Auth Portal</a>
     </div>
 </div>
@@ -79,7 +80,7 @@
                                     <div class="card-body">
                                         <h6 class="card-title">Set Temporary Password</h6>
                                         <div class="input-group">
-                                            <input id="temp-password" class="form-control" type="password" placeholder="New temporary password" />
+                                            <input id="temp-password" class="form-control" type="password" placeholder="New temporary password" autocomplete="new-password" /><div class="invalid-feedback"></div>
                                             <button id="temp-password-btn" class="btn btn-secondary btn-sm">Set</button>
                                         </div>
                                         <div class="form-text">User will be logged out of all devices.</div>
