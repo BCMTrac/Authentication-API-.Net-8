@@ -44,6 +44,12 @@ public class TestApplicationFactory : WebApplicationFactory<Program>
                 ["Features:AuditAndIdempotency"] = "false",
                 ["Features:RateLimit"] = "false",
                 ["Features:HttpsRedirect"] = "false",
+                ["Bridge:Enabled"] = "true",
+                ["Bridge:ApiKey"] = "test-bridge-key",
+                ["Bridge:ApiKeyHeader"] = "X-Bridge-Key",
+                ["Bridge:HeaderNames:0"] = "X-Session-Id",
+                ["Bridge:HeaderNames:1"] = "X-SessionID",
+                ["Bridge:JwtHeaderName"] = "X-Auth-JWT",
                 ["Smtp:Host"] = "localhost",
                 ["Smtp:Port"] = "25",
                 ["Smtp:From"] = "test@example.com",
@@ -52,6 +58,11 @@ public class TestApplicationFactory : WebApplicationFactory<Program>
                 ["JWT:ValidIssuer"] = "https://test",
                 ["JWT:ValidAudience"] = "https://test",
                 ["JWT:AccessTokenMinutes"] = "5"
+                , ["Bridge:Enabled"] = "true"
+                , ["Bridge:HeaderNames:0"] = "X-Session-Id"
+                , ["Bridge:JwtHeaderName"] = "X-Access-Token"
+                , ["Bridge:ApiKey"] = "test-bridge-key"
+                , ["Bridge:ApiKeyHeader"] = "X-Bridge-Key"
             };
             cfg.AddInMemoryCollection(dict!);
         });
@@ -94,6 +105,10 @@ public class TestApplicationFactory : WebApplicationFactory<Program>
             if (!roleMgr.RoleExistsAsync("User").GetAwaiter().GetResult())
             {
                 roleMgr.CreateAsync(new IdentityRole("User")).GetAwaiter().GetResult();
+            }
+            if (!roleMgr.RoleExistsAsync("Admin").GetAwaiter().GetResult())
+            {
+                roleMgr.CreateAsync(new IdentityRole("Admin")).GetAwaiter().GetResult();
             }
         });
     }

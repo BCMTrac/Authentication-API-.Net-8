@@ -23,9 +23,10 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
     public void Configure(JwtBearerOptions options)
     {
         var jwt = _jwt.Value;
-    options.SaveToken = true;
-    // Always require HTTPS metadata in production
-    options.RequireHttpsMetadata = true;
+        options.SaveToken = true;
+        options.MapInboundClaims = false;
+        // Always require HTTPS metadata in production
+        options.RequireHttpsMetadata = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
