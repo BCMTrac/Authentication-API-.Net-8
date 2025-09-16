@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "jk638MS6Oos=",
+  "dgSpecHash": "rhWqA6F2PkU=",
   "success": true,
-  "projectFilePath": "c:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj",
+  "projectFilePath": "C:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\brand\\.nuget\\packages\\azure.core\\1.44.1\\azure.core.1.44.1.nupkg.sha512",
     "C:\\Users\\brand\\.nuget\\packages\\azure.extensions.aspnetcore.configuration.secrets\\1.3.0\\azure.extensions.aspnetcore.configuration.secrets.1.3.0.nupkg.sha512",
