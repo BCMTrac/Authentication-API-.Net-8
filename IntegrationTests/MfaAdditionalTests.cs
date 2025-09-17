@@ -17,7 +17,7 @@ public class MfaAdditionalTests : IClassFixture<TestApplicationFactory>
     private static string NewEmail()=> $"mfa_{Guid.NewGuid():N}@example.com";
     private static string NewUser()=> $"mfa_{Guid.NewGuid():N}";
 
-    [Fact(Skip = "Investigate 400 on MFA regeneration flow (timing or state issue)")]
+    [Fact]
     public async Task Regenerate_Recovery_Codes()
     {
         // Precondition: existing test (MfaFlowTests) covers enable + login; here validate regeneration endpoint structure
@@ -55,7 +55,9 @@ public class MfaAdditionalTests : IClassFixture<TestApplicationFactory>
             recoveryCodes.Should().NotBeEmpty();
             // Use a recovery code for second login to guarantee fresh MFA success regardless of TOTP window
             var recoveryCode = recoveryCodes[0];
-            var login2 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = user, Password = password, MfaCode = recoveryCode });
+            // Do a TOTP-based login to ensure amr=mfa for policy-guarded endpoints
+            var totpCode = TotpTestHelper.GenerateCode(secret, DateTimeOffset.UtcNow.AddSeconds(31));
+            var login2 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = user, Password = password, MfaCode = totpCode });
             login2.EnsureSuccessStatusCode();
             var login2Json = await login2.Content.ReadAsStringAsync();
             using var doc2 = JsonDocument.Parse(login2Json);

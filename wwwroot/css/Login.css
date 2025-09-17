@@ -12,6 +12,13 @@ body {
 	flex-direction: column;
 }
 
+#logoImg {
+	height: 160px;
+	width: 160px;
+	object-fit: contain;
+	display: block;
+}
+
 .container {
 	flex: 1;
 	display: flex;
@@ -46,16 +53,12 @@ body {
 	margin-bottom: 20px;
 }
 
-.logo-text {
-	color: #0066cc;
-	font-weight: bold;
-	font-size: 24px;
-}
 
 .welcome-text {
 	font-size: 24px;
 	font-weight: bold;
 	margin-bottom: 10px;
+	font-family: Arial, Helvetica, sans-serif;
 }
 
 .subtitle {

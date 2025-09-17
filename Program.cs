@@ -440,7 +440,7 @@ app.Use(async (ctx, next) =>
 {
     if (HttpMethods.IsPost(ctx.Request.Method) || HttpMethods.IsPut(ctx.Request.Method) || HttpMethods.IsPatch(ctx.Request.Method))
     {
-        var hasBody = ctx.Request.ContentLength.GetValueOrDefault() > 0 || ctx.Request.Headers.ContainsKey("Content-Length");
+        var hasBody = ctx.Request.ContentLength.GetValueOrDefault() > 0;
         if (hasBody)
         {
             var ct = ctx.Request.ContentType ?? string.Empty;

@@ -29,7 +29,7 @@ public class RateLimitTests : IClassFixture<RateLimitEnabledFactory>
     private readonly RateLimitEnabledFactory _factory;
     public RateLimitTests(RateLimitEnabledFactory f){_factory=f;}
 
-    [Fact(Skip="Depends on actual rate limiting policy names")] // Placeholder until policies verified
+    [Fact]
     public async Task Register_Rate_Limit_Triggers_429()
     {
         var client = _factory.CreateClient();
