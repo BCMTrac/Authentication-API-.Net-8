@@ -54,10 +54,6 @@
               "target": "Package",
               "version": "[11.3.0, )"
             },
-            "Google.Apis.Auth": {
-              "target": "Package",
-              "version": "[1.64.0, )"
-            },
             "Hangfire": {
               "target": "Package",
               "version": "[1.8.14, )"

@@ -102,9 +102,4 @@ namespace AuthenticationAPI.Models
         public string Code { get; set; } = string.Empty;
     }
 
-    public class GoogleLoginRequest : StrictDtoBase
-    {
-        [Required]
-        public string IdToken { get; set; } = string.Empty;
-    }
 }

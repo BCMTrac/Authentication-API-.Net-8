@@ -1,0 +1,17 @@
+@{
+    Layout = "_Layout"; 
+    ViewData["Title"] = ViewData["Title"] ?? "Login";
+}
+<div class="login-wizard-wrapper">
+    <div class="login-wizard-container">
+        @RenderBody()
+    </div>
+</div>
+@section Styles {
+    var asset = (ViewData["Asset"]?.ToString() ?? string.Empty).ToLowerInvariant();
+    if (!string.IsNullOrWhiteSpace(asset)) { <link rel="stylesheet" href="~/css/@asset.css" /> }
+}
+@section Scripts {
+    var asset = (ViewData["Asset"]?.ToString() ?? string.Empty).ToLowerInvariant();
+    if (!string.IsNullOrWhiteSpace(asset)) { <script src="~/js/@asset.js"></script> }
+}

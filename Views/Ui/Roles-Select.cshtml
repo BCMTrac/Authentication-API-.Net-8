@@ -1,0 +1,17 @@
+@{
+  Layout = "_LoginWizardLayout";
+  ViewData["Asset"] = "roles-select";
+  ViewData["Title"] = "Select Role";
+}
+
+<div class="wizard-card roles-step">
+  <div class="wizard-header gradient-box">
+    <div class="logo-pill">BCMTrac</div>
+    <h2 class="wizard-heading">Welcome Back, <span id="displayName">User</span></h2>
+    <p class="sub">Please select the type you are registered as:</p>
+  </div>
+  <div id="roleButtons" class="role-grid" aria-live="polite"></div>
+  <div class="footer-actions">
+    <button class="btn primary" id="continueRoles" disabled>Continue</button>
+  </div>
+</div>

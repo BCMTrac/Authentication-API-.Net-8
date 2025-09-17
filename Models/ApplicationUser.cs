@@ -5,7 +5,6 @@ namespace AuthenticationAPI.Models
     public class ApplicationUser : IdentityUser
     {
     public string? FullName { get; set; }
-    public string? GoogleId { get; set; }
     // Not mapped by EF (ignored in DbContext). Used for onboarding convenience.
     public string? TenantId { get; set; }
     public ICollection<UserTenant> UserTenants { get; set; } = new List<UserTenant>(); // For future multi-tenant support

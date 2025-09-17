@@ -12,7 +12,7 @@ public class UiController : Controller
     public UiController(IWebHostEnvironment env) { _env = env; }
 
     [HttpGet("/")]
-    public IActionResult Index() => View();
+    public IActionResult Index() => Redirect("/login");
 
     [HttpGet("/admin")]
     public IActionResult Admin() => View();
@@ -36,6 +36,18 @@ public class UiController : Controller
     [HttpGet("/settings")]
     [Authorize]
     public IActionResult Settings() => View();
+
+    [HttpGet("/login")]
+    [AllowAnonymous]
+    public IActionResult Login() => View("~/Views/Ui/Login.cshtml");
+
+    [HttpGet("/roles-select")]
+    [AllowAnonymous]
+    public IActionResult RolesSelect() => View("~/Views/Ui/Roles-Select.cshtml");
+
+    [HttpGet("/schemes-select")]
+    [AllowAnonymous]
+    public IActionResult SchemesSelect() => View("~/Views/Ui/Schemes-Select.cshtml");
 
      
     

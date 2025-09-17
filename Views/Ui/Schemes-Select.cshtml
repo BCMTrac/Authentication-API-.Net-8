@@ -1,0 +1,23 @@
+@{
+  Layout = "_LoginWizardLayout";
+  ViewData["Asset"] = "schemes-select";
+  ViewData["Title"] = "Select Scheme";
+}
+
+<div class="wizard-card schemes-step">
+  <div class="wizard-header gradient-box">
+    <div class="logo-pill">BCMTrac</div>
+    <h2 class="wizard-heading">Welcome back, <span id="displayName">User</span></h2>
+    <p class="sub">Please log into one of your Schemes</p>
+  </div>
+  <div class="scheme-table" id="schemeTable" aria-live="polite">
+    <div class="scheme-table-head">
+      <div class="col name">Scheme BC / HOA / Company Name</div>
+      <div class="col type">Entity Type</div>
+    </div>
+    <div class="scheme-table-body" id="schemeRows"></div>
+  </div>
+  <div class="footer-actions">
+    <button class="btn primary" id="continueScheme" disabled>Continue</button>
+  </div>
+</div>

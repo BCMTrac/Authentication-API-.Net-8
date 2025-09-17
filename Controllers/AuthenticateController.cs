@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using QRCoder;
 using Microsoft.AspNetCore.Http;
-using Google.Apis.Auth;
 using Microsoft.Extensions.Logging;
 using AuthenticationAPI.Infrastructure.Security;
 using System.Collections.Generic;
@@ -83,47 +82,6 @@ namespace AuthenticationAPI.Controllers
             _bridgeOptions = bridgeOptions.Value;
             _logger = logger;
             _userAccountService = userAccountService;
-        }
-
-        [HttpPost]
-        [Route("login")]
-        [EnableRateLimiting("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel model)
-        {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-
-            var user = await FindUserByIdentifier(model.Identifier);
-            if (user == null) throw new UserNotFoundException();
-            if (await _userManager.IsLockedOutAsync(user)) throw new AccountLockedException();
-
-            if (!await _userManager.CheckPasswordAsync(user, model.Password))
-            {
-                await _userManager.AccessFailedAsync(user);
-                throw new BadRequestException("Invalid credentials.");
-            }
-
-            await _userManager.ResetAccessFailedCountAsync(user);
-
-            if (!user.EmailConfirmed) throw new EmailUnconfirmedException();
-
-            if (user.MfaEnabled && string.IsNullOrWhiteSpace(model.MfaCode))
-            {
-                return Ok(new { mfaRequired = true });
-            }
-
-            var mfaSucceeded = user.MfaEnabled ? await ValidateMfa(user, model.MfaCode) : (bool?)null;
-            if (mfaSucceeded == false) throw new InvalidMfaCodeException();
-
-            var tokenResponse = await CreateTokenResponse(user, mfaSucceeded ?? false);
-            return Ok(tokenResponse);
-        }
-
-        private async Task<ApplicationUser?> FindUserByIdentifier(string identifier)
-        {
-            if (string.IsNullOrEmpty(identifier)) return null;
-            return identifier.Contains('@')
-                ? await _userManager.FindByEmailAsync(identifier)
-                : await _userManager.FindByNameAsync(identifier);
         }
 
         private async Task<bool> ValidateMfa(ApplicationUser user, string? mfaCode)
@@ -400,73 +358,6 @@ namespace AuthenticationAPI.Controllers
             return Ok();
         }
 
-        [HttpPost("google")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest req)
-        {
-            if (req == null || string.IsNullOrWhiteSpace(req.IdToken)) return BadRequest();
-            var clientId = _configuration["Google:ClientId"];
-            if (string.IsNullOrWhiteSpace(clientId)) throw new GoogleSsoNotConfiguredException();
-            try
-            {
-                var settings = new GoogleJsonWebSignature.ValidationSettings { Audience = new[] { clientId } };
-                var payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken, settings);
-                
-                var allowedHd = _configuration["Google:HostedDomain"];
-                if (!string.IsNullOrWhiteSpace(allowedHd) && !string.Equals(payload.HostedDomain, allowedHd, StringComparison.OrdinalIgnoreCase))
-                    throw new GoogleSsoBlockedException();
-
-                var email = payload.Email;
-                if (string.IsNullOrWhiteSpace(email)) throw new BadRequestException("Email claim missing from Google payload.");
-                var user = await _userManager.FindByEmailAsync(email);
-                if (user == null)
-                {
-                    user = new ApplicationUser
-                    {
-                        UserName = email,
-                        Email = email,
-                        EmailConfirmed = true,
-                        FullName = payload.Name ?? email
-                    };
-                    var create = await _userManager.CreateAsync(user);
-                    if (!create.Succeeded) throw new UserCreationException(string.Join(", ", create.Errors.Select(e => e.Description)));
-                }
-                
-                var userRoles = await _userManager.GetRolesAsync(user);
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName!),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(AuthConstants.ClaimTypes.TokenVersion, user.TokenVersion.ToString())
-                };
-                foreach (var userRole in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-
-                var roleIds = await _roleManager.Roles.Where(r => userRoles.Contains(r.Name!)).Select(r => r.Id).ToListAsync();
-                var permissions = await _appDb.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId)).Include(rp => rp.Permission).Select(rp => rp.Permission!.Name).Distinct().ToListAsync();
-                foreach (var p in permissions) authClaims.Add(new Claim("scope", p));
-
-                var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-                var ua = Request.Headers["User-Agent"].ToString();
-                var session = await _sessions.CreateAsync(user, ip, ua);
-                authClaims.Add(new Claim(AuthConstants.ClaimTypes.SessionId, session.Id.ToString()));
-
-                var token = GetToken(authClaims);
-                var (refreshToken, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
-
-                if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
-                {
-                    var cookieOpts = new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, Expires = refreshExp, Path = "/api/v1/authenticate" };
-                    Response.Cookies.Append("rt", refreshToken, cookieOpts);
-                }
-                return Ok(new TokenSetResponse { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo, RefreshToken = refreshToken, RefreshTokenExpiration = refreshExp });
-            }
-            catch (InvalidJwtException ex)
-            {
-                _logger.LogWarning(ex, "Invalid JWT received for Google SSO.");
-                throw new InvalidTokenException("Invalid Google ID token.");
-            }
-        }
 
         [HttpPost("magic/start")]
         [AllowAnonymous]
