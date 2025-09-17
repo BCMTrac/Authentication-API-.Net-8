@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj": {}
+    "C:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj": {}
   },
   "projects": {
-    "c:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj": {
+    "C:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj",
+        "projectUniqueName": "C:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj",
         "projectName": "AuthenticationAPI",
-        "projectPath": "c:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj",
+        "projectPath": "C:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\AuthenticationAPI.csproj",
         "packagesPath": "C:\\Users\\brand\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\obj\\",
+        "outputPath": "C:\\Users\\brand\\Desktop\\BCMTrac Auth Service\\AuthenticationAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

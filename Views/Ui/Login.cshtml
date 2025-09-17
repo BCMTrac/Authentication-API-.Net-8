@@ -5,7 +5,7 @@
 @model AuthenticationAPI.Models.ViewModels.LoginViewModel
 
 @section Head {
-    <link rel="stylesheet" href="@(Url.Content("~/css/Login.css"))" />
+    <link rel="stylesheet" href="@(Url.Content("~/css/login.css"))" />
 }
 
 <div class="container">
@@ -37,12 +37,6 @@
                 <a href="/" class="btn btn-cancel" role="button">Cancel</a>
             </div>
 
-            <div class="checkbox-group">
-                <label>
-                    <input asp-for="RememberMe" /> Remember Me
-                </label>
-            </div>
-
             <div class="forgot-password">
                 Forgot Your Password? - <a asp-action="ForgotPassword" asp-controller="Account">Click Here</a>
             </div>
@@ -51,7 +45,7 @@
 </div>
 
 <div class="footer">
-    <div>Copyright © 2015 - 2025</div>
+    <div>© 2015–2025 BCMTrac. All rights reserved.</div>
     <div><a href="#">Website Terms of Use</a></div>
 </div>
 

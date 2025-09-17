@@ -6,17 +6,21 @@
 
 body {
 	font-family: Arial, sans-serif;
-	background-color: #f5f5f5;
+	background-color: #f5f5f6;
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
 }
 
 #logoImg {
-	height: 160px;
-	width: 160px;
-	object-fit: contain;
+	width: auto;
+	height: 100%;
+	max-width: 100%;
 	display: block;
+	margin: 0;
+	object-fit: cover;
+	transform: scale(1.9);
+	transform-origin: center;
 }
 
 .container {
@@ -24,33 +28,40 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 20px;
+	padding: 25px;
+}
+
+.logo {
+	background: white;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto 16px; 
+	width: 60%;
+	max-width: 400px;
+	min-width: 150px;
+	height: 80px;            
+	overflow: hidden;      
 }
 
 .login-box {
 	background: white;
-	border-radius: 10px;
+	border-radius: 12px;
 	box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 	padding: 40px;
 	min-width: 400px;
+	max-width: 500px;
 }
 
 .logo-header {
 	background: linear-gradient(135deg, #ff8c00, #ff6600);
 	color: white;
-	padding: 30px;
-	border-radius: 15px;
+	padding: 45px;
+	border-radius: 14px;
 	text-align: center;
-	margin-bottom: 30px;
+	margin-bottom: 40px;
 	position: relative;
-}
-
-.logo {
-	background: white;
-	padding: 10px 20px;
-	border-radius: 5px;
-	display: inline-block;
-	margin-bottom: 20px;
 }
 
 
@@ -59,6 +70,7 @@ body {
 	font-weight: bold;
 	margin-bottom: 10px;
 	font-family: Arial, Helvetica, sans-serif;
+	margin: 20px 0 0 0px;
 }
 
 .subtitle {
@@ -87,56 +99,73 @@ input[type="text"], input[type="password"] {
 
 .button-group {
 	display: flex;
-	gap: 10px;
-	margin-bottom: 20px;
+	justify-content: center;
+	gap: 16px;
+	margin: 20px 0;
 }
 
 .btn {
-	padding: 10px 20px;
+	padding: 12px 28px;
 	border: none;
-	border-radius: 4px;
+	border-radius: 10px; 
 	font-size: 16px;
 	cursor: pointer;
+	display: inline-flex;        
+	align-items: center;           
+	justify-content: center;        
+	text-align: center;            
+	line-height: 1.2;              
+	text-decoration: none; 
 }
 
 .btn-login {
-	background-color: #4a90e2;
+	background-color: #17559c;
 	color: white;
 }
 
 .btn-cancel {
 	background-color: #ccc;
 	color: #333;
+	justify-content: center;
+
+}
+
+.btn-cancel:hover {
+	background-color: #bbbbbb;
 }
 
 .btn:hover {
-	opacity: 0.9;
-}
-
-.checkbox-group {
-	margin-bottom: 20px;
-	height: 25px;
+	opacity: 0.90;
 }
 
 .forgot-password {
-	text-align: right;
+	text-align: center; 
+	margin-top: 8px;
 }
 
 .forgot-password a {
-	color: #4a90e2;
+	color: #0a4d9b;
 	text-decoration: none;
+	cursor: pointer;
+	transition: color 0.15s ease;
 }
 
+.forgot-password a:hover,
+.forgot-password a:focus {
+	text-decoration: underline;
+	color: #083a74;
+}
 .footer {
-	background-color: #1fb3d3;
+	background-color: #FF7600;
 	color: white;
-	padding: 20px;
+	padding: 8px 16px; 
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	margin-top: 15px;
 }
 
 .footer a {
-	color: white;
 	text-decoration: none;
+	color: #ffffff;
 }

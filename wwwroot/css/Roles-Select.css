@@ -6,7 +6,7 @@
 
 body {
 	font-family: Arial, sans-serif;
-	background-color: #f5f5f5;
+	background-color: #f5f5f6;
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
@@ -99,9 +99,9 @@ body {
 }
 
 .footer {
-	background-color: #1fb3d3;
+	background-color: #FF7600;
 	color: white;
-	padding: 20px;
+	padding: 12px 16px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
