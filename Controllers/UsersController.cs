@@ -17,7 +17,7 @@ public class UsersController : ControllerBase
     { _userManager = userManager; _db = db; }
 
     [HttpGet("me")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
     public async Task<IActionResult> Me()
     {
         var user = await _userManager.GetUserAsync(User);

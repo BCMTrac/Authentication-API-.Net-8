@@ -6,7 +6,7 @@ namespace AuthenticationAPI.Controllers;
 
 [Route("api/v1/admin/client-apps")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin", AuthenticationSchemes = "Identity.Application,Bearer")]
 public class ClientAppsController : ControllerBase
 {
     private readonly IClientAppService _service;

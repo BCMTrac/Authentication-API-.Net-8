@@ -110,6 +110,11 @@ public class TestApplicationFactory : WebApplicationFactory<Program>
             {
                 roleMgr.CreateAsync(new IdentityRole("Admin")).GetAwaiter().GetResult();
             }
+
+            // Force NoOp password breach checker in tests regardless of appsettings
+            var breachDescriptors = services.Where(s => s.ServiceType == typeof(IPasswordBreachChecker)).ToList();
+            foreach (var d in breachDescriptors) services.Remove(d);
+            services.AddSingleton<IPasswordBreachChecker, NoOpPasswordBreachChecker>();
         });
     }
 

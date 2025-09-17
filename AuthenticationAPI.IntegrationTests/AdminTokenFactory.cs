@@ -23,18 +23,31 @@ public static class AdminTokenFactory
         string username = existingUserName ?? $"admin_{Guid.NewGuid():N}";
         string password = "Adm1n$tr0ngP@ss!";
         await client.PostAsJsonAsync("/api/v1/authenticate/register", new { Email = email, Username = username, Password = password, TermsAccepted = true });
-        using var scope = factory.Services.CreateScope();
-        var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        if (!await roleMgr.RoleExistsAsync("Admin")) await roleMgr.CreateAsync(new IdentityRole("Admin"));
+    // Generate confirmation token in isolated scope
+            string confirmToken;
+            using (var scopeGen = factory.Services.CreateScope())
+            {
+                var userMgrGen = scopeGen.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleMgrGen = scopeGen.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                if (!await roleMgrGen.RoleExistsAsync("Admin")) await roleMgrGen.CreateAsync(new IdentityRole("Admin"));
+                var userGen = await userMgrGen.FindByNameAsync(username);
+                confirmToken = await userMgrGen.GenerateEmailConfirmationTokenAsync(userGen!);
+            }
+            await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token = confirmToken });
+        using var scopeFinal = factory.Services.CreateScope();
+        var userMgr = scopeFinal.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var user = await userMgr.FindByNameAsync(username);
-        var token = await userMgr.GenerateEmailConfirmationTokenAsync(user!);
-        await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token });
-        user = await userMgr.FindByNameAsync(username);
-        if (!await userMgr.IsInRoleAsync(user!, "Admin")) await userMgr.AddToRoleAsync(user!, "Admin");
+        if (!await userMgr.IsInRoleAsync(user!, "Admin"))
+        {
+            var addRes = await userMgr.AddToRoleAsync(user!, "Admin");
+            if (!addRes.Succeeded)
+            {
+                throw new Exception("Failed to assign Admin role: " + string.Join(";", addRes.Errors.Select(e => e.Code + ":" + e.Description)));
+            }
+        }
         // Mint token directly
-        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    var keyRingSvc = scope.ServiceProvider.GetService(typeof(AuthenticationAPI.Services.IKeyRingService)) as AuthenticationAPI.Services.IKeyRingService;
+    var configuration = scopeFinal.ServiceProvider.GetRequiredService<IConfiguration>();
+    var keyRingSvc = scopeFinal.ServiceProvider.GetService(typeof(AuthenticationAPI.Services.IKeyRingService)) as AuthenticationAPI.Services.IKeyRingService;
     if (keyRingSvc == null) throw new InvalidOperationException("IKeyRingService not found");
     var activeKey = await keyRingSvc.GetActiveSigningKeyAsync();
     var kid = activeKey.Kid;

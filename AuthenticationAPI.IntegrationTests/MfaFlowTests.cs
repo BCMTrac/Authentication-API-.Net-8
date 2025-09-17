@@ -10,7 +10,6 @@ using AuthenticationAPI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace AuthenticationAPI.IntegrationTests;

@@ -21,28 +21,6 @@ public class UiController : Controller
     [HttpGet("/")]
     public IActionResult Index() => Redirect("/login");
 
-    [HttpGet("/admin")]
-    public IActionResult Admin() => View();
-
-    [HttpGet("/email-confirm")]
-    public IActionResult EmailConfirm() => View();
-
-    [HttpGet("/reset-password")]
-    public IActionResult ResetPassword() => View();
-
-    [HttpGet("/activate")]
-    public IActionResult Activate() => View();
-
-    [Authorize(Roles = "Admin")]
-    [HttpGet("/ui/onboarding")]
-    public IActionResult Onboarding() => View();
-
-    [HttpGet("/admin-login")]
-    public IActionResult AdminLogin() => View();
-
-    [HttpGet("/settings")]
-    [Authorize]
-    public IActionResult Settings() => View();
 
     [HttpGet("/login")]
     [AllowAnonymous]
@@ -77,6 +55,7 @@ public class UiController : Controller
     }
 
     [HttpGet("/roles-select")]
+    [Authorize]
     public IActionResult RolesSelect()
     {
         if (!User.Identity?.IsAuthenticated ?? true) return Redirect("/login");
@@ -86,6 +65,7 @@ public class UiController : Controller
     }
 
     [HttpPost("/roles-select")]
+    [Authorize]
     [ValidateAntiForgeryToken]
     public IActionResult RolesSelectPost(RoleSelectionViewModel model)
     {
@@ -102,6 +82,7 @@ public class UiController : Controller
     }
 
     [HttpGet("/schemes-select")]
+    [Authorize]
     [StepRequirement(RequireRole = true)]
     public IActionResult SchemesSelect()
     {
@@ -118,6 +99,7 @@ public class UiController : Controller
 
     [HttpPost("/schemes-select")]
     [ValidateAntiForgeryToken]
+    [Authorize]
     [StepRequirement(RequireRole = true)]
     public IActionResult SchemesSelectPost(SchemeSelectionViewModel model)
     {
@@ -137,8 +119,48 @@ public class UiController : Controller
 
     [HttpGet("/site-admin")]
     [AllowAnonymous]
-    public IActionResult SiteAdmin() => View("~/Views/Ui/SiteAdmin.cshtml");
+    public IActionResult SiteAdmin() => View("~/Views/Ui/SiteAdmin.cshtml", new SiteAdminLoginViewModel());
 
+    [HttpPost("/site-admin")]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SiteAdminPost(SiteAdminLoginViewModel model)
+    {
+        if (!ModelState.IsValid) return View("~/Views/Ui/SiteAdmin.cshtml", model);
+        var user = await _userManager.FindByNameAsync(model.Username) ?? await _userManager.FindByEmailAsync(model.Username);
+        if (user == null)
+        {
+            ModelState.AddModelError(string.Empty, "Invalid credentials");
+            return View("~/Views/Ui/SiteAdmin.cshtml", model);
+        }
+        // Potential extra restriction: ensure user has SiteAdmin role/claim if required
+        var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: true);
+        if (!result.Succeeded)
+        {
+            ModelState.AddModelError(string.Empty, "Invalid credentials");
+            return View("~/Views/Ui/SiteAdmin.cshtml", model);
+        }
+        HttpContext.Session.Clear();
+        return Redirect("/roles-select");
+    }
+
+    [HttpPost("/logout")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> LogoutPost()
+    {
+        await _signInManager.SignOutAsync();
+        HttpContext.Session.Clear();
+        return Redirect("/login");
+    }
+
+    [HttpGet("/logout")]
+    [Authorize]
+    public IActionResult Logout()
+    {
+        // Simple auto-post form to enforce anti-forgery
+        return View("~/Views/Ui/Logout.cshtml");
+    }
      
     
 }

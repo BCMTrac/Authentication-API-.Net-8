@@ -1,0 +1,1325 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="a6fcb5e7-4bdb-4a00-8dc3-f9e3006a0317" name="brand@BRANDONWINDOWS 2025-09-17 17:55:19" runUser="BRANDONWINDOWS\brand" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2025-09-17T17:55:19.4592301+02:00" queuing="2025-09-17T17:55:19.4592304+02:00" start="2025-09-17T17:55:18.7843915+02:00" finish="2025-09-17T17:55:19.5193250+02:00" />
+  <TestSettings name="default" id="9c3b49fc-4564-4d7a-aa2e-5e8d98aa4cdd">
+    <Deployment runDeploymentRoot="brand_BRANDONWINDOWS_2025-09-17_17_55_19" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="394b2ad2-ff0c-47fc-9666-ae462cac38e3" testId="45009dc2-643a-a311-3501-488a65d38e65" testName="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Sessions_List_Revoke_One_And_All" computerName="BRANDONWINDOWS" duration="00:00:00.0063572" startTime="2025-09-17T17:55:19.4524696+02:00" endTime="2025-09-17T17:55:19.4524698+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="394b2ad2-ff0c-47fc-9666-ae462cac38e3">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.CreateAdminAndLoginAsync() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 30&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Sessions_List_Revoke_One_And_All() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 112&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a708a85b-396a-4ccc-a92c-6d2a27f4fd03" testId="5f19f6ee-23dd-7e87-0163-c80eb6be89e4" testName="AuthenticationAPI.IntegrationTests.ChangeEmailTests.Change_Email_Bumps_TokenVersion_And_Revokes_Refresh" computerName="BRANDONWINDOWS" duration="00:00:00.1157318" startTime="2025-09-17T17:55:19.4488354+02:00" endTime="2025-09-17T17:55:19.4488357+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a708a85b-396a-4ccc-a92c-6d2a27f4fd03">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.ChangeEmailTests.Change_Email_Bumps_TokenVersion_And_Revokes_Refresh() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\ChangeEmailTests.cs:line 26&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="44a0ac9f-11ac-4790-a5e8-bcb04d500cc7" testId="94fe9652-9d0a-b763-45ff-17185bda1fef" testName="AuthenticationAPI.IntegrationTests.MfaFlowTests.Enable_MFA_Login_With_Totp_Then_Disable" computerName="BRANDONWINDOWS" duration="00:00:00.1157689" startTime="2025-09-17T17:55:19.4290217+02:00" endTime="2025-09-17T17:55:19.4290218+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="44a0ac9f-11ac-4790-a5e8-bcb04d500cc7">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.MfaFlowTests.Enable_MFA_Login_With_Totp_Then_Disable() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\MfaFlowTests.cs:line 28&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a71724b0-9639-463a-912a-f3c5630d87e9" testId="42bc6be1-e8dc-93fe-066b-cc0dd7a94799" testName="AuthenticationAPI.IntegrationTests.AdminInviteActivateTests.Admin_Invites_User_User_Activates_With_Roles" computerName="BRANDONWINDOWS" duration="00:00:00.1158263" startTime="2025-09-17T17:55:19.4254523+02:00" endTime="2025-09-17T17:55:19.4254525+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a71724b0-9639-463a-912a-f3c5630d87e9">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminInviteActivateTests.CreateSeededAdminAsync() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminInviteActivateTests.cs:line 27&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminInviteActivateTests.Admin_Invites_User_User_Activates_With_Roles() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminInviteActivateTests.cs:line 54&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="feb4dfa8-40a4-454e-9a03-d1ad0724c4ad" testId="ded4e6a0-1cac-fe0f-2a52-33982cee3501" testName="AuthenticationAPI.IntegrationTests.LockoutTests.Multiple_Failed_Logins_Trigger_Lockout_Then_Unlock" computerName="BRANDONWINDOWS" duration="00:00:00.1157463" startTime="2025-09-17T17:55:19.4304716+02:00" endTime="2025-09-17T17:55:19.4304718+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="feb4dfa8-40a4-454e-9a03-d1ad0724c4ad">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Object, IntPtr*)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.LockoutTests.Multiple_Failed_Logins_Trigger_Lockout_Then_Unlock() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\LockoutTests.cs:line 24&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9306b1ee-f411-4b94-803e-0237f3d9b95c" testId="db0e9e00-5143-ced4-c6ba-443027d3ce66" testName="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Client_Credentials_Grants_Token" computerName="BRANDONWINDOWS" duration="00:00:00.0039879" startTime="2025-09-17T17:55:19.4562320+02:00" endTime="2025-09-17T17:55:19.4562323+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9306b1ee-f411-4b94-803e-0237f3d9b95c">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Client_Credentials_Grants_Token() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 183&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="811e1d39-36b4-474e-994c-68fabc90ace6" testId="cdd84f2d-58df-42ef-dda5-f2398b337e5d" testName="AuthenticationAPI.IntegrationTests.LogoutAllTests.LogoutAll_Revokes_Sessions_And_Invalidates_Tokens" computerName="BRANDONWINDOWS" duration="00:00:00.1156634" startTime="2025-09-17T17:55:19.4269842+02:00" endTime="2025-09-17T17:55:19.4269844+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="811e1d39-36b4-474e-994c-68fabc90ace6">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.LogoutAllTests.LogoutAll_Revokes_Sessions_And_Invalidates_Tokens() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\LogoutAllTests.cs:line 24&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="4da8c115-cfb1-439a-90b5-2cd12fff1ea3" testId="fcb88f49-2a49-9b88-9d7e-c4e12f0b63b3" testName="AuthenticationAPI.IntegrationTests.JwksTests.Jwks_Lists_Active_RSA_Keys_And_Kid_Matches_Token" computerName="BRANDONWINDOWS" duration="00:00:00.1158735" startTime="2025-09-17T17:55:19.4170115+02:00" endTime="2025-09-17T17:55:19.4170116+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4da8c115-cfb1-439a-90b5-2cd12fff1ea3">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.JwksTests.Jwks_Lists_Active_RSA_Keys_And_Kid_Matches_Token() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\JwksTests.cs:line 25&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="50a2ab6f-6a02-490a-8f0e-b03c330139b3" testId="2ce208f1-82cc-a94e-1020-a238b36f9d15" testName="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Email_Resend_And_Idempotent_Confirm" computerName="BRANDONWINDOWS" duration="00:00:00.1156968" startTime="2025-09-17T17:55:19.4195596+02:00" endTime="2025-09-17T17:55:19.4195596+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="50a2ab6f-6a02-490a-8f0e-b03c330139b3">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Email_Resend_And_Idempotent_Confirm() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 237&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="672b818d-bef1-4e94-9af6-fb3d92001da2" testId="c09fbd12-0990-68aa-4ba0-b4b4d447d56d" testName="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Roles_Add_Remove" computerName="BRANDONWINDOWS" duration="00:00:00.0033787" startTime="2025-09-17T17:55:19.4536263+02:00" endTime="2025-09-17T17:55:19.4536267+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="672b818d-bef1-4e94-9af6-fb3d92001da2">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.CreateAdminAndLoginAsync() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 30&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Roles_Add_Remove() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 75&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="1ee6cd93-5db0-4d8c-a40d-a512d9acf0f3" testId="9be0ddf3-dd41-f4c4-05ef-852737d26f23" testName="AuthenticationAPI.IntegrationTests.AdminRoleManagementTests.Admin_Adds_And_Removes_Role" computerName="BRANDONWINDOWS" duration="00:00:00.1158033" startTime="2025-09-17T17:55:19.4184304+02:00" endTime="2025-09-17T17:55:19.4184305+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1ee6cd93-5db0-4d8c-a40d-a512d9acf0f3">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminTokenFactory.CreateAdminAsync(TestApplicationFactory factory, String existingUserName) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminTokenFactory.cs:line 21&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminRoleManagementTests.Admin_Adds_And_Removes_Role() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminRoleManagementTests.cs:line 34&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="5fc9f350-3e30-4679-b6d4-588a6a37741a" testId="d6f4d0e7-b4fd-8b0b-c0cb-e1f0cba4a08b" testName="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Lock_Unlock_User" computerName="BRANDONWINDOWS" duration="00:00:00.0038812" startTime="2025-09-17T17:55:19.4577627+02:00" endTime="2025-09-17T17:55:19.4577628+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5fc9f350-3e30-4679-b6d4-588a6a37741a">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.CreateAdminAndLoginAsync() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 30&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Lock_Unlock_User() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 153&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e164c917-7f68-4f06-96e3-aee92c924d7a" testId="26d348fd-9b0d-d651-4c57-4aa70b9971a2" testName="AuthenticationAPI.IntegrationTests.AuthFlowTests.Register_Confirm_Login_Me_Refresh_Logout" computerName="BRANDONWINDOWS" duration="00:00:00.1158056" startTime="2025-09-17T17:55:19.4318706+02:00" endTime="2025-09-17T17:55:19.4318708+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e164c917-7f68-4f06-96e3-aee92c924d7a">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.AuthFlowTests.Register_Confirm_Login_Me_Refresh_Logout() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AuthFlowTests.cs:line 31&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e02c8594-01e7-4d80-a6d3-1003eaa8e0ca" testId="70536b38-b78e-0e64-f2ab-7a140617e3a1" testName="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Magic_Link_Flow_Works" computerName="BRANDONWINDOWS" duration="00:00:00.0036428" startTime="2025-09-17T17:55:19.4656003+02:00" endTime="2025-09-17T17:55:19.4656006+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e02c8594-01e7-4d80-a6d3-1003eaa8e0ca">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Magic_Link_Flow_Works() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 213&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="52b6bd3a-6574-42be-a8f4-c873db6cc3e7" testId="854e4132-ebb7-621b-0d87-5d4d06fcbd2e" testName="AuthenticationAPI.IntegrationTests.RefreshReuseTests.Reusing_Rotated_Refresh_Revokes_All_And_Bumps_TokenVersion" computerName="BRANDONWINDOWS" duration="00:00:00.1157132" startTime="2025-09-17T17:55:19.4137875+02:00" endTime="2025-09-17T17:55:19.4138053+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="52b6bd3a-6574-42be-a8f4-c873db6cc3e7">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.RefreshReuseTests.Reusing_Rotated_Refresh_Revokes_All_And_Bumps_TokenVersion() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\RefreshReuseTests.cs:line 26&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="332f2f6c-f744-43bf-853f-b3a5d6946624" testId="975e6b21-b9d8-28b2-109e-75a958987d7f" testName="AuthenticationAPI.IntegrationTests.AdminLockUnlockTests.Admin_Locks_And_Unlocks_User" computerName="BRANDONWINDOWS" duration="00:00:00.1158023" startTime="2025-09-17T17:55:19.4475467+02:00" endTime="2025-09-17T17:55:19.4475468+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="332f2f6c-f744-43bf-853f-b3a5d6946624">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminTokenFactory.CreateAdminAsync(TestApplicationFactory factory, String existingUserName) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminTokenFactory.cs:line 21&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminLockUnlockTests.Admin_Locks_And_Unlocks_User() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminLockUnlockTests.cs:line 28&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3dae837c-4add-4736-83a6-c86b7a809dff" testId="91640fe6-719d-c0c2-99df-9fc6bab07aea" testName="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Bridge_Headers_Present_On_Login_And_Refresh" computerName="BRANDONWINDOWS" duration="00:00:00.0078995" startTime="2025-09-17T17:55:19.4549479+02:00" endTime="2025-09-17T17:55:19.4549479+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3dae837c-4add-4736-83a6-c86b7a809dff">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Bridge_Headers_Present_On_Login_And_Refresh() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 197&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="6136fc7c-fee8-40f2-8a5c-f5ddc7036b81" testId="99aeb19b-94a8-364c-272b-b34dd3cf654b" testName="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Invite_Activate_User" computerName="BRANDONWINDOWS" duration="00:00:00.0033221" startTime="2025-09-17T17:55:19.4629284+02:00" endTime="2025-09-17T17:55:19.4629286+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6136fc7c-fee8-40f2-8a5c-f5ddc7036b81">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.CreateAdminAndLoginAsync() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 30&#xD;
+   at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Invite_Activate_User() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs:line 48&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="821edf9e-db67-4e70-b70d-a2ca2d57d293" testId="dc21cb14-9537-9275-e646-1baba834d922" testName="AuthenticationAPI.IntegrationTests.AuthFlowTests.Password_Reset_Flow_Changes_Password_And_Revokes_Tokens" computerName="BRANDONWINDOWS" duration="00:00:00.0044693" startTime="2025-09-17T17:55:19.4512191+02:00" endTime="2025-09-17T17:55:19.4512193+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="821edf9e-db67-4e70-b70d-a2ca2d57d293">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\</Message>
+          <StackTrace>   at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+   at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+   at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+   at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+   at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+   at Program.&lt;Main&gt;$(String[] args) in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs:line 37&#xD;
+   at Program.&lt;Main&gt;(String[] args)&#xD;
+   at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+   at AuthenticationAPI.IntegrationTests.AuthFlowTests.Password_Reset_Flow_Changes_Password_And_Revokes_Tokens() in C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AuthFlowTests.cs:line 93&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AuthFlowTests.Register_Confirm_Login_Me_Refresh_Logout" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="26d348fd-9b0d-d651-4c57-4aa70b9971a2">
+      <Execution id="e164c917-7f68-4f06-96e3-aee92c924d7a" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AuthFlowTests" name="Register_Confirm_Login_Me_Refresh_Logout" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Client_Credentials_Grants_Token" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="db0e9e00-5143-ced4-c6ba-443027d3ce66">
+      <Execution id="9306b1ee-f411-4b94-803e-0237f3d9b95c" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminAndMoreTests" name="Client_Credentials_Grants_Token" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.MfaFlowTests.Enable_MFA_Login_With_Totp_Then_Disable" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="94fe9652-9d0a-b763-45ff-17185bda1fef">
+      <Execution id="44a0ac9f-11ac-4790-a5e8-bcb04d500cc7" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.MfaFlowTests" name="Enable_MFA_Login_With_Totp_Then_Disable" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.LockoutTests.Multiple_Failed_Logins_Trigger_Lockout_Then_Unlock" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="ded4e6a0-1cac-fe0f-2a52-33982cee3501">
+      <Execution id="feb4dfa8-40a4-454e-9a03-d1ad0724c4ad" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.LockoutTests" name="Multiple_Failed_Logins_Trigger_Lockout_Then_Unlock" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Sessions_List_Revoke_One_And_All" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="45009dc2-643a-a311-3501-488a65d38e65">
+      <Execution id="394b2ad2-ff0c-47fc-9666-ae462cac38e3" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminAndMoreTests" name="Admin_Sessions_List_Revoke_One_And_All" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Roles_Add_Remove" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="c09fbd12-0990-68aa-4ba0-b4b4d447d56d">
+      <Execution id="672b818d-bef1-4e94-9af6-fb3d92001da2" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminAndMoreTests" name="Admin_Roles_Add_Remove" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminLockUnlockTests.Admin_Locks_And_Unlocks_User" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="975e6b21-b9d8-28b2-109e-75a958987d7f">
+      <Execution id="332f2f6c-f744-43bf-853f-b3a5d6946624" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminLockUnlockTests" name="Admin_Locks_And_Unlocks_User" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Magic_Link_Flow_Works" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="70536b38-b78e-0e64-f2ab-7a140617e3a1">
+      <Execution id="e02c8594-01e7-4d80-a6d3-1003eaa8e0ca" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminAndMoreTests" name="Magic_Link_Flow_Works" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Bridge_Headers_Present_On_Login_And_Refresh" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="91640fe6-719d-c0c2-99df-9fc6bab07aea">
+      <Execution id="3dae837c-4add-4736-83a6-c86b7a809dff" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminAndMoreTests" name="Bridge_Headers_Present_On_Login_And_Refresh" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AuthFlowTests.Password_Reset_Flow_Changes_Password_And_Revokes_Tokens" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="dc21cb14-9537-9275-e646-1baba834d922">
+      <Execution id="821edf9e-db67-4e70-b70d-a2ca2d57d293" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AuthFlowTests" name="Password_Reset_Flow_Changes_Password_And_Revokes_Tokens" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Invite_Activate_User" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="99aeb19b-94a8-364c-272b-b34dd3cf654b">
+      <Execution id="6136fc7c-fee8-40f2-8a5c-f5ddc7036b81" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminAndMoreTests" name="Admin_Invite_Activate_User" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.LogoutAllTests.LogoutAll_Revokes_Sessions_And_Invalidates_Tokens" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="cdd84f2d-58df-42ef-dda5-f2398b337e5d">
+      <Execution id="811e1d39-36b4-474e-994c-68fabc90ace6" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.LogoutAllTests" name="LogoutAll_Revokes_Sessions_And_Invalidates_Tokens" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.RefreshReuseTests.Reusing_Rotated_Refresh_Revokes_All_And_Bumps_TokenVersion" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="854e4132-ebb7-621b-0d87-5d4d06fcbd2e">
+      <Execution id="52b6bd3a-6574-42be-a8f4-c873db6cc3e7" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.RefreshReuseTests" name="Reusing_Rotated_Refresh_Revokes_All_And_Bumps_TokenVersion" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminRoleManagementTests.Admin_Adds_And_Removes_Role" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="9be0ddf3-dd41-f4c4-05ef-852737d26f23">
+      <Execution id="1ee6cd93-5db0-4d8c-a40d-a512d9acf0f3" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminRoleManagementTests" name="Admin_Adds_And_Removes_Role" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.ChangeEmailTests.Change_Email_Bumps_TokenVersion_And_Revokes_Refresh" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="5f19f6ee-23dd-7e87-0163-c80eb6be89e4">
+      <Execution id="a708a85b-396a-4ccc-a92c-6d2a27f4fd03" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.ChangeEmailTests" name="Change_Email_Bumps_TokenVersion_And_Revokes_Refresh" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Email_Resend_And_Idempotent_Confirm" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="2ce208f1-82cc-a94e-1020-a238b36f9d15">
+      <Execution id="50a2ab6f-6a02-490a-8f0e-b03c330139b3" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminAndMoreTests" name="Email_Resend_And_Idempotent_Confirm" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Lock_Unlock_User" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="d6f4d0e7-b4fd-8b0b-c0cb-e1f0cba4a08b">
+      <Execution id="5fc9f350-3e30-4679-b6d4-588a6a37741a" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminAndMoreTests" name="Admin_Lock_Unlock_User" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.JwksTests.Jwks_Lists_Active_RSA_Keys_And_Kid_Matches_Token" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="fcb88f49-2a49-9b88-9d7e-c4e12f0b63b3">
+      <Execution id="4da8c115-cfb1-439a-90b5-2cd12fff1ea3" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.JwksTests" name="Jwks_Lists_Active_RSA_Keys_And_Kid_Matches_Token" />
+    </UnitTest>
+    <UnitTest name="AuthenticationAPI.IntegrationTests.AdminInviteActivateTests.Admin_Invites_User_User_Activates_With_Roles" storage="c:\users\brand\desktop\bcmtrac auth service\authenticationapi\authenticationapi.integrationtests\bin\debug\net8.0\authenticationapi.integrationtests.dll" id="42bc6be1-e8dc-93fe-066b-cc0dd7a94799">
+      <Execution id="a71724b0-9639-463a-912a-f3c5630d87e9" />
+      <TestMethod codeBase="C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\bin\Debug\net8.0\AuthenticationAPI.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AuthenticationAPI.IntegrationTests.AdminInviteActivateTests" name="Admin_Invites_User_User_Activates_With_Roles" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="45009dc2-643a-a311-3501-488a65d38e65" executionId="394b2ad2-ff0c-47fc-9666-ae462cac38e3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5f19f6ee-23dd-7e87-0163-c80eb6be89e4" executionId="a708a85b-396a-4ccc-a92c-6d2a27f4fd03" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="94fe9652-9d0a-b763-45ff-17185bda1fef" executionId="44a0ac9f-11ac-4790-a5e8-bcb04d500cc7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="42bc6be1-e8dc-93fe-066b-cc0dd7a94799" executionId="a71724b0-9639-463a-912a-f3c5630d87e9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ded4e6a0-1cac-fe0f-2a52-33982cee3501" executionId="feb4dfa8-40a4-454e-9a03-d1ad0724c4ad" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="db0e9e00-5143-ced4-c6ba-443027d3ce66" executionId="9306b1ee-f411-4b94-803e-0237f3d9b95c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cdd84f2d-58df-42ef-dda5-f2398b337e5d" executionId="811e1d39-36b4-474e-994c-68fabc90ace6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fcb88f49-2a49-9b88-9d7e-c4e12f0b63b3" executionId="4da8c115-cfb1-439a-90b5-2cd12fff1ea3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2ce208f1-82cc-a94e-1020-a238b36f9d15" executionId="50a2ab6f-6a02-490a-8f0e-b03c330139b3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c09fbd12-0990-68aa-4ba0-b4b4d447d56d" executionId="672b818d-bef1-4e94-9af6-fb3d92001da2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9be0ddf3-dd41-f4c4-05ef-852737d26f23" executionId="1ee6cd93-5db0-4d8c-a40d-a512d9acf0f3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d6f4d0e7-b4fd-8b0b-c0cb-e1f0cba4a08b" executionId="5fc9f350-3e30-4679-b6d4-588a6a37741a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="26d348fd-9b0d-d651-4c57-4aa70b9971a2" executionId="e164c917-7f68-4f06-96e3-aee92c924d7a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="70536b38-b78e-0e64-f2ab-7a140617e3a1" executionId="e02c8594-01e7-4d80-a6d3-1003eaa8e0ca" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="854e4132-ebb7-621b-0d87-5d4d06fcbd2e" executionId="52b6bd3a-6574-42be-a8f4-c873db6cc3e7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="975e6b21-b9d8-28b2-109e-75a958987d7f" executionId="332f2f6c-f744-43bf-853f-b3a5d6946624" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="91640fe6-719d-c0c2-99df-9fc6bab07aea" executionId="3dae837c-4add-4736-83a6-c86b7a809dff" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="99aeb19b-94a8-364c-272b-b34dd3cf654b" executionId="6136fc7c-fee8-40f2-8a5c-f5ddc7036b81" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dc21cb14-9537-9275-e646-1baba834d922" executionId="821edf9e-db67-4e70-b70d-a2ca2d57d293" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="19" executed="19" passed="0" failed="19" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 8.0.20)&#xD;
+[xUnit.net 00:00:00.07]   Discovering: AuthenticationAPI.IntegrationTests&#xD;
+[xUnit.net 00:00:00.10]   Discovered:  AuthenticationAPI.IntegrationTests&#xD;
+[xUnit.net 00:00:00.10]   Starting:    AuthenticationAPI.IntegrationTests&#xD;
+[xUnit.net 00:00:00.29]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.29]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.29]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.29]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.29]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.29]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\RefreshReuseTests.cs(26,0): at AuthenticationAPI.IntegrationTests.RefreshReuseTests.Reusing_Rotated_Refresh_Revokes_All_And_Bumps_TokenVersion()&#xD;
+[xUnit.net 00:00:00.29]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.29]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.29]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.29]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.29]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.29]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.29]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\JwksTests.cs(25,0): at AuthenticationAPI.IntegrationTests.JwksTests.Jwks_Lists_Active_RSA_Keys_And_Kid_Matches_Token()&#xD;
+[xUnit.net 00:00:00.29]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.29]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.29]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.29]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.29]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.29]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.29]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminTokenFactory.cs(21,0): at AuthenticationAPI.IntegrationTests.AdminTokenFactory.CreateAdminAsync(TestApplicationFactory factory, String existingUserName)&#xD;
+[xUnit.net 00:00:00.29]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminRoleManagementTests.cs(34,0): at AuthenticationAPI.IntegrationTests.AdminRoleManagementTests.Admin_Adds_And_Removes_Role()&#xD;
+[xUnit.net 00:00:00.29]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.29]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.29]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.29]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.30]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.30]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.30]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(237,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Email_Resend_And_Idempotent_Confirm()&#xD;
+[xUnit.net 00:00:00.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.30]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.30]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.30]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.30]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.30]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminInviteActivateTests.cs(27,0): at AuthenticationAPI.IntegrationTests.AdminInviteActivateTests.CreateSeededAdminAsync()&#xD;
+[xUnit.net 00:00:00.30]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminInviteActivateTests.cs(54,0): at AuthenticationAPI.IntegrationTests.AdminInviteActivateTests.Admin_Invites_User_User_Activates_With_Roles()&#xD;
+[xUnit.net 00:00:00.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.30]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.30]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.30]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.30]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.30]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\LogoutAllTests.cs(24,0): at AuthenticationAPI.IntegrationTests.LogoutAllTests.LogoutAll_Revokes_Sessions_And_Invalidates_Tokens()&#xD;
+[xUnit.net 00:00:00.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.30]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.30]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.30]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.30]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.30]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.31]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\MfaFlowTests.cs(28,0): at AuthenticationAPI.IntegrationTests.MfaFlowTests.Enable_MFA_Login_With_Totp_Then_Disable()&#xD;
+[xUnit.net 00:00:00.31]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.31]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.31]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.31]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.31]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.31]            at InvokeStub_Program.&lt;Main&gt;(Object, Object, IntPtr*)&#xD;
+[xUnit.net 00:00:00.31]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.31]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.31]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\LockoutTests.cs(24,0): at AuthenticationAPI.IntegrationTests.LockoutTests.Multiple_Failed_Logins_Trigger_Lockout_Then_Unlock()&#xD;
+[xUnit.net 00:00:00.31]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.31]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.31]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.31]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.31]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.31]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.31]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.31]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.31]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.31]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AuthFlowTests.cs(31,0): at AuthenticationAPI.IntegrationTests.AuthFlowTests.Register_Confirm_Login_Me_Refresh_Logout()&#xD;
+[xUnit.net 00:00:00.31]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.32]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.32]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.32]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.32]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.32]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.32]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.32]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.32]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminTokenFactory.cs(21,0): at AuthenticationAPI.IntegrationTests.AdminTokenFactory.CreateAdminAsync(TestApplicationFactory factory, String existingUserName)&#xD;
+[xUnit.net 00:00:00.32]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminLockUnlockTests.cs(28,0): at AuthenticationAPI.IntegrationTests.AdminLockUnlockTests.Admin_Locks_And_Unlocks_User()&#xD;
+[xUnit.net 00:00:00.32]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.32]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.32]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.32]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.32]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.32]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:00.32]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.32]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.32]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.32]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\ChangeEmailTests.cs(26,0): at AuthenticationAPI.IntegrationTests.ChangeEmailTests.Change_Email_Bumps_TokenVersion_And_Revokes_Refresh()&#xD;
+[xUnit.net 00:00:00.32]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.33]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.33]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AuthFlowTests.cs(93,0): at AuthenticationAPI.IntegrationTests.AuthFlowTests.Password_Reset_Flow_Changes_Password_And_Revokes_Tokens()&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.33]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.33]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(30,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.CreateAdminAndLoginAsync()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(112,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Sessions_List_Revoke_One_And_All()&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.33]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.33]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(30,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.CreateAdminAndLoginAsync()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(75,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Roles_Add_Remove()&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.33]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.33]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(197,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Bridge_Headers_Present_On_Login_And_Refresh()&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.33]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.33]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(183,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Client_Credentials_Grants_Token()&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.33]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.33]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(30,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.CreateAdminAndLoginAsync()&#xD;
+[xUnit.net 00:00:00.33]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(153,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Lock_Unlock_User()&#xD;
+[xUnit.net 00:00:00.33]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.33]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.33]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.33]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.34]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.34]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.34]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.34]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.34]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.get_Services()&#xD;
+[xUnit.net 00:00:00.34]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(30,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.CreateAdminAndLoginAsync()&#xD;
+[xUnit.net 00:00:00.34]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(48,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Invite_Activate_User()&#xD;
+[xUnit.net 00:00:00.34]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.34]       System.IO.DirectoryNotFoundException : C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\wwwroot\&#xD;
+[xUnit.net 00:00:00.34]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(String root, ExclusionFilters filters)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.&lt;&gt;c.&lt;UseStaticWebAssetsCore&gt;b__1_0(String contentRoot)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.StaticWebAssets.ManifestStaticWebAssetFileProvider..ctor(StaticWebAssetManifest manifest, Func`2 fileProviderFactory)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssetsCore(IWebHostEnvironment environment, Stream manifest)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Hosting.StaticWebAssets.StaticWebAssetsLoader.UseStaticWebAssets(IWebHostEnvironment environment, IConfiguration configuration)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Hosting.BootstrapHostBuilder.RunDefaultCallbacks()&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder.InitializeHosting(BootstrapHostBuilder bootstrapHostBuilder)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Builder.WebApplicationBuilder..ctor(WebApplicationOptions options, Action`1 configureDefaults)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(String[] args)&#xD;
+[xUnit.net 00:00:00.34]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\Program.cs(37,0): at Program.&lt;Main&gt;$(String[] args)&#xD;
+[xUnit.net 00:00:00.34]            at Program.&lt;Main&gt;(String[] args)&#xD;
+[xUnit.net 00:00:00.34]            at InvokeStub_Program.&lt;Main&gt;(Object, Span`1)&#xD;
+[xUnit.net 00:00:00.34]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)&#xD;
+[xUnit.net 00:00:00.34]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.Extensions.Hosting.HostFactoryResolver.&lt;&gt;c__DisplayClass10_0.&lt;ResolveHostFactory&gt;b__0(String[] args)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)&#xD;
+[xUnit.net 00:00:00.34]            at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()&#xD;
+[xUnit.net 00:00:00.34]         C:\Users\brand\Desktop\BCMTrac Auth Service\AuthenticationAPI\AuthenticationAPI.IntegrationTests\AdminAndMoreTests.cs(213,0): at AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Magic_Link_Flow_Works()&#xD;
+[xUnit.net 00:00:00.34]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.34]   Finished:    AuthenticationAPI.IntegrationTests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4106713+02:00">
+        <Text>[xUnit.net 00:00:00.29]     AuthenticationAPI.IntegrationTests.RefreshReuseTests.Reusing_Rotated_Refresh_Revokes_All_And_Bumps_TokenVersion [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4161070+02:00">
+        <Text>[xUnit.net 00:00:00.29]     AuthenticationAPI.IntegrationTests.JwksTests.Jwks_Lists_Active_RSA_Keys_And_Kid_Matches_Token [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4174542+02:00">
+        <Text>[xUnit.net 00:00:00.29]     AuthenticationAPI.IntegrationTests.AdminRoleManagementTests.Admin_Adds_And_Removes_Role [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4186116+02:00">
+        <Text>[xUnit.net 00:00:00.29]     AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Email_Resend_And_Idempotent_Confirm [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4197134+02:00">
+        <Text>[xUnit.net 00:00:00.30]     AuthenticationAPI.IntegrationTests.AdminInviteActivateTests.Admin_Invites_User_User_Activates_With_Roles [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4257151+02:00">
+        <Text>[xUnit.net 00:00:00.30]     AuthenticationAPI.IntegrationTests.LogoutAllTests.LogoutAll_Revokes_Sessions_And_Invalidates_Tokens [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4274499+02:00">
+        <Text>[xUnit.net 00:00:00.30]     AuthenticationAPI.IntegrationTests.MfaFlowTests.Enable_MFA_Login_With_Totp_Then_Disable [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4293060+02:00">
+        <Text>[xUnit.net 00:00:00.31]     AuthenticationAPI.IntegrationTests.LockoutTests.Multiple_Failed_Logins_Trigger_Lockout_Then_Unlock [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4307354+02:00">
+        <Text>[xUnit.net 00:00:00.31]     AuthenticationAPI.IntegrationTests.AuthFlowTests.Register_Confirm_Login_Me_Refresh_Logout [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4800421+02:00">
+        <Text>[xUnit.net 00:00:00.32]     AuthenticationAPI.IntegrationTests.AdminLockUnlockTests.Admin_Locks_And_Unlocks_User [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4803158+02:00">
+        <Text>[xUnit.net 00:00:00.32]     AuthenticationAPI.IntegrationTests.ChangeEmailTests.Change_Email_Bumps_TokenVersion_And_Revokes_Refresh [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4805720+02:00">
+        <Text>[xUnit.net 00:00:00.33]     AuthenticationAPI.IntegrationTests.AuthFlowTests.Password_Reset_Flow_Changes_Password_And_Revokes_Tokens [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4807858+02:00">
+        <Text>[xUnit.net 00:00:00.33]     AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Sessions_List_Revoke_One_And_All [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4810046+02:00">
+        <Text>[xUnit.net 00:00:00.33]     AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Roles_Add_Remove [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4812088+02:00">
+        <Text>[xUnit.net 00:00:00.33]     AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Bridge_Headers_Present_On_Login_And_Refresh [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4814227+02:00">
+        <Text>[xUnit.net 00:00:00.33]     AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Client_Credentials_Grants_Token [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4816322+02:00">
+        <Text>[xUnit.net 00:00:00.33]     AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Lock_Unlock_User [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4818372+02:00">
+        <Text>[xUnit.net 00:00:00.33]     AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Admin_Invite_Activate_User [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="BRANDONWINDOWS" outcome="Error" timestamp="2025-09-17T17:55:19.4959320+02:00">
+        <Text>[xUnit.net 00:00:00.34]     AuthenticationAPI.IntegrationTests.AdminAndMoreTests.Magic_Link_Flow_Works [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

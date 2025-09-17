@@ -13,7 +13,7 @@ namespace AuthenticationAPI.Controllers;
 
 [Route("api/v1/admin")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin", AuthenticationSchemes = "Identity.Application,Bearer")]
 public partial class AdminController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;

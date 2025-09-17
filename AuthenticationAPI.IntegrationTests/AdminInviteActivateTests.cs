@@ -29,15 +29,28 @@ public class AdminInviteActivateTests : IClassFixture<TestApplicationFactory>
         var username = NewUser();
         var password = "Adm1n$tr0ngP@ss!";
         (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
+        string confirmToken;
         using (var scope = _factory.Services.CreateScope())
         {
             var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             if (!await roleMgr.RoleExistsAsync("Admin")) await roleMgr.CreateAsync(new IdentityRole("Admin"));
             var user = await userMgr.FindByEmailAsync(email);
-            var token = await userMgr.GenerateEmailConfirmationTokenAsync(user!);
-            (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-            (await userMgr.AddToRoleAsync(user!, "Admin")).Succeeded.Should().BeTrue();
+            confirmToken = await userMgr.GenerateEmailConfirmationTokenAsync(user!);
+        }
+        (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token = confirmToken })).EnsureSuccessStatusCode();
+        // New scope after confirmation so concurrency stamp matches
+        using (var scope2 = _factory.Services.CreateScope())
+        {
+            var userMgr2 = scope2.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user2 = await userMgr2.FindByEmailAsync(email);
+            var addResult = await userMgr2.AddToRoleAsync(user2!, "Admin");
+            if (!addResult.Succeeded)
+            {
+                var errors = string.Join(";", addResult.Errors.Select(e => e.Code + ":" + e.Description));
+                var roles = await userMgr2.GetRolesAsync(user2!);
+                throw new Exception("Failed to add admin role: " + errors + " | existing roles: " + string.Join(",", roles));
+            }
         }
         var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
         login.StatusCode.Should().Be(HttpStatusCode.OK);

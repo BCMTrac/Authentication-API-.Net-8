@@ -6,7 +6,7 @@ namespace AuthenticationAPI.Controllers;
 
 [Route("api/v1/admin/keys")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin", AuthenticationSchemes = "Identity.Application,Bearer")]
 public class KeyManagementController : ControllerBase
 {
     private readonly IKeyRingService _keyRingService;

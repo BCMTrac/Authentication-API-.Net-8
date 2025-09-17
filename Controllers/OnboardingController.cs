@@ -10,7 +10,7 @@ namespace AuthenticationAPI.Controllers
 {
     [Route("api/v1/onboarding")]
     [ApiController]
-    [Authorize(Roles = "Admin")] // Only admins can access onboarding APIs
+    [Authorize(Roles = "Admin", AuthenticationSchemes = "Identity.Application,Bearer")] // Only admins can access onboarding APIs
     public class OnboardingController : ControllerBase
     {
         private readonly IOnboardingService _onboardingService;

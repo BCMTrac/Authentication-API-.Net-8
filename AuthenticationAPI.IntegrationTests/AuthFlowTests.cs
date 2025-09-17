@@ -35,7 +35,11 @@ public class AuthFlowTests : IClassFixture<TestApplicationFactory>
 
         var reg = new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true };
         var regResp = await client.PostAsJsonAsync("/api/v1/authenticate/register", reg);
-        regResp.StatusCode.Should().Be(HttpStatusCode.OK);
+        if (regResp.StatusCode != HttpStatusCode.OK)
+        {
+            var body = await regResp.Content.ReadAsStringAsync();
+            throw new Xunit.Sdk.XunitException($"Registration failed: {(int)regResp.StatusCode} {regResp.StatusCode}\nBody: {body}\nHeaders: {string.Join("; ", regResp.Headers.Select(h => h.Key+"="+string.Join(",", h.Value)))}");
+        }
 
         // Fetch confirmation token via DI and confirm
         using (var scope = _factory.Services.CreateScope())

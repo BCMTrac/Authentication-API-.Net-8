@@ -1,6 +1,216 @@
 @{
   ViewData["Title"] = "Select Scheme";
 }
+<style>
+body {
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  margin:0;
+  background:#0e1114;
+  color:#f2f6f9;
+  line-height:1.4;
+}
+
+a {
+  color:#3fa9ff;
+  text-decoration:none;
+}
+
+a:hover {
+  text-decoration:underline;
+}
+
+.wizard-card {
+  width:100%;
+  max-width:760px;
+  margin:40px auto;
+  background:#1c232b;
+  border:1px solid #27323b;
+  border-radius:16px;
+  padding:32px 40px 48px;
+  box-shadow:0 4px 24px -4px rgba(0,0,0,.6);
+}
+
+.wizard-header {
+  text-align:center;
+  margin-bottom:28px;
+}
+
+.logo-pill {
+  display:inline-block;
+  background:#182028;
+  padding:10px 20px;
+  border-radius:99px;
+  font-weight:600;
+  letter-spacing:.5px;
+  font-size:14px;
+  color:#e5eef5;
+  margin-bottom:12px;
+  box-shadow:0 0 0 1px #27323b,0 4px 12px -2px rgba(0,0,0,.4);
+}
+
+.gradient-box {
+  background:linear-gradient(135deg,#13202b,#1d2c38);
+  padding:28px 24px 32px;
+  border-radius:14px;
+  box-shadow:inset 0 0 0 1px #22313d;
+}
+
+.wizard-heading {
+  margin:0 0 6px;
+  font-size:28px;
+  font-weight:600;
+  letter-spacing:.5px;
+}
+
+.sub {
+  margin:0;
+  font-size:14px;
+  color:#a5b4c2;
+}
+
+form {
+  display:block;
+}
+
+.scheme-table {
+  border:1px solid #25323d;
+  border-radius:14px;
+  overflow:hidden;
+  background:#151d24;
+}
+
+.scheme-table-head {
+  display:grid;
+  grid-template-columns:1fr 140px;
+  background:#1d2730;
+  padding:10px 18px;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:#8fa0ae;
+}
+
+.scheme-table-body {
+  display:flex;
+  flex-direction:column;
+}
+
+.scheme-row {
+  display:grid;
+  grid-template-columns:1fr 140px;
+  padding:14px 18px;
+  gap:12px;
+  border-top:1px solid #1f2b34;
+  align-items:center;
+  cursor:pointer;
+  position:relative;
+}
+
+.scheme-row:first-of-type {
+  border-top:none;
+}
+
+.scheme-row:hover {
+  background:#1a242d;
+}
+
+.scheme-row input {
+  position:absolute;
+  top:14px;
+  left:12px;
+  opacity:0;
+}
+
+.scheme-row .col {
+  font-size:14px;
+  color:#d7e4eb;
+}
+
+.scheme-row .col.type {
+  font-size:13px;
+  color:#9fb1be;
+}
+
+.field-error {
+  color:#ff5d5d;
+  font-size:12px;
+  min-height:16px;
+}
+
+.validation-summary {
+  margin-bottom:12px;
+  color:#ff9393;
+  font-size:13px;
+}
+
+.footer-actions {
+  display:flex;
+  gap:14px;
+  justify-content:flex-end;
+  margin-top:20px;
+}
+
+.btn {
+  appearance:none;
+  border:none;
+  cursor:pointer;
+  font:600 14px system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  padding:12px 20px;
+  border-radius:12px;
+  background:#24313b;
+  color:#dfe9f1;
+  letter-spacing:.5px;
+  transition:background .18s, box-shadow .18s;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.btn.primary {
+  background:#0f6abf;
+  color:#fff;
+  box-shadow:0 2px 10px -2px rgba(15,106,191,.5);
+}
+
+.btn.primary:hover {
+  background:#0d5ca5;
+}
+
+.btn:hover {
+  background:#2c3a45;
+  text-decoration:none;
+}
+
+.btn:active {
+  transform:translateY(1px);
+}
+
+.schemes-step .wizard-heading {
+  color:#f8d5b6;
+}
+
+@@media (max-width:780px){
+  .wizard-card {
+    margin:24px 14px;
+    padding:28px 26px 40px;
+  }
+  .scheme-table-head {
+    display:none;
+  }
+  .scheme-row {
+    grid-template-columns:1fr;
+    padding:12px 16px;
+  }
+  .footer-actions {
+    flex-direction:column;
+  }
+  .btn {
+    width:100%;
+    justify-content:center;
+  }
+}
+</style>
 
 @model AuthenticationAPI.Models.ViewModels.SchemeSelectionViewModel
 <div class="wizard-card schemes-step">

@@ -189,7 +189,15 @@ namespace AuthenticationAPI.Controllers
         [EnableRateLimiting("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+            {
+                // Temporary diagnostic to aid integration test failure analysis
+                var problems = ModelState.Where(kv => kv.Value?.Errors.Count > 0)
+                    .Select(kv => new { Field = kv.Key, Errors = kv.Value!.Errors.Select(e => e.ErrorMessage).ToArray() })
+                    .ToArray();
+                HttpContext.Response.Headers["X-Debug-Validation"] = System.Text.Json.JsonSerializer.Serialize(problems);
+                return ValidationProblem(ModelState);
+            }
 
             var compromised = await HttpContext.RequestServices.GetRequiredService<IPasswordBreachChecker>().IsCompromisedAsync(model.Password);
             if (compromised) throw new BadRequestException("This password appears in known breaches. Choose a different one.");
@@ -247,6 +255,51 @@ namespace AuthenticationAPI.Controllers
             }
 
             return Ok(new ApiMessage { Message = "If that email exists, we've sent a confirmation link." });
+        }
+
+        [HttpPost("login")]
+        [EnableRateLimiting("login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromBody] LoginModel model)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var identifier = model.Identifier?.Trim();
+            if (string.IsNullOrWhiteSpace(identifier)) throw new BadRequestException("Identifier is required.");
+            ApplicationUser? user = null;
+            if (identifier.Contains('@'))
+            {
+                user = await _userManager.FindByEmailAsync(identifier);
+            }
+            else
+            {
+                user = await _userManager.FindByNameAsync(identifier);
+            }
+            if (user == null) throw new InvalidTokenException("Invalid credentials.");
+            if (!user.EmailConfirmed) throw new EmailUnconfirmedException();
+            var passOk = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (!passOk)
+            {
+                await _userManager.AccessFailedAsync(user);
+                throw new InvalidTokenException("Invalid credentials.");
+            }
+            if (await _userManager.IsLockedOutAsync(user)) throw new AccountLockedException();
+            await _userManager.ResetAccessFailedCountAsync(user);
+
+            // Only require MFA if the user has fully enabled it (secret present AND enabled flag set)
+            var mfaRequired = user.MfaEnabled && !string.IsNullOrWhiteSpace(user.MfaSecret);
+            if (mfaRequired)
+            {
+                if (string.IsNullOrWhiteSpace(model.MfaCode))
+                {
+                    return Ok(new MfaRequiredResponse { MfaRequired = true });
+                }
+                var mfaOk = await ValidateMfa(user, model.MfaCode);
+                if (!mfaOk) throw new InvalidMfaCodeException();
+                var resp = await CreateTokenResponse(user, true);
+                return Ok(resp);
+            }
+            var tokens = await CreateTokenResponse(user, false);
+            return Ok(tokens);
         }
 
         [HttpPost("refresh")]
@@ -319,8 +372,8 @@ namespace AuthenticationAPI.Controllers
             });
         }
 
-        [HttpPost("logout")]
-        [Authorize]
+    [HttpPost("logout")]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
         {
             var provided = request.RefreshToken;
@@ -433,7 +486,7 @@ namespace AuthenticationAPI.Controllers
         public record ActivateRequestDto(string Email, string Token, string Password, string? FullName);
 
         [HttpPost("invite")]
-        [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin", AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> Invite([FromBody] InviteRequestDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Email)) throw new BadRequestException("Email is required for invitation.");
@@ -491,8 +544,8 @@ namespace AuthenticationAPI.Controllers
             return Ok();
         }
 
-        [HttpPost("logout-all")]
-        [Authorize]
+    [HttpPost("logout-all")]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> LogoutAll()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -503,8 +556,8 @@ namespace AuthenticationAPI.Controllers
             return Ok();
         }
 
-        [HttpPost("change-email/start")]
-        [Authorize]
+    [HttpPost("change-email/start")]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> ChangeEmailStart([FromBody] ChangeEmailStartDto dto)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
@@ -535,8 +588,8 @@ namespace AuthenticationAPI.Controllers
             return Ok(new SentResponse { Sent = true });
         }
 
-        [HttpPost("change-email/confirm")]
-        [Authorize]
+    [HttpPost("change-email/confirm")]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> ChangeEmailConfirm([FromBody] ChangeEmailConfirmDto dto)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
@@ -550,8 +603,8 @@ namespace AuthenticationAPI.Controllers
             return Ok();
         }
 
-        [HttpGet("mfa/qr")]
-        [Authorize]
+    [HttpGet("mfa/qr")]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> GetMfaQr()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -722,8 +775,8 @@ namespace AuthenticationAPI.Controllers
             }
         }
 
-        [HttpPost("mfa/enroll/start")]
-        [Authorize]
+    [HttpPost("mfa/enroll/start")]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> MfaEnrollStart()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -741,8 +794,8 @@ namespace AuthenticationAPI.Controllers
             return File(qrCodeImage, "image/png");
         }
 
-        [HttpPost("mfa/enroll/confirm")]
-        [Authorize]
+    [HttpPost("mfa/enroll/confirm")]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
         [EnableRateLimiting("otp")]
         public async Task<IActionResult> MfaEnrollConfirm([FromBody] MfaCodeDto dto)
         {
@@ -760,8 +813,8 @@ namespace AuthenticationAPI.Controllers
             return Ok(new MfaEnabledResponse { Enabled = true, RecoveryCodes = codes });
         }
 
-        [HttpPost("mfa/disable")]
-        [Authorize(Policy = AuthConstants.Policies.Mfa)]
+    [HttpPost("mfa/disable")]
+    [Authorize(Policy = AuthConstants.Policies.Mfa, AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> MfaDisable()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -776,8 +829,8 @@ namespace AuthenticationAPI.Controllers
             return Ok();
         }
 
-        [HttpPost("mfa/recovery/regenerate")]
-        [Authorize(Policy = AuthConstants.Policies.Mfa)]
+    [HttpPost("mfa/recovery/regenerate")]
+    [Authorize(Policy = AuthConstants.Policies.Mfa, AuthenticationSchemes = "Identity.Application,Bearer")]
         public async Task<IActionResult> RegenerateRecoveryCodes()
         {
             var user = await _userManager.GetUserAsync(User);
