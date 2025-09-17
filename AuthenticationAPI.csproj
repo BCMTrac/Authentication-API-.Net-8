@@ -50,6 +50,7 @@
 
   <ItemGroup>
     <Compile Remove="AuthenticationAPI.IntegrationTests\\**\\*.cs" />
+    <Compile Remove="IntegrationTests\\**\\*.cs" />
   </ItemGroup>
 
 </Project>

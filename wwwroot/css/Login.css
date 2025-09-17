@@ -1,0 +1,138 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial, sans-serif;
+	background-color: #f5f5f5;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.container {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+
+.login-box {
+	background: white;
+	border-radius: 10px;
+	box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+	padding: 40px;
+	min-width: 400px;
+}
+
+.logo-header {
+	background: linear-gradient(135deg, #ff8c00, #ff6600);
+	color: white;
+	padding: 30px;
+	border-radius: 15px;
+	text-align: center;
+	margin-bottom: 30px;
+	position: relative;
+}
+
+.logo {
+	background: white;
+	padding: 10px 20px;
+	border-radius: 5px;
+	display: inline-block;
+	margin-bottom: 20px;
+}
+
+.logo-text {
+	color: #0066cc;
+	font-weight: bold;
+	font-size: 24px;
+}
+
+.welcome-text {
+	font-size: 24px;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
+.subtitle {
+	font-size: 18px;
+	margin-bottom: 10px;
+}
+
+.form-group {
+	margin-bottom: 20px;
+}
+
+label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: bold;
+	color: #333;
+}
+
+input[type="text"], input[type="password"] {
+	width: 100%;
+	padding: 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 16px;
+}
+
+.button-group {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+.btn {
+	padding: 10px 20px;
+	border: none;
+	border-radius: 4px;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.btn-login {
+	background-color: #4a90e2;
+	color: white;
+}
+
+.btn-cancel {
+	background-color: #ccc;
+	color: #333;
+}
+
+.btn:hover {
+	opacity: 0.9;
+}
+
+.checkbox-group {
+	margin-bottom: 20px;
+}
+
+.forgot-password {
+	text-align: right;
+}
+
+.forgot-password a {
+	color: #4a90e2;
+	text-decoration: none;
+}
+
+.footer {
+	background-color: #1fb3d3;
+	color: white;
+	padding: 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.footer a {
+	color: white;
+	text-decoration: none;
+}

@@ -1,53 +1,39 @@
 @{
-  ViewData["Title"] = "Logging Out";
+    ViewData["Title"] = "Logging Out";
 }
-<style>
-body {
-  font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  margin:0;
-  background:#0e1114;
-  color:#f2f6f9;
-  line-height:1.4;
-}
-.wizard-card {
-  width:100%;
-  max-width:400px;
-  margin:60px auto;
-  background:#1c232b;
-  border:1px solid #27323b;
-  border-radius:16px;
-  padding:32px 36px 40px;
-  text-align:center;
-  box-shadow:0 4px 24px -4px rgba(0,0,0,.6);
-}
-.logo-pill {
-  display:inline-block;
-  background:#182028;
-  padding:8px 18px;
-  border-radius:99px;
-  font-weight:600;
-  letter-spacing:.5px;
-  font-size:13px;
-  color:#e5eef5;
-  margin-bottom:16px;
-  box-shadow:0 0 0 1px #27323b,0 4px 12px -2px rgba(0,0,0,.4);
-}
-.status {
-  font-size:15px;
-  color:#c6d2db;
-  margin-top:12px;
-}
-</style>
-<form id="logoutForm" method="post" action="/logout">
-  @Html.AntiForgeryToken()
-  <noscript>
-    <p>Click the button below to logout.</p>
-    <button type="submit" class="btn primary">Logout</button>
-  </noscript>
-</form>
+<link rel="stylesheet" href="@(Url.Content("~/css/Logout.css"))" />
+
+<div class="container">
+    <div class="login-box">
+        <div class="logo-header">
+            <div class="logo">
+                <span class="logo-text">BCMTrac</span>
+            </div>
+            <div class="welcome-text">Signing you out…</div>
+            <div class="subtitle">Please wait a moment.</div>
+        </div>
+
+        <!-- Silent logout form -->
+        <form id="logoutForm" asp-action="Logout" asp-controller="Account" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <noscript>
+                <p class="noscript-msg">JavaScript is disabled. Click the button below to log out.</p>
+                <button type="submit" class="btn btn-login">Logout</button>
+            </noscript>
+        </form>
+
+        <div class="status" aria-live="polite">Processing logout…</div>
+    </div>
+</div>
+
+<div class="footer">
+    <div>Copyright © 2015 - 2025</div>
+    <div><a href="#">Website Terms of Use</a></div>
+</div>
+
 <script>
-  window.addEventListener('DOMContentLoaded', () => {
-    const f = document.getElementById('logoutForm');
-    if(f) f.submit();
-  });
+    window.addEventListener('DOMContentLoaded', () => {
+        const f = document.getElementById('logoutForm');
+        if (f) f.submit();
+    });
 </script>

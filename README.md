@@ -116,3 +116,53 @@ Production Notes
 - For multi-node, set Throttle Provider to redis and set connection string.
 - For Linux or scale-out, use DataProtection:Storage=azure to share key ring.
 - Consider Serilog + OpenTelemetry for logs/metrics to your platform of choice.
+
+## Tests
+
+Integration tests live in `AuthenticationAPI.IntegrationTests` and run against in-memory SQLite databases for both Identity and App data contexts. Key characteristics:
+
+- Deterministic factory (`TestApplicationFactory`) disables: Swagger, Audit/Idempotency, HTTPS redirect, RateLimit (can be re-enabled per-test), Hangfire background server.
+- Bridge headers enabled in tests to validate header emission.
+- Password breach checker forced to NoOp to avoid external calls.
+- Email sending captured via `TestEmailSender` (tokens not emailed; confirmation token generated directly using `UserManager`).
+- Parallelization disabled (AssemblyInfo) due to shared in-memory connections.
+
+Primary Coverage (representative; not exhaustive):
+
+- Auth Flow: Register → Confirm Email → Login → /users/me
+- Sessions & Refresh: Rotation, reuse detection
+- Password History: Reuse blocked
+- Lockout: Incrementing access failures
+- MFA: Enrollment & recovery code regeneration (regen currently under investigation and skipped)
+- Admin: Invite/activate, role assignment (base coverage)
+- Security Headers: Validates core security headers + CSP presence
+- Site Admin: Password-based site admin login endpoint issuing JWT
+- Negative Cases: Invalid refresh token handling
+
+Skipped (Remaining Work):
+
+- MFA recovery codes regeneration test (timing/state 400) – test is skipped pending deeper time step instrumentation.
+- Rate limit triggering (policy disabled by default in factory; will require custom client burst and enabling feature toggle).
+
+### Running Tests
+
+```powershell
+dotnet test -v minimal
+```
+
+Filter a single test:
+
+```powershell
+dotnet test --filter FullyQualifiedName~SiteAdminLoginTests
+```
+
+### Adding New Integration Tests
+
+Use `TestHelpers.RegisterConfirmAndLoginAsync` for concise arrange steps. For MFA-related tests prefer using recovery codes or time-step wait loops to avoid flakiness.
+
+### Future Enhancements
+
+- Unskip and stabilize MFA regenerate flow (instrument time step + last used step).
+- Implement rate limit assertion with deterministic clock/fake or temporary enabling of limiter.
+- Add tenant/permission wiring tests once endpoints are implemented.
+- Consider introducing a lightweight domain builder for complex user/setup scenarios.

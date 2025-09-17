@@ -302,6 +302,31 @@ namespace AuthenticationAPI.Controllers
             return Ok(tokens);
         }
 
+        [HttpPost("site-admin/login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SiteAdminPasswordLogin([FromBody] LoginModel model)
+        {
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var identifier = model.Identifier?.Trim();
+            if (string.IsNullOrWhiteSpace(identifier)) throw new BadRequestException("Identifier is required.");
+            ApplicationUser? user = identifier.Contains('@')
+                ? await _userManager.FindByEmailAsync(identifier)
+                : await _userManager.FindByNameAsync(identifier);
+            if (user == null) throw new InvalidTokenException("Invalid credentials.");
+            if (!user.EmailConfirmed) throw new EmailUnconfirmedException();
+            var passOk = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (!passOk)
+            {
+                await _userManager.AccessFailedAsync(user);
+                throw new InvalidTokenException("Invalid credentials.");
+            }
+            if (await _userManager.IsLockedOutAsync(user)) throw new AccountLockedException();
+            await _userManager.ResetAccessFailedCountAsync(user);
+            // Always treat as MFA succeeded=false (or optionally could enforce MFA). Site admin quick path.
+            var tokens = await CreateTokenResponse(user, false);
+            return Ok(tokens);
+        }
+
         [HttpPost("refresh")]
         [EnableRateLimiting("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)

@@ -1,0 +1,144 @@
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial, sans-serif;
+	background-color: #f5f5f5;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.container {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 20px;
+}
+
+.logo-header {
+	background: linear-gradient(135deg, #ff8c00, #ff6600);
+	color: white;
+	padding: 30px;
+	border-radius: 15px;
+	text-align: center;
+	margin-bottom: 30px;
+	min-width: 800px;
+}
+
+.logo {
+	background: white;
+	padding: 10px 20px;
+	border-radius: 5px;
+	display: inline-block;
+	margin-bottom: 20px;
+}
+
+.logo-text {
+	color: #0066cc;
+	font-weight: bold;
+	font-size: 24px;
+}
+
+.welcome-text {
+	font-size: 24px;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
+.subtitle {
+	font-size: 18px;
+}
+
+.scheme-selection {
+	background: white;
+	border-radius: 10px;
+	box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+	padding: 30px;
+	min-width: 600px;
+	margin-bottom: 30px;
+}
+
+.table-header {
+	display: flex;
+	background-color: #f8f9fa;
+	padding: 15px;
+	border-radius: 5px;
+	margin-bottom: 10px;
+	font-weight: bold;
+}
+
+.scheme-name-col {
+	flex: 2;
+	padding-right: 20px;
+}
+
+.entity-type-col {
+	flex: 1;
+}
+
+.scheme-item {
+	display: flex;
+	padding: 15px;
+	border-bottom: 1px solid #eee;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.scheme-item:hover {
+	background-color: #f8f9fa;
+}
+
+.scheme-name {
+	flex: 2;
+	padding-right: 20px;
+	color: #4a90e2;
+	text-decoration: none;
+}
+
+.entity-type {
+	flex: 1;
+	color: #666;
+}
+
+.continue-btn {
+	background: linear-gradient(135deg, #ff8c00, #ff6600);
+	color: white;
+	border: none;
+	border-radius: 25px;
+	padding: 15px 40px;
+	font-size: 18px;
+	font-weight: bold;
+	cursor: pointer;
+	min-width: 200px;
+}
+
+.continue-btn:hover {
+	opacity: 0.9;
+}
+
+.footer {
+	background-color: #1fb3d3;
+	color: white;
+	padding: 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
+
+.footer a {
+	color: white;
+	text-decoration: none;
+}
+
+.selected {
+	background-color: #e3f2fd !important;
+	border-left: 4px solid #4a90e2;
+}
