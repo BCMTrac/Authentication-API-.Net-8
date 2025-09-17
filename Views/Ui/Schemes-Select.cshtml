@@ -1,23 +1,40 @@
 @{
-  Layout = "_LoginWizardLayout";
-  ViewData["Asset"] = "schemes-select";
   ViewData["Title"] = "Select Scheme";
 }
 
+@model AuthenticationAPI.Models.ViewModels.SchemeSelectionViewModel
 <div class="wizard-card schemes-step">
   <div class="wizard-header gradient-box">
     <div class="logo-pill">BCMTrac</div>
-    <h2 class="wizard-heading">Welcome back, <span id="displayName">User</span></h2>
-    <p class="sub">Please log into one of your Schemes</p>
+    <h2 class="wizard-heading">Select Scheme</h2>
+    <p class="sub">Choose a scheme to proceed.</p>
   </div>
-  <div class="scheme-table" id="schemeTable" aria-live="polite">
-    <div class="scheme-table-head">
-      <div class="col name">Scheme BC / HOA / Company Name</div>
-      <div class="col type">Entity Type</div>
+  <form asp-action="SchemesSelectPost" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <div class="validation-summary">@Html.ValidationSummary()</div>
+    <div class="scheme-table">
+      <div class="scheme-table-head">
+        <div class="col name">Scheme Name</div>
+        <div class="col type">Type</div>
+      </div>
+      <div class="scheme-table-body">
+        @if(Model.AvailableSchemes.Any())
+        {
+          foreach(var s in Model.AvailableSchemes)
+          {
+            <label class="scheme-row">
+              <input type="radio" name="SelectedSchemeId" value="@s.Id" @(Model.SelectedSchemeId==s.Id?"checked":null) />
+              <div class="col name">@s.Name</div>
+              <div class="col type">@s.Type</div>
+            </label>
+          }
+        }
+        else { <div class="muted">No schemes available.</div>; }
+      </div>
     </div>
-    <div class="scheme-table-body" id="schemeRows"></div>
-  </div>
-  <div class="footer-actions">
-    <button class="btn primary" id="continueScheme" disabled>Continue</button>
-  </div>
+    <span class="field-error" asp-validation-for="SelectedSchemeId"></span>
+    <div class="footer-actions">
+      <button class="btn primary" type="submit">Continue</button>
+    </div>
+  </form>
 </div>

@@ -1,17 +1,33 @@
 @{
-  Layout = "_LoginWizardLayout";
-  ViewData["Asset"] = "roles-select";
   ViewData["Title"] = "Select Role";
 }
 
+@model AuthenticationAPI.Models.ViewModels.RoleSelectionViewModel
 <div class="wizard-card roles-step">
   <div class="wizard-header gradient-box">
     <div class="logo-pill">BCMTrac</div>
-    <h2 class="wizard-heading">Welcome Back, <span id="displayName">User</span></h2>
-    <p class="sub">Please select the type you are registered as:</p>
+    <h2 class="wizard-heading">Select Role</h2>
+    <p class="sub">Choose a role to continue.</p>
   </div>
-  <div id="roleButtons" class="role-grid" aria-live="polite"></div>
-  <div class="footer-actions">
-    <button class="btn primary" id="continueRoles" disabled>Continue</button>
-  </div>
+  <form asp-action="RolesSelectPost" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <div class="validation-summary">@Html.ValidationSummary()</div>
+    <div class="role-grid">
+      @if(Model.AvailableRoles.Any())
+      {
+          foreach(var r in Model.AvailableRoles)
+          {
+              <label class="role-option">
+                <input type="radio" name="SelectedRole" value="@r" @(Model.SelectedRole==r?"checked":null) />
+                <span>@r</span>
+              </label>
+          }
+      }
+      else { <p class="muted">No roles assigned.</p>; }
+    </div>
+    <span class="field-error" asp-validation-for="SelectedRole"></span>
+    <div class="footer-actions">
+      <button class="btn primary" type="submit">Continue</button>
+    </div>
+  </form>
 </div>

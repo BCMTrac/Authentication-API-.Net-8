@@ -1,32 +1,35 @@
 @{
-  Layout = "_LoginWizardLayout";
-  ViewData["Asset"] = "login";
   ViewData["Title"] = "Login";
 }
 
+@model AuthenticationAPI.Models.ViewModels.LoginViewModel
 <div class="wizard-card login-step">
   <div class="wizard-header gradient-box">
     <div class="logo-pill">BCMTrac</div>
     <h2 class="wizard-heading">User Login</h2>
   </div>
-  <form id="loginForm" novalidate>
+  <form asp-action="LoginPost" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <div class="validation-summary">@Html.ValidationSummary()</div>
     <div class="form-field">
-      <label for="username">Username</label>
-      <input id="username" required autocomplete="username" />
+      <label asp-for="Username"></label>
+      <input asp-for="Username" autocomplete="username" />
+      <span class="field-error" asp-validation-for="Username"></span>
     </div>
     <div class="form-field">
-      <label for="password">Password</label>
-      <input id="password" type="password" required autocomplete="current-password" />
+      <label asp-for="Password"></label>
+      <input asp-for="Password" autocomplete="current-password" />
+      <span class="field-error" asp-validation-for="Password"></span>
+    </div>
+    <div class="form-field inline">
+      <input asp-for="RememberMe" /> <label asp-for="RememberMe">Remember Me</label>
     </div>
     <div class="actions-row">
-      <button class="btn primary" id="loginBtn" type="submit">Login</button>
-      <button type="button" class="btn" id="cancelBtn">Cancel</button>
+      <button class="btn primary" type="submit">Login</button>
+      <a href="/" class="btn" role="button">Cancel</a>
     </div>
-    <label class="remember-me">
-      <input type="checkbox" id="rememberMe" /> Remember Me
-    </label>
     <div class="aux-row">
-      <a class="link" id="forgotLink" href="/reset-password">Forgot your password?</a>
+      <a class="link" href="/reset-password">Forgot your password?</a>
     </div>
   </form>
 </div>

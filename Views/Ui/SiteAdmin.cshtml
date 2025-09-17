@@ -1,0 +1,24 @@
+@{
+  ViewData["Title"] = "Site Admin Login";
+}
+<div class="wizard-card admin-step">
+  <div class="wizard-header gradient-box">
+    <div class="logo-pill">BCMTrac</div>
+    <h2 class="wizard-heading">Site Admin Access</h2>
+    <p class="sub">Restricted administrative portal</p>
+  </div>
+  <form id="siteAdminLoginForm" method="post" action="/site-admin" novalidate>
+    <div class="form-field">
+      <label for="AdminUsername">Username</label>
+      <input id="AdminUsername" name="Username" required autocomplete="username" />
+    </div>
+    <div class="form-field">
+      <label for="AdminPassword">Password</label>
+      <input id="AdminPassword" name="Password" type="password" required autocomplete="current-password" />
+    </div>
+    <div class="actions-row">
+      <button class="btn primary" type="submit">Login</button>
+      <a class="btn" href="/login">User Login</a>
+    </div>
+  </form>
+</div>

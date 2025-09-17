@@ -4,6 +4,7 @@ using System.IO;
 using AuthenticationAPI.Models;
 using AuthenticationAPI.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -89,12 +90,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, Argon2PasswordHasher<ApplicationUser>>();
 
+// Authentication: Use Identity (cookie) as default for MVC, still register JWT for API endpoints
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer();
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+})
+    .AddJwtBearer();
 builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 builder.Services.AddHsts(options =>
 {
@@ -173,6 +176,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 builder.Services.AddTransient<IConfigureOptions<Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions>, ConfigureSwaggerOptions>();
+
+// Session for wizard state (role & scheme selection)
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+});
 
 var rlOptions = configuration.GetSection(RateLimitOptions.SectionName).Get<RateLimitOptions>() ?? new RateLimitOptions();
 builder.Services.AddRateLimiter(options =>
@@ -391,22 +402,29 @@ if (!app.Environment.IsDevelopment() || string.Equals(configuration["Features:Ht
 {
     app.UseHttpsRedirection();
 }
+// Allow standard form posts (x-www-form-urlencoded & multipart) in addition to JSON
 app.Use(async (ctx, next) =>
 {
-    if (ctx.Request.Method == HttpMethods.Post || ctx.Request.Method == HttpMethods.Put || ctx.Request.Method == HttpMethods.Patch)
+    if (HttpMethods.IsPost(ctx.Request.Method) || HttpMethods.IsPut(ctx.Request.Method) || HttpMethods.IsPatch(ctx.Request.Method))
     {
         var hasBody = ctx.Request.ContentLength.GetValueOrDefault() > 0 || ctx.Request.Headers.ContainsKey("Content-Length");
-        var ct = ctx.Request.ContentType ?? string.Empty;
-        if (hasBody && !ct.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+        if (hasBody)
         {
-            ctx.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
-            await ctx.Response.WriteAsync("Unsupported Media Type");
-            return;
+            var ct = ctx.Request.ContentType ?? string.Empty;
+            if (!(ct.StartsWith("application/json", StringComparison.OrdinalIgnoreCase)
+                  || ct.StartsWith("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase)
+                  || ct.StartsWith("multipart/form-data", StringComparison.OrdinalIgnoreCase)))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
+                await ctx.Response.WriteAsync("Unsupported Media Type");
+                return;
+            }
         }
     }
     await next();
 });
 app.UseStaticFiles();
+app.UseSession();
 app.UseCors("Default");
 
 if (!app.Environment.IsDevelopment())
