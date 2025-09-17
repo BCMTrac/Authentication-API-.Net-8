@@ -1,9 +1,12 @@
 @{
     ViewData["Title"] = "Select Role";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @model AuthenticationAPI.Models.ViewModels.RoleSelectionViewModel
 
-<link rel="stylesheet" href="@(Url.Content("~/css/Roles-Selection.css"))" />
+@section Head {
+    <link rel="stylesheet" href="@(Url.Content("~/css/Roles-Selection.css"))" />
+}
 
 <div class="container">
     <div class="logo-header">
@@ -16,7 +19,7 @@
 
     <form asp-action="RolesSelectPost" method="post" novalidate>
         @Html.AntiForgeryToken()
-		
+
         <input asp-for="SelectedRole" type="hidden" id="SelectedRole" />
         <div class="validation-summary">@Html.ValidationSummary()</div>
         <span class="field-error" asp-validation-for="SelectedRole"></span>

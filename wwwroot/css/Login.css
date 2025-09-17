@@ -115,6 +115,7 @@ input[type="text"], input[type="password"] {
 
 .checkbox-group {
 	margin-bottom: 20px;
+	height: 25px;
 }
 
 .forgot-password {

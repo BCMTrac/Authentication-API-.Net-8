@@ -1,0 +1,31 @@
+@{
+    var title = ViewData["Title"] as string ?? "BCMTrac";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title</title>
+
+    <!-- Core styles: page-specific CSS can still be added in the view -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Shared baseline styles (optional minimal reset) -->
+    <link rel="stylesheet" href="@Url.Content("~/css/base.css")" />
+
+    @RenderSection("Head", required: false)
+</head>
+<body>
+    <div id="app">
+        @RenderBody()
+    </div>
+
+    <!-- Shared scripts; pages can add their own in Scripts section -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.7.7/dist/axios.min.js" integrity="sha384-1" crossorigin="anonymous"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

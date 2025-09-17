@@ -32,12 +32,24 @@ public class MfaAdditionalTests : IClassFixture<TestApplicationFactory>
             var u = await userMgr.FindByEmailAsync(email);
             var token = await userMgr.GenerateEmailConfirmationTokenAsync(u!);
             (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-            // seed secret + enable
+        }
+
+        string secret;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            // seed secret + enable in a fresh scope to avoid concurrency issues
+            var userMgr = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<AuthenticationAPI.Models.ApplicationUser>>();
             var totp = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Services.ITotpService>();
             var protector = scope.ServiceProvider.GetRequiredService<AuthenticationAPI.Services.IMfaSecretProtector>();
-            var secret = totp.GenerateSecret();
+            secret = totp.GenerateSecret();
+            var u = await userMgr.FindByEmailAsync(email);
             u!.MfaSecret = protector.Protect(secret);
-            await userMgr.UpdateAsync(u);
+            var updateRes = await userMgr.UpdateAsync(u);
+            if (!updateRes.Succeeded)
+            {
+                var errs = string.Join("; ", updateRes.Errors.Select(e => $"{e.Code}:{e.Description}"));
+                throw new Exception($"Failed to update user with MFA secret: {errs}");
+            }
             var login1 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = user, Password = password });
             var login1Json = await login1.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(login1Json);
@@ -48,7 +60,11 @@ public class MfaAdditionalTests : IClassFixture<TestApplicationFactory>
             var authed = _factory.CreateClient();
             authed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", access);
             var confirmResp = await authed.PostAsJsonAsync("/api/v1/authenticate/mfa/enroll/confirm", new { code });
-            confirmResp.EnsureSuccessStatusCode();
+            if (!confirmResp.IsSuccessStatusCode)
+            {
+                var body = await confirmResp.Content.ReadAsStringAsync();
+                throw new Exception($"Enroll confirm failed: {(int)confirmResp.StatusCode} {confirmResp.ReasonPhrase} => {body}");
+            }
             var confirmJson = await confirmResp.Content.ReadAsStringAsync();
             using var confirmDoc = JsonDocument.Parse(confirmJson);
             var recoveryCodes = confirmDoc.RootElement.GetProperty("recoveryCodes").EnumerateArray().Select(e => e.GetString()!).ToList();
@@ -65,7 +81,12 @@ public class MfaAdditionalTests : IClassFixture<TestApplicationFactory>
             var authed2 = _factory.CreateClient();
             authed2.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token2);
             var regen = await authed2.PostAsync("/api/v1/authenticate/mfa/recovery/regenerate", null);
-            regen.StatusCode.Should().Be(HttpStatusCode.OK);
+            if (regen.StatusCode != HttpStatusCode.OK)
+            {
+                var body = await regen.Content.ReadAsStringAsync();
+                var ct = regen.Content.Headers.ContentType?.ToString();
+                throw new Exception($"Regenerate returned {(int)regen.StatusCode}: {regen.ReasonPhrase}; CT={ct}; Body={body}");
+            }
             var regenJson = await regen.Content.ReadAsStringAsync();
             regenJson.Should().Contain("recoveryCodes");
         }

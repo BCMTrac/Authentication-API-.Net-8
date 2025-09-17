@@ -1,9 +1,12 @@
 @{
     ViewData["Title"] = "Site Admin Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @model AuthenticationAPI.Models.ViewModels.SiteAdminLoginViewModel
 
-<link rel="stylesheet" href="@(Url.Content("~/css/SiteAdmin.css"))" />
+@section Head {
+    <link rel="stylesheet" href="@(Url.Content("~/css/SiteAdmin.css"))" />
+}
 
 <div class="container">
     <div class="login-box">
