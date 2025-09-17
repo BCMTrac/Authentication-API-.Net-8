@@ -272,45 +272,10 @@ builder.Services.AddHostedService<KeyRotationHostedService>();
 var dpBuilder = builder.Services.AddDataProtection()
     .SetApplicationName("AuthenticationAPI")
     .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
-var dpStorage = (configuration["DataProtection:Storage"] ?? "file").ToLowerInvariant();
-if (dpStorage == "file")
-{
-    var path = configuration["DataProtection:FileSystemPath"] ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
-    Directory.CreateDirectory(path);
-    dpBuilder.PersistKeysToFileSystem(new DirectoryInfo(path));
-
-    if (OperatingSystem.IsWindows())
-    {
-        dpBuilder.ProtectKeysWithDpapi();
-    }
-}
-else if (dpStorage == "azure")
-{
-    var blobConn = configuration["Azure:Blob:ConnectionString"];
-    var containerName = configuration["Azure:Blob:Container"] ?? "dataprotection";
-    var keyId = configuration["Azure:KeyVault:KeyId"];
-    var vaultUrlCfg = configuration["Azure:KeyVault:VaultUrl"];
-    if (string.IsNullOrWhiteSpace(blobConn) || string.IsNullOrWhiteSpace(keyId) || string.IsNullOrWhiteSpace(vaultUrlCfg))
-    {
-        throw new InvalidOperationException("DataProtection storage 'azure' requires Azure:Blob:ConnectionString, Azure:Blob:Container, Azure:KeyVault:VaultUrl and Azure:KeyVault:KeyId.");
-    }
-    try
-    {
-        var blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(blobConn);
-        var container = blobServiceClient.GetBlobContainerClient(containerName);
-        container.CreateIfNotExists();
-
-        var cred = new Azure.Identity.DefaultAzureCredential();
-        var blobUri = new Uri($"{container.Uri}/keys.xml");
-        dpBuilder.PersistKeysToAzureBlobStorage(blobUri, cred);
-        dpBuilder.ProtectKeysWithAzureKeyVault(new Uri(keyId), cred);
-    }
-    catch (Exception ex)
-    {
-        Console.Error.WriteLine($"[Startup] Azure Data Protection configuration failed: {ex.Message}");
-        throw;
-    }
-}
+var path = configuration["DataProtection:FileSystemPath"] ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
+Directory.CreateDirectory(path);
+dpBuilder.PersistKeysToFileSystem(new DirectoryInfo(path));
+if (OperatingSystem.IsWindows()) dpBuilder.ProtectKeysWithDpapi();
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
 var useHibp = string.Equals(configuration["PasswordBreach:Provider"], "hibp", StringComparison.OrdinalIgnoreCase)

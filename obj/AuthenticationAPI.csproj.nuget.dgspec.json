@@ -50,22 +50,6 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Azure.Extensions.AspNetCore.Configuration.Secrets": {
-              "target": "Package",
-              "version": "[1.3.0, )"
-            },
-            "Azure.Extensions.AspNetCore.DataProtection.Blobs": {
-              "target": "Package",
-              "version": "[1.4.0, )"
-            },
-            "Azure.Extensions.AspNetCore.DataProtection.Keys": {
-              "target": "Package",
-              "version": "[1.3.0, )"
-            },
-            "Azure.Identity": {
-              "target": "Package",
-              "version": "[1.12.0, )"
-            },
             "FluentValidation.AspNetCore": {
               "target": "Package",
               "version": "[11.3.0, )"
