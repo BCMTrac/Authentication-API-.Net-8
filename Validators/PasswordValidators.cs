@@ -12,33 +12,6 @@ public class ChangePasswordValidator : AbstractValidator<ChangePasswordDto>
     }
 }
 
-public class PasswordResetRequestValidator : AbstractValidator<PasswordResetRequestDto>
-{
-    public PasswordResetRequestValidator()
-    {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(254);
-    }
-}
-
-public class PasswordResetConfirmValidator : AbstractValidator<PasswordResetConfirmDto>
-{
-    public PasswordResetConfirmValidator()
-    {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(254);
-        RuleFor(x => x.Token).NotEmpty().MaximumLength(2048);
-        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(12).MaximumLength(256);
-    }
-}
-
-public class EmailConfirmValidator : AbstractValidator<EmailConfirmDto>
-{
-    public EmailConfirmValidator()
-    {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(254);
-        RuleFor(x => x.Token).NotEmpty().MaximumLength(2048);
-    }
-}
-
 public class EmailRequestValidator : AbstractValidator<EmailRequestDto>
 {
     public EmailRequestValidator()

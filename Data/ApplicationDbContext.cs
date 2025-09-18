@@ -16,7 +16,6 @@ namespace AuthenticationAPI.Data
         public DbSet<ClientApp> ClientApps => Set<ClientApp>();
         public DbSet<UserRecoveryCode> UserRecoveryCodes => Set<UserRecoveryCode>();
         public DbSet<Session> Sessions => Set<Session>();
-        public DbSet<PasswordHistory> PasswordHistory => Set<PasswordHistory>();
         public DbSet<Tenant> Tenants => Set<Tenant>();
         public DbSet<UserTenant> UserTenants => Set<UserTenant>();
 
@@ -105,11 +104,6 @@ namespace AuthenticationAPI.Data
             });
 
             
-
-            builder.Entity<PasswordHistory>(b =>
-            {
-                b.HasIndex(ph => new { ph.UserId, ph.CreatedUtc });
-            });
         }
     }
 }

@@ -3,29 +3,6 @@ using System.Text.RegularExpressions;
 
 namespace AuthenticationAPI.Models
 {
-    public class RegisterModel : StrictDtoBase
-    {
-        [Required]
-        [RegularExpression(@"^[\p{L}0-9._-]{3,50}$", ErrorMessage = "Username must be 3-50 chars: letters, numbers, . _ -")]
-        public string Username { get; set; } = null!;
-
-        [Required, EmailAddress, StringLength(254)]
-        public string Email { get; set; } = null!;
-
-        [Required, StringLength(256, MinimumLength = 12)]
-        public string Password { get; set; } = null!;
-
-        [StringLength(100, MinimumLength = 2)]
-        public string? FullName { get; set; }
-
-        public bool TermsAccepted { get; set; }
-        public bool MarketingOptIn { get; set; }
-
-        // If used for MFA later; format E.164 (+ plus digits), 8-15 digits total
-        [RegularExpression(@"^\+[1-9][0-9]{7,14}$", ErrorMessage = "Phone must be E.164 format e.g. +15551234567")]
-        public string? Phone { get; set; }
-    }
-
     public class LoginModel : StrictDtoBase
     {
         // Accept email or username
@@ -62,23 +39,6 @@ namespace AuthenticationAPI.Models
     {
         [StringLength(1024)]
         public string? RefreshToken { get; set; }
-    }
-    
-    // Password reset request
-    public class PasswordResetRequestDto : StrictDtoBase
-    {
-        [Required, EmailAddress, StringLength(254)]
-        public string Email { get; set; } = string.Empty;
-    }
-    
-    public class PasswordResetConfirmDto : StrictDtoBase
-    {
-        [Required, EmailAddress, StringLength(254)]
-        public string Email { get; set; } = string.Empty;
-        [Required, StringLength(2048)]
-        public string Token { get; set; } = string.Empty;
-        [Required, StringLength(256, MinimumLength = 12)]
-        public string NewPassword { get; set; } = string.Empty;
     }
     
     // Email confirmation request

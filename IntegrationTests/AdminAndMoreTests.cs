@@ -76,13 +76,10 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
         var authed = _factory.CreateClient();
         authed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
-        // Create user
+        // Create user through invitation
         var email = NewEmail();
-        var username = NewUser();
         var password = "User$tr0ngP@ss!";
-        var client = _factory.CreateClient();
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        await TestTokenHelpers.ConfirmEmailAsync(_factory, email);
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, authed, email, password);
 
         string userId;
         using (var scope = _factory.Services.CreateScope())
@@ -95,7 +92,7 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
         // Add role
         (await authed.PostAsJsonAsync($"/api/v1/admin/users/{userId}/roles/add", new { role = "Manager" })).EnsureSuccessStatusCode();
         // Verify via login claim scopes/roles
-        var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
+        var login = await authed.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         var body = await login.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(body);
         var token = doc.RootElement.GetProperty("token").GetString()!;
@@ -114,15 +111,13 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
         authed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
         var email = NewEmail();
-        var username = NewUser();
         var password = "User$tr0ngP@ss!";
-        var client = _factory.CreateClient();
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        await TestTokenHelpers.ConfirmEmailAsync(_factory, email);
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, authed, email, password);
 
         // Create two sessions
-        var login1 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
-        var login2 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
+        var client = _factory.CreateClient();
+        var login1 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
+        var login2 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         login1.EnsureSuccessStatusCode(); login2.EnsureSuccessStatusCode();
 
         string userId;
@@ -154,10 +149,8 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
         var authed = _factory.CreateClient();
         authed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
-        var email = NewEmail(); var username = NewUser(); var password = "User$tr0ngP@ss!";
-        var client = _factory.CreateClient();
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        await TestTokenHelpers.ConfirmEmailAsync(_factory, email);
+        var email = NewEmail(); var password = "User$tr0ngP@ss!";
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, authed, email, password);
 
         string userId;
         using (var scope = _factory.Services.CreateScope())
@@ -168,12 +161,12 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
 
         // Lock
         (await authed.PostAsync($"/api/v1/admin/users/{userId}/lock", null)).EnsureSuccessStatusCode();
-        var lockedLogin = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
+        var lockedLogin = await authed.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         ((int)lockedLogin.StatusCode).Should().BeGreaterOrEqualTo(400);
 
         // Unlock
         (await authed.PostAsync($"/api/v1/admin/users/{userId}/unlock", null)).EnsureSuccessStatusCode();
-        var goodLogin = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
+        var goodLogin = await authed.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         goodLogin.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -194,11 +187,14 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
     [Fact]
     public async Task Bridge_Headers_Present_On_Login_And_Refresh()
     {
+        var (adminToken, _) = await CreateAdminAndLoginAsync();
+        var authed = _factory.CreateClient();
+        authed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
         var client = _factory.CreateClient();
-        var email = NewEmail(); var username = NewUser(); var password = "User$tr0ngP@ss!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        await TestTokenHelpers.ConfirmEmailAsync(_factory, email);
-        var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
+        var email = NewEmail(); var password = "User$tr0ngP@ss!";
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, authed, email, password);
+        var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         login.Headers.Contains("X-Session-Id").Should().BeTrue();
         var body = await login.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(body);
@@ -210,10 +206,13 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
     [Fact]
     public async Task Magic_Link_Flow_Works()
     {
+        var (adminToken, _) = await CreateAdminAndLoginAsync();
+        var authed = _factory.CreateClient();
+        authed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
         var client = _factory.CreateClient();
-        var email = NewEmail(); var username = NewUser(); var password = "User$tr0ngP@ss!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        await TestTokenHelpers.ConfirmEmailAsync(_factory, email);
+        var email = NewEmail(); var password = "User$tr0ngP@ss!";
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, authed, email, password);
 
         (await client.PostAsJsonAsync("/api/v1/authenticate/magic/start", new { email })).EnsureSuccessStatusCode();
 
@@ -231,22 +230,5 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
         doc.RootElement.GetProperty("token").GetString().Should().NotBeNullOrEmpty();
     }
 
-    [Fact]
-    public async Task Email_Resend_And_Idempotent_Confirm()
-    {
-        var client = _factory.CreateClient();
-        var email = NewEmail(); var username = NewUser(); var password = "User$tr0ngP@ss!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
 
-        (await client.PostAsJsonAsync("/api/v1/authenticate/request-email-confirm", new { email })).EnsureSuccessStatusCode();
-        string token;
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            token = await userMgr.GenerateEmailConfirmationTokenAsync((await userMgr.FindByEmailAsync(email))!);
-        }
-        (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-        // Confirm again should be OK and idempotent
-        (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-    }
 }

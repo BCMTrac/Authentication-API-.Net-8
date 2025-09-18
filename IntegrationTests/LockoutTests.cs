@@ -23,20 +23,18 @@ public class LockoutTests : IClassFixture<TestApplicationFactory>
     {
         var client = _factory.CreateClient();
         var email = NewEmail();
-        var username = NewUser();
         var password = "V3ry$tr0ngP@ssw0rd!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        await TestTokenHelpers.ConfirmEmailAsync(_factory, email);
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, client, email, password);
 
         // Make repeated bad attempts (more than MaxFailedAccessAttempts=10)
         for (int i = 0; i < 11; i++)
         {
-            var bad = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password + "X" });
+            var bad = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password + "X" });
             bad.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized);
         }
 
         // Good attempt now should produce lockout response (mapped to 423 or 400/401 by middleware). We'll accept 400-423
-        var locked = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
+        var locked = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         ((int)locked.StatusCode).Should().BeGreaterOrEqualTo(400);
 
         // Manually unlock via UserManager to complete flow
@@ -49,7 +47,7 @@ public class LockoutTests : IClassFixture<TestApplicationFactory>
         }
 
         // Login should succeed again
-        var good = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
+        var good = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         good.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

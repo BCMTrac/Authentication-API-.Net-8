@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-  <UserSecretsId>d1bcd51e-bf8a-4c19-a6cd-7eca9f372bc6</UserSecretsId>
+    <UserSecretsId>d1bcd51e-bf8a-4c19-a6cd-7eca9f372bc6</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,13 +23,8 @@
     </PackageReference>
     <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.4" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.0" />
   <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
-  <PackageReference Include="StackExchange.Redis" Version="2.7.33" />
-  <PackageReference Include="Hangfire" Version="1.8.14" />
-  <PackageReference Include="Hangfire.AspNetCore" Version="1.8.14" />
-  <PackageReference Include="Hangfire.SqlServer" Version="1.8.14" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
   </ItemGroup>
 

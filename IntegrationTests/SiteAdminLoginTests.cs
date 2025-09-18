@@ -21,9 +21,9 @@ public class SiteAdminLoginTests : IClassFixture<TestApplicationFactory>
         var email = $"sa_{System.Guid.NewGuid():N}@example.com";
         var username = $"sa_{System.Guid.NewGuid():N}";
         var password = "Sup3r$tr0ngP@ss!";
-        // Register + confirm email via helper (returns normal login token which we ignore for site-admin path)
-        await TestHelpers.RegisterConfirmAndLoginAsync(_factory, client, email, username, password);
-        var loginResp = await client.PostAsJsonAsync("/api/v1/authenticate/site-admin/login", new { Identifier = username, Password = password });
+        // Create user through invitation and login via helper
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, client, email, password);
+        var loginResp = await client.PostAsJsonAsync("/api/v1/authenticate/site-admin/login", new { Identifier = email, Password = password });
         loginResp.EnsureSuccessStatusCode();
         var json = await loginResp.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
@@ -34,6 +34,6 @@ public class SiteAdminLoginTests : IClassFixture<TestApplicationFactory>
         var me = await authed.GetAsync("/api/v1/users/me");
         me.StatusCode.Should().Be(HttpStatusCode.OK);
         var meJson = await me.Content.ReadAsStringAsync();
-        meJson.Should().Contain(username);
+        meJson.Should().Contain(email);
     }
 }

@@ -29,18 +29,11 @@ public class AdminLockUnlockTests : IClassFixture<TestApplicationFactory>
         var adminClient = _factory.CreateClient();
         adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
-        // Create target user
+        // Create target user through invitation
         var email = NewEmail();
-        var userName = NewUser();
         var password = "User$tr0ngP@ss!";
-        (await adminClient.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = userName, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var user = await userMgr.FindByEmailAsync(email);
-            var token = await userMgr.GenerateEmailConfirmationTokenAsync(user!);
-            (await adminClient.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-        }
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, adminClient, email, password);
+
         string userId;
         using (var scope = _factory.Services.CreateScope())
         {
@@ -51,12 +44,12 @@ public class AdminLockUnlockTests : IClassFixture<TestApplicationFactory>
 
         // Lock
         (await adminClient.PostAsync($"/api/v1/admin/users/{userId}/lock", null)).EnsureSuccessStatusCode();
-        var loginLocked = await adminClient.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = userName, Password = password });
+        var loginLocked = await adminClient.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         loginLocked.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden);
 
         // Unlock
         (await adminClient.PostAsync($"/api/v1/admin/users/{userId}/unlock", null)).EnsureSuccessStatusCode();
-        var loginAfter = await adminClient.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = userName, Password = password });
+        var loginAfter = await adminClient.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         loginAfter.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

@@ -44,8 +44,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.100"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -54,18 +53,6 @@
             "FluentValidation.AspNetCore": {
               "target": "Package",
               "version": "[11.3.0, )"
-            },
-            "Hangfire": {
-              "target": "Package",
-              "version": "[1.8.14, )"
-            },
-            "Hangfire.AspNetCore": {
-              "target": "Package",
-              "version": "[1.8.14, )"
-            },
-            "Hangfire.SqlServer": {
-              "target": "Package",
-              "version": "[1.8.14, )"
             },
             "Konscious.Security.Cryptography.Argon2": {
               "target": "Package",
@@ -114,14 +101,6 @@
             "QRCoder": {
               "target": "Package",
               "version": "[1.6.0, )"
-            },
-            "StackExchange.Redis": {
-              "target": "Package",
-              "version": "[2.7.33, )"
-            },
-            "Swashbuckle.AspNetCore": {
-              "target": "Package",
-              "version": "[6.5.0, )"
             }
           },
           "imports": [
@@ -143,7 +122,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.102/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

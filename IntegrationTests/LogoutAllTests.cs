@@ -23,17 +23,8 @@ public class LogoutAllTests : IClassFixture<TestApplicationFactory>
     {
         var client = _factory.CreateClient();
         var email = NewEmail();
-        var username = NewUser();
         var password = "V3ry$tr0ngP@ssw0rd!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = email, Username = username, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        await TestTokenHelpers.ConfirmEmailAsync(_factory, email);
-
-        var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = username, Password = password });
-        login.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await login.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(body);
-        var token = doc.RootElement.GetProperty("token").GetString()!;
-        var refresh = doc.RootElement.GetProperty("refreshToken").GetString()!;
+        var (token, refresh) = await TestHelpers.InviteActivateAndLoginAsync(_factory, client, email, password);
 
         var authed = _factory.CreateClient();
         authed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

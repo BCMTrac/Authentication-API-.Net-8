@@ -7,12 +7,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using AuthenticationAPI.Services;
 using AuthenticationAPI.Services.Email;
 using Microsoft.Extensions.Options;
-using AuthenticationAPI.Infrastructure.Swagger;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Text.Json;
 using AuthenticationAPI.Infrastructure.Filters;
@@ -26,8 +24,6 @@ using AuthenticationAPI.Models.Options;
 using Microsoft.AspNetCore.HttpOverrides;
 using FluentValidation.AspNetCore;
 using FluentValidation;
-using Hangfire;
-using Hangfire.SqlServer;
 using Microsoft.Extensions.Logging;
 using AuthenticationAPI.Validators;
 using AuthenticationAPI.Infrastructure.Health;
@@ -153,7 +149,6 @@ builder.Services.AddControllersWithViews(o =>
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
-builder.Services.AddValidatorsFromAssemblyContaining<RegisterModelValidator>();
 
 builder.Services.AddApiVersioning(o =>
 {
@@ -186,29 +181,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    var jwtScheme = new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Description = "JWT Authorization header using the Bearer scheme. Example: Bearer {token}",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        Reference = new OpenApiReference
-        {
-            Type = ReferenceType.SecurityScheme,
-            Id = "Bearer"
-        }
-    };
-    c.AddSecurityDefinition("Bearer", jwtScheme);
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { jwtScheme, Array.Empty<string>() }
-    });
-});
-builder.Services.AddTransient<IConfigureOptions<Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 // Session for wizard state (role & scheme selection)
 builder.Services.AddSession(options =>
@@ -250,15 +222,6 @@ builder.Services.AddRateLimiter(options =>
             {
                 PermitLimit = 10,
                 Window = TimeSpan.FromMinutes(15),
-                QueueLimit = 0
-            }));
-    options.AddPolicy("register", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromHours(1),
                 QueueLimit = 0
             }));
     options.AddPolicy("otp", httpContext =>
@@ -304,8 +267,6 @@ builder.Services.AddScoped<IKeyRingService, KeyRingService>();
 builder.Services.AddScoped<IClientAppService, ClientAppService>();
 builder.Services.AddScoped<ILegacyAccessService, LegacyAccessService>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
-builder.Services.AddScoped<IOnboardingService, OnboardingService>();
-builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IRecoveryCodeService, RecoveryCodeService>();
@@ -325,12 +286,6 @@ dpBuilder.PersistKeysToFileSystem(new DirectoryInfo(path));
 if (OperatingSystem.IsWindows()) dpBuilder.ProtectKeysWithDpapi();
 builder.Services.AddSingleton<IMfaSecretProtector, DataProtectionMfaSecretProtector>();
 builder.Services.AddHttpClient();
-var useHibp = string.Equals(configuration["PasswordBreach:Provider"], "hibp", StringComparison.OrdinalIgnoreCase)
-              || string.Equals(configuration["PasswordBreach:UseHibp"], "true", StringComparison.OrdinalIgnoreCase);
-if (useHibp)
-{
-    builder.Services.AddSingleton<IPasswordBreachChecker, HibpPasswordBreachChecker>();
-}
 builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromMinutes(30));
 var smtpOpts = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions>() ?? new SmtpOptions();
 
@@ -340,7 +295,6 @@ if (string.IsNullOrWhiteSpace(smtpOpts.Host) || smtpOpts.Port <= 0 || string.IsN
 }
 
 builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
-builder.Services.AddTransient<IEmailJob, EmailJob>();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -351,31 +305,13 @@ var throttleOpts = configuration.GetSection(AuthenticationAPI.Models.Options.Thr
                   ?? new AuthenticationAPI.Models.Options.ThrottleOptions();
 if (string.Equals(throttleOpts.Provider, "redis", StringComparison.OrdinalIgnoreCase))
 {
-    if (string.IsNullOrWhiteSpace(throttleOpts.RedisConnectionString))
-        throw new InvalidOperationException("Throttle:RedisConnectionString is required when Provider=redis.");
-    builder.Services.AddSingleton<IThrottleService>(sp =>
-        new RedisThrottleService(throttleOpts.RedisConnectionString!));
+    throw new InvalidOperationException("Redis throttling is not supported. Please use 'memory' provider.");
 }
 else
 {
     builder.Services.AddSingleton<IThrottleService, MemoryThrottleService>();
 }
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, DynamicPermissionPolicyProvider>();
-
-builder.Services.AddHangfire(configuration => configuration
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
-    {
-        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-        QueuePollInterval = TimeSpan.Zero,
-        UseRecommendedIsolationLevel = true,
-        DisableGlobalLocks = true
-    }));
-
-builder.Services.AddHangfireServer();
 
 builder.WebHost.ConfigureKestrel(o =>
 {
@@ -389,17 +325,7 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 if (app.Environment.IsDevelopment() || string.Equals(configuration["Features:Swagger"], "true", StringComparison.OrdinalIgnoreCase))
 {
-    app.UseSwagger();
-    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-    app.UseSwaggerUI(options =>
-    {
-        foreach (var description in apiVersionProvider.ApiVersionDescriptions)
-        {
-            var group = description.GroupName;
-            options.SwaggerEndpoint($"/swagger/{group}/swagger.json", $"Authentication API {group.ToUpperInvariant()}");
-        }
-    });
-    app.UseHangfireDashboard();
+    // Swagger removed for production cleanup
 }
 
 app.Use(async (ctx, next) =>

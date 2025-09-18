@@ -20,19 +20,11 @@ public class MfaAdditionalTests : IClassFixture<TestApplicationFactory>
     [Fact]
     public async Task Regenerate_Recovery_Codes()
     {
-        // Precondition: existing test (MfaFlowTests) covers enable + login; here validate regeneration endpoint structure
+        // Create user through invitation
         var client = _factory.CreateClient();
         var email = NewEmail();
-        var user = NewUser();
         var password = "Sup3r$tr0ngP@ss!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new { Email = email, Username = user, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<AuthenticationAPI.Models.ApplicationUser>>();
-            var u = await userMgr.FindByEmailAsync(email);
-            var token = await userMgr.GenerateEmailConfirmationTokenAsync(u!);
-            (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-        }
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, client, email, password);
 
         string secret;
         using (var scope = _factory.Services.CreateScope())
@@ -50,7 +42,7 @@ public class MfaAdditionalTests : IClassFixture<TestApplicationFactory>
                 var errs = string.Join("; ", updateRes.Errors.Select(e => $"{e.Code}:{e.Description}"));
                 throw new Exception($"Failed to update user with MFA secret: {errs}");
             }
-            var login1 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = user, Password = password });
+            var login1 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
             var login1Json = await login1.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(login1Json);
             var access = doc.RootElement.GetProperty("token").GetString();
@@ -73,7 +65,7 @@ public class MfaAdditionalTests : IClassFixture<TestApplicationFactory>
             var recoveryCode = recoveryCodes[0];
             // Do a TOTP-based login to ensure amr=mfa for policy-guarded endpoints
             var totpCode = TotpTestHelper.GenerateCode(secret, DateTimeOffset.UtcNow.AddSeconds(31));
-            var login2 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = user, Password = password, MfaCode = totpCode });
+            var login2 = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password, MfaCode = totpCode });
             login2.EnsureSuccessStatusCode();
             var login2Json = await login2.Content.ReadAsStringAsync();
             using var doc2 = JsonDocument.Parse(login2Json);

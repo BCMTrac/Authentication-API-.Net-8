@@ -35,22 +35,14 @@ public class AdminRoleManagementTests : IClassFixture<TestApplicationFactory>
         var adminClient = _factory.CreateClient();
         adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        // Create target user
+        // Create target user through invitation
         var targetEmail = NewEmail();
-        var targetUser = NewUser();
         var password = "User$tr0ngP@ss!";
-        (await adminClient.PostAsJsonAsync("/api/v1/authenticate/register", new RegisterModel { Email = targetEmail, Username = targetUser, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var user = await userMgr.FindByEmailAsync(targetEmail);
-            var tokenC = await userMgr.GenerateEmailConfirmationTokenAsync(user!);
-            (await adminClient.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email = targetEmail, token = tokenC })).EnsureSuccessStatusCode();
-        }
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, adminClient, targetEmail, password);
 
         string targetId;
         // Search user
-        var search = await adminClient.GetAsync($"/api/v1/admin/users/search?q={targetUser}");
+        var search = await adminClient.GetAsync($"/api/v1/admin/users/search?q={targetEmail}");
         search.StatusCode.Should().Be(HttpStatusCode.OK);
         var searchJson = await search.Content.ReadAsStringAsync();
         using (var searchDoc = JsonDocument.Parse(searchJson))

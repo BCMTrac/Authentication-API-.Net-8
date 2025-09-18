@@ -20,59 +20,47 @@ public static class AdminTokenFactory
     {
         var client = factory.CreateClient();
         string email = existingUserName == null ? $"admin_{Guid.NewGuid():N}@example.com" : existingUserName + "@example.com";
-        string username = existingUserName ?? $"admin_{Guid.NewGuid():N}";
         string password = "Adm1n$tr0ngP@ss!";
-        await client.PostAsJsonAsync("/api/v1/authenticate/register", new { Email = email, Username = username, Password = password, TermsAccepted = true });
-    // Generate confirmation token in isolated scope
-            string confirmToken;
-            using (var scopeGen = factory.Services.CreateScope())
-            {
-                var userMgrGen = scopeGen.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-                var roleMgrGen = scopeGen.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                if (!await roleMgrGen.RoleExistsAsync("Admin")) await roleMgrGen.CreateAsync(new IdentityRole("Admin"));
-                var userGen = await userMgrGen.FindByNameAsync(username);
-                confirmToken = await userMgrGen.GenerateEmailConfirmationTokenAsync(userGen!);
-            }
-            await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token = confirmToken });
-        using var scopeFinal = factory.Services.CreateScope();
-        var userMgr = scopeFinal.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var user = await userMgr.FindByNameAsync(username);
-        if (!await userMgr.IsInRoleAsync(user!, "Admin"))
+
+        // Create admin user through invitation (we need to create an initial admin first)
+        // For now, we'll create the admin directly in the database since we don't have a bootstrap admin
+        using (var scope = factory.Services.CreateScope())
         {
-            var addRes = await userMgr.AddToRoleAsync(user!, "Admin");
-            if (!addRes.Succeeded)
+            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // Ensure Admin role exists
+            if (!await roleMgr.RoleExistsAsync("Admin"))
+                await roleMgr.CreateAsync(new IdentityRole("Admin"));
+
+            // Create admin user directly
+            var adminUser = new ApplicationUser
             {
-                throw new Exception("Failed to assign Admin role: " + string.Join(";", addRes.Errors.Select(e => e.Code + ":" + e.Description)));
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true
+            };
+
+            var createResult = await userMgr.CreateAsync(adminUser, password);
+            if (!createResult.Succeeded)
+            {
+                throw new Exception("Failed to create admin user: " + string.Join(";", createResult.Errors.Select(e => e.Code + ":" + e.Description)));
+            }
+
+            // Add to Admin role
+            var roleResult = await userMgr.AddToRoleAsync(adminUser, "Admin");
+            if (!roleResult.Succeeded)
+            {
+                throw new Exception("Failed to assign Admin role: " + string.Join(";", roleResult.Errors.Select(e => e.Code + ":" + e.Description)));
             }
         }
-        // Mint token directly
-    var configuration = scopeFinal.ServiceProvider.GetRequiredService<IConfiguration>();
-    var keyRingSvc = scopeFinal.ServiceProvider.GetService(typeof(AuthenticationAPI.Services.IKeyRingService)) as AuthenticationAPI.Services.IKeyRingService;
-    if (keyRingSvc == null) throw new InvalidOperationException("IKeyRingService not found");
-    var activeKey = await keyRingSvc.GetActiveSigningKeyAsync();
-    var kid = activeKey.Kid;
-    var secret = activeKey.Secret;
-        var rsa = RSA.Create();
-        rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(secret), out _);
-        var creds = new SigningCredentials(new RsaSecurityKey(rsa){KeyId = kid}, SecurityAlgorithms.RsaSha256);
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.NameIdentifier, user!.Id),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("token_version", user.TokenVersion.ToString()),
-            new Claim(ClaimTypes.Role, "User"),
-            new Claim(ClaimTypes.Role, "Admin"),
-            new Claim("sid", Guid.NewGuid().ToString())
-        };
-        var tokenJwt = new JwtSecurityToken(
-            issuer: configuration["JWT:ValidIssuer"],
-            audience: configuration["JWT:ValidAudience"],
-            claims: claims,
-            notBefore: DateTime.UtcNow,
-            expires: DateTime.UtcNow.AddMinutes(30),
-            signingCredentials: creds);
-        tokenJwt.Header["kid"] = kid;
-        return new JwtSecurityTokenHandler().WriteToken(tokenJwt);
+
+        // Login to get token
+        var loginResponse = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
+        loginResponse.EnsureSuccessStatusCode();
+
+        var loginJson = await loginResponse.Content.ReadAsStringAsync();
+        using var doc = System.Text.Json.JsonDocument.Parse(loginJson);
+        return doc.RootElement.GetProperty("token").GetString()!;
     }
 }

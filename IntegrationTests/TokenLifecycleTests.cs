@@ -20,16 +20,9 @@ public class TokenLifecycleTests : IClassFixture<TestApplicationFactory>
     public async Task Refresh_Rotation_Reuse_Detected()
     {
         var client = _factory.CreateClient();
-        var email = NewEmail(); var user = NewUser(); var password = "Sup3r$tr0ngP@ss!";
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", new { Email = email, Username = user, Password = password, TermsAccepted = true })).EnsureSuccessStatusCode();
-        string confirmToken;
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<AuthenticationAPI.Models.ApplicationUser>>();
-            var u = await userMgr.FindByEmailAsync(email); confirmToken = await userMgr.GenerateEmailConfirmationTokenAsync(u!);
-        }
-        (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token = confirmToken })).EnsureSuccessStatusCode();
-        var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = user, Password = password });
+        var email = NewEmail(); var password = "Sup3r$tr0ngP@ss!";
+        await TestHelpers.InviteActivateAndLoginAsync(_factory, client, email, password);
+        var login = await client.PostAsJsonAsync("/api/v1/authenticate/login", new { Identifier = email, Password = password });
         var text = await login.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(text);
         var refresh = doc.RootElement.GetProperty("refreshToken").GetString();
