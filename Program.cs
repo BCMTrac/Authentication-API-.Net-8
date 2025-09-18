@@ -34,8 +34,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Use the host configuration so test overrides (WebApplicationFactory) apply
 builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    ;
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 var configuration = builder.Configuration;
 
 builder.Logging.ClearProviders();
@@ -74,11 +73,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         }
         options.User.RequireUniqueEmail = true;
         options.SignIn.RequireConfirmedEmail = true;
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 12;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequiredLength = 12;
         options.Lockout.AllowedForNewUsers = true;
         options.Lockout.MaxFailedAccessAttempts = 10;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
@@ -96,7 +95,6 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
 })
     .AddJwtBearer();
-// Harden Identity application cookie
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.Name = "bcm_auth";

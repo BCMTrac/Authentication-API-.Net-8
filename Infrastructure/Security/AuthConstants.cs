@@ -16,11 +16,6 @@ namespace AuthenticationAPI.Infrastructure.Security
             public const string Mfa = "mfa";
         }
 
-        public static class TokenProviders
-        {
-            public const string MagicLink = "magic-login";
-        }
-
         public static class AmrValues
         {
             public const string Mfa = "mfa";

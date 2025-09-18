@@ -118,8 +118,6 @@ namespace AuthenticationAPI.Controllers
                 claims.Add(new Claim(ClaimTypes.Role, r));
             }
 
-            foreach (var userRole in userRoles) claims.Add(new Claim(ClaimTypes.Role, userRole));
-
             var roleIds = await _roleManager.Roles.Where(r => userRoles.Contains(r.Name!)).Select(r => r.Id).ToListAsync();
             var permissions = await _appDb.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId)).Include(rp => rp.Permission).Select(rp => rp.Permission!.Name).Distinct().ToListAsync();
             foreach (var perm in permissions) claims.Add(new Claim("scope", perm));
@@ -363,76 +361,6 @@ namespace AuthenticationAPI.Controllers
             return Ok();
         }
 
-
-        [HttpPost("magic/start")]
-        [AllowAnonymous]
-        [EnableRateLimiting("otp")]
-        public async Task<IActionResult> MagicStart([FromBody] EmailRequestDto dto)
-        {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            var key1m = $"magic:1m:{dto.Email}";
-            var key1d = $"magic:1d:{dto.Email}";
-            var allow1m = await _throttle.AllowAsync(key1m, 1, TimeSpan.FromMinutes(1));
-            var allow1d = await _throttle.AllowAsync(key1d, 5, TimeSpan.FromDays(1));
-            if (!allow1m || !allow1d) return Ok(new SentResponse { Sent = true });
-            var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return Ok(new SentResponse { Sent = true });
-            try
-            {
-                var token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, AuthConstants.TokenProviders.MagicLink);
-                var req = HttpContext.Request;
-                var baseUrl = _configuration["MagicLink:Url"] ?? $"{req.Scheme}://{req.Host.Value}/";
-                var link = $"{baseUrl}?email={Uri.EscapeDataString(user.Email!)}&magicToken={Uri.EscapeDataString(token)}";
-                var (html, _) = await _templates.RenderAsync("email-confirm", new Dictionary<string,string>
-                {
-                    ["Title"] = "Your sign-in link",
-                    ["Intro"] = "Click the button below to sign in. This link expires in 30 minutes.",
-                    ["ActionText"] = "Sign in",
-                    ["ActionUrl"] = link
-                });
-                _email.QueueSendAsync(user.Email!, "Your sign-in link", html);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to queue magic link email to {Email}", dto.Email);
-            }
-            return Ok(new SentResponse { Sent = true });
-        }
-
-        [HttpPost("magic/verify")]
-        [AllowAnonymous]
-        [EnableRateLimiting("otp")]
-        public async Task<IActionResult> MagicVerify([FromBody] EmailConfirmDto dto)
-        {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) throw new UserNotFoundException();
-            var ok = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, AuthConstants.TokenProviders.MagicLink, dto.Token);
-            if (!ok) throw new InvalidTokenException("Magic link is invalid or expired.");
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(AuthConstants.ClaimTypes.TokenVersion, user.TokenVersion.ToString())
-            };
-            var roleIds = await _roleManager.Roles.Where(r => userRoles.Contains(r.Name!)).Select(r => r.Id).ToListAsync();
-            var permissions = await _appDb.RolePermissions.Where(rp => roleIds.Contains(rp.RoleId)).Include(rp => rp.Permission).Select(rp => rp.Permission!.Name).Distinct().ToListAsync();
-            foreach (var p in permissions) claims.Add(new Claim("scope", p));
-            var token = GetToken(claims);
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-            var ua = Request.Headers["User-Agent"].ToString();
-            var session = await _sessions.CreateAsync(user, ip, ua);
-            var (refresh, refreshExp) = await _refreshTokenService.IssueAsync(user, ip, session.Id);
-            if (string.Equals(_configuration["RefreshTokens:UseCookie"], "true", StringComparison.OrdinalIgnoreCase))
-            {
-                var cookieOpts = new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, Expires = refreshExp, Path = "/api/v1/authenticate" };
-                Response.Cookies.Append("rt", refresh, cookieOpts);
-            }
-            return Ok(new TokenSetResponse { Token = new JwtSecurityTokenHandler().WriteToken(token), Expiration = token.ValidTo, RefreshToken = refresh, RefreshTokenExpiration = refreshExp });
-        }
 
         public record InviteRequestDto(string Email, string? FullName, string[]? Roles);
         public record ActivateRequestDto(string Email, string Token, string Password, string? FullName);

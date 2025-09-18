@@ -696,19 +696,6 @@
           "lib/net8.0/_._": {}
         }
       },
-      "Microsoft.Extensions.AI.Abstractions/9.7.1": {
-        "type": "package",
-        "compile": {
-          "lib/net8.0/Microsoft.Extensions.AI.Abstractions.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Microsoft.Extensions.AI.Abstractions.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Microsoft.Extensions.Caching.Abstractions/8.0.0": {
         "type": "package",
         "dependencies": {
@@ -821,68 +808,6 @@
           "buildTransitive/net6.0/_._": {}
         }
       },
-      "Microsoft.Extensions.Diagnostics.Abstractions/8.0.1": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
-          "Microsoft.Extensions.Options": "8.0.2"
-        },
-        "compile": {
-          "lib/net8.0/Microsoft.Extensions.Diagnostics.Abstractions.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Microsoft.Extensions.Diagnostics.Abstractions.dll": {
-            "related": ".xml"
-          }
-        },
-        "build": {
-          "buildTransitive/net6.0/_._": {}
-        }
-      },
-      "Microsoft.Extensions.FileProviders.Abstractions/8.0.0": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Extensions.Primitives": "8.0.0"
-        },
-        "compile": {
-          "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll": {
-            "related": ".xml"
-          }
-        },
-        "build": {
-          "buildTransitive/net6.0/_._": {}
-        }
-      },
-      "Microsoft.Extensions.Hosting.Abstractions/8.0.1": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
-          "Microsoft.Extensions.Diagnostics.Abstractions": "8.0.1",
-          "Microsoft.Extensions.FileProviders.Abstractions": "8.0.0",
-          "Microsoft.Extensions.Logging.Abstractions": "8.0.2"
-        },
-        "compile": {
-          "lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll": {
-            "related": ".xml"
-          }
-        },
-        "build": {
-          "buildTransitive/net6.0/_._": {}
-        }
-      },
       "Microsoft.Extensions.Identity.Core/8.0.16": {
         "type": "package",
         "dependencies": {
@@ -940,7 +865,7 @@
           "buildTransitive/net6.0/_._": {}
         }
       },
-      "Microsoft.Extensions.Logging.Abstractions/8.0.3": {
+      "Microsoft.Extensions.Logging.Abstractions/8.0.2": {
         "type": "package",
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
@@ -1143,42 +1068,6 @@
         "runtime": {
           "lib/netstandard2.0/Microsoft.SqlServer.Server.dll": {
             "related": ".pdb;.xml"
-          }
-        }
-      },
-      "ModelContextProtocol/0.3.0-preview.4": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Extensions.Hosting.Abstractions": "8.0.1",
-          "ModelContextProtocol.Core": "0.3.0-preview.4"
-        },
-        "compile": {
-          "lib/net8.0/ModelContextProtocol.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/ModelContextProtocol.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "ModelContextProtocol.Core/0.3.0-preview.4": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Extensions.AI.Abstractions": "9.7.1",
-          "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
-          "System.IO.Pipelines": "8.0.0",
-          "System.Net.ServerSentEvents": "10.0.0-preview.4.25258.110"
-        },
-        "compile": {
-          "lib/net8.0/ModelContextProtocol.Core.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/ModelContextProtocol.Core.dll": {
-            "related": ".xml"
           }
         }
       },
@@ -1458,20 +1347,20 @@
           }
         }
       },
-      "System.IO.Pipelines/8.0.0": {
+      "System.IO.Pipelines/6.0.3": {
         "type": "package",
         "compile": {
-          "lib/net8.0/System.IO.Pipelines.dll": {
+          "lib/net6.0/_._": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net8.0/System.IO.Pipelines.dll": {
+          "lib/net6.0/System.IO.Pipelines.dll": {
             "related": ".xml"
           }
         },
         "build": {
-          "buildTransitive/net6.0/_._": {}
+          "buildTransitive/netcoreapp3.1/_._": {}
         }
       },
       "System.Memory/4.5.4": {
@@ -1498,22 +1387,6 @@
           "lib/netstandard2.0/System.Memory.Data.dll": {
             "related": ".xml"
           }
-        }
-      },
-      "System.Net.ServerSentEvents/10.0.0-preview.4.25258.110": {
-        "type": "package",
-        "compile": {
-          "lib/net8.0/System.Net.ServerSentEvents.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/System.Net.ServerSentEvents.dll": {
-            "related": ".xml"
-          }
-        },
-        "build": {
-          "buildTransitive/net8.0/_._": {}
         }
       },
       "System.Numerics.Vectors/4.5.0": {
@@ -2671,27 +2544,6 @@
         "tools/netcoreapp2.0/any/ef.runtimeconfig.json"
       ]
     },
-    "Microsoft.Extensions.AI.Abstractions/9.7.1": {
-      "sha512": "fcAMMDxGgdl7vgkiFQ2yojdEwvGIkIpxsv6SQ33enA+q2iGuv3jsFUZmq6ZJ0YvMgrce7mG6GHFkEVcNxjIl0A==",
-      "type": "package",
-      "path": "microsoft.extensions.ai.abstractions/9.7.1",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "README.md",
-        "lib/net462/Microsoft.Extensions.AI.Abstractions.dll",
-        "lib/net462/Microsoft.Extensions.AI.Abstractions.xml",
-        "lib/net8.0/Microsoft.Extensions.AI.Abstractions.dll",
-        "lib/net8.0/Microsoft.Extensions.AI.Abstractions.xml",
-        "lib/net9.0/Microsoft.Extensions.AI.Abstractions.dll",
-        "lib/net9.0/Microsoft.Extensions.AI.Abstractions.xml",
-        "lib/netstandard2.0/Microsoft.Extensions.AI.Abstractions.dll",
-        "lib/netstandard2.0/Microsoft.Extensions.AI.Abstractions.xml",
-        "microsoft.extensions.ai.abstractions.9.7.1.nupkg.sha512",
-        "microsoft.extensions.ai.abstractions.nuspec"
-      ]
-    },
     "Microsoft.Extensions.Caching.Abstractions/8.0.0": {
       "sha512": "3KuSxeHoNYdxVYfg2IRZCThcrlJ1XJqIXkAWikCsbm5C/bCjv7G0WoKDyuR98Q+T607QT2Zl5GsbGRkENcV2yQ==",
       "type": "package",
@@ -2876,95 +2728,6 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Extensions.Diagnostics.Abstractions/8.0.1": {
-      "sha512": "elH2vmwNmsXuKmUeMQ4YW9ldXiF+gSGDgg1vORksob5POnpaI6caj1Hu8zaYbEuibhqCoWg0YRWDazBY3zjBfg==",
-      "type": "package",
-      "path": "microsoft.extensions.diagnostics.abstractions/8.0.1",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "LICENSE.TXT",
-        "THIRD-PARTY-NOTICES.TXT",
-        "buildTransitive/net461/Microsoft.Extensions.Diagnostics.Abstractions.targets",
-        "buildTransitive/net462/_._",
-        "buildTransitive/net6.0/_._",
-        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Diagnostics.Abstractions.targets",
-        "lib/net462/Microsoft.Extensions.Diagnostics.Abstractions.dll",
-        "lib/net462/Microsoft.Extensions.Diagnostics.Abstractions.xml",
-        "lib/net6.0/Microsoft.Extensions.Diagnostics.Abstractions.dll",
-        "lib/net6.0/Microsoft.Extensions.Diagnostics.Abstractions.xml",
-        "lib/net7.0/Microsoft.Extensions.Diagnostics.Abstractions.dll",
-        "lib/net7.0/Microsoft.Extensions.Diagnostics.Abstractions.xml",
-        "lib/net8.0/Microsoft.Extensions.Diagnostics.Abstractions.dll",
-        "lib/net8.0/Microsoft.Extensions.Diagnostics.Abstractions.xml",
-        "lib/netstandard2.0/Microsoft.Extensions.Diagnostics.Abstractions.dll",
-        "lib/netstandard2.0/Microsoft.Extensions.Diagnostics.Abstractions.xml",
-        "microsoft.extensions.diagnostics.abstractions.8.0.1.nupkg.sha512",
-        "microsoft.extensions.diagnostics.abstractions.nuspec",
-        "useSharedDesignerContext.txt"
-      ]
-    },
-    "Microsoft.Extensions.FileProviders.Abstractions/8.0.0": {
-      "sha512": "ZbaMlhJlpisjuWbvXr4LdAst/1XxH3vZ6A0BsgTphZ2L4PGuxRLz7Jr/S7mkAAnOn78Vu0fKhEgNF5JO3zfjqQ==",
-      "type": "package",
-      "path": "microsoft.extensions.fileproviders.abstractions/8.0.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "LICENSE.TXT",
-        "PACKAGE.md",
-        "THIRD-PARTY-NOTICES.TXT",
-        "buildTransitive/net461/Microsoft.Extensions.FileProviders.Abstractions.targets",
-        "buildTransitive/net462/_._",
-        "buildTransitive/net6.0/_._",
-        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.FileProviders.Abstractions.targets",
-        "lib/net462/Microsoft.Extensions.FileProviders.Abstractions.dll",
-        "lib/net462/Microsoft.Extensions.FileProviders.Abstractions.xml",
-        "lib/net6.0/Microsoft.Extensions.FileProviders.Abstractions.dll",
-        "lib/net6.0/Microsoft.Extensions.FileProviders.Abstractions.xml",
-        "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll",
-        "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.xml",
-        "lib/netstandard2.0/Microsoft.Extensions.FileProviders.Abstractions.dll",
-        "lib/netstandard2.0/Microsoft.Extensions.FileProviders.Abstractions.xml",
-        "microsoft.extensions.fileproviders.abstractions.8.0.0.nupkg.sha512",
-        "microsoft.extensions.fileproviders.abstractions.nuspec",
-        "useSharedDesignerContext.txt"
-      ]
-    },
-    "Microsoft.Extensions.Hosting.Abstractions/8.0.1": {
-      "sha512": "nHwq9aPBdBPYXPti6wYEEfgXddfBrYC+CQLn+qISiwQq5tpfaqDZSKOJNxoe9rfQxGf1c+2wC/qWFe1QYJPYqw==",
-      "type": "package",
-      "path": "microsoft.extensions.hosting.abstractions/8.0.1",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "LICENSE.TXT",
-        "PACKAGE.md",
-        "THIRD-PARTY-NOTICES.TXT",
-        "buildTransitive/net461/Microsoft.Extensions.Hosting.Abstractions.targets",
-        "buildTransitive/net462/_._",
-        "buildTransitive/net6.0/_._",
-        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Hosting.Abstractions.targets",
-        "lib/net462/Microsoft.Extensions.Hosting.Abstractions.dll",
-        "lib/net462/Microsoft.Extensions.Hosting.Abstractions.xml",
-        "lib/net6.0/Microsoft.Extensions.Hosting.Abstractions.dll",
-        "lib/net6.0/Microsoft.Extensions.Hosting.Abstractions.xml",
-        "lib/net7.0/Microsoft.Extensions.Hosting.Abstractions.dll",
-        "lib/net7.0/Microsoft.Extensions.Hosting.Abstractions.xml",
-        "lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll",
-        "lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.xml",
-        "lib/netstandard2.0/Microsoft.Extensions.Hosting.Abstractions.dll",
-        "lib/netstandard2.0/Microsoft.Extensions.Hosting.Abstractions.xml",
-        "lib/netstandard2.1/Microsoft.Extensions.Hosting.Abstractions.dll",
-        "lib/netstandard2.1/Microsoft.Extensions.Hosting.Abstractions.xml",
-        "microsoft.extensions.hosting.abstractions.8.0.1.nupkg.sha512",
-        "microsoft.extensions.hosting.abstractions.nuspec",
-        "useSharedDesignerContext.txt"
-      ]
-    },
     "Microsoft.Extensions.Identity.Core/8.0.16": {
       "sha512": "eoNIWYznyvmPRpt5a6b7DmsL50paBWaUy5l9L40cG34zeyZ5OJyCF6TCX7clwR2XTPA0sGcGgcg/Tdne1pgAKA==",
       "type": "package",
@@ -3035,10 +2798,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Extensions.Logging.Abstractions/8.0.3": {
-      "sha512": "dL0QGToTxggRLMYY4ZYX5AMwBb+byQBd/5dMiZE07Nv73o6I5Are3C7eQTh7K2+A4ct0PVISSr7TZANbiNb2yQ==",
+    "Microsoft.Extensions.Logging.Abstractions/8.0.2": {
+      "sha512": "nroMDjS7hNBPtkZqVBbSiQaQjWRDxITI8Y7XnDs97rqG3EbzVTNLZQf7bIeUJcaHOV8bca47s1Uxq94+2oGdxA==",
       "type": "package",
-      "path": "microsoft.extensions.logging.abstractions/8.0.3",
+      "path": "microsoft.extensions.logging.abstractions/8.0.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3103,7 +2866,7 @@
         "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.xml",
         "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.dll",
         "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.xml",
-        "microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
+        "microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
         "microsoft.extensions.logging.abstractions.nuspec",
         "useSharedDesignerContext.txt"
       ]
@@ -3406,44 +3169,6 @@
         "lib/netstandard2.0/Microsoft.SqlServer.Server.xml",
         "microsoft.sqlserver.server.1.0.0.nupkg.sha512",
         "microsoft.sqlserver.server.nuspec"
-      ]
-    },
-    "ModelContextProtocol/0.3.0-preview.4": {
-      "sha512": "W+fBq9ZJwgmcThMH0xHpwlC51TsnlJHrlnot2cG5ryzKcpOI40IP1R9s55fGvE8ivhSAQ4/s7BuTIWCqda/s6w==",
-      "type": "package",
-      "path": "modelcontextprotocol/0.3.0-preview.4",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "README.md",
-        "lib/net8.0/ModelContextProtocol.dll",
-        "lib/net8.0/ModelContextProtocol.xml",
-        "lib/net9.0/ModelContextProtocol.dll",
-        "lib/net9.0/ModelContextProtocol.xml",
-        "lib/netstandard2.0/ModelContextProtocol.dll",
-        "lib/netstandard2.0/ModelContextProtocol.xml",
-        "logo.png",
-        "modelcontextprotocol.0.3.0-preview.4.nupkg.sha512",
-        "modelcontextprotocol.nuspec"
-      ]
-    },
-    "ModelContextProtocol.Core/0.3.0-preview.4": {
-      "sha512": "VZ3gd+1St3Kbg9UCTrOB0m7GE9Y2Elk73pBGvv4E13nIA0g4uV4rd4NXX0ffS2nV37K957dXa9CtAstfn9kb/Q==",
-      "type": "package",
-      "path": "modelcontextprotocol.core/0.3.0-preview.4",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "README.md",
-        "lib/net8.0/ModelContextProtocol.Core.dll",
-        "lib/net8.0/ModelContextProtocol.Core.xml",
-        "lib/net9.0/ModelContextProtocol.Core.dll",
-        "lib/net9.0/ModelContextProtocol.Core.xml",
-        "lib/netstandard2.0/ModelContextProtocol.Core.dll",
-        "lib/netstandard2.0/ModelContextProtocol.Core.xml",
-        "logo.png",
-        "modelcontextprotocol.core.0.3.0-preview.4.nupkg.sha512",
-        "modelcontextprotocol.core.nuspec"
       ]
     },
     "Mono.TextTemplating/2.2.1": {
@@ -3846,31 +3571,27 @@
         "version.txt"
       ]
     },
-    "System.IO.Pipelines/8.0.0": {
-      "sha512": "FHNOatmUq0sqJOkTx+UF/9YK1f180cnW5FVqnQMvYUN0elp6wFzbtPSiqbo1/ru8ICp43JM1i7kKkk6GsNGHlA==",
+    "System.IO.Pipelines/6.0.3": {
+      "sha512": "ryTgF+iFkpGZY1vRQhfCzX0xTdlV3pyaTTqRu2ETbEv+HlV7O6y7hyQURnghNIXvctl5DuZ//Dpks6HdL/Txgw==",
       "type": "package",
-      "path": "system.io.pipelines/8.0.0",
+      "path": "system.io.pipelines/6.0.3",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
         "LICENSE.TXT",
         "THIRD-PARTY-NOTICES.TXT",
-        "buildTransitive/net461/System.IO.Pipelines.targets",
-        "buildTransitive/net462/_._",
-        "buildTransitive/net6.0/_._",
         "buildTransitive/netcoreapp2.0/System.IO.Pipelines.targets",
-        "lib/net462/System.IO.Pipelines.dll",
-        "lib/net462/System.IO.Pipelines.xml",
+        "buildTransitive/netcoreapp3.1/_._",
+        "lib/net461/System.IO.Pipelines.dll",
+        "lib/net461/System.IO.Pipelines.xml",
         "lib/net6.0/System.IO.Pipelines.dll",
         "lib/net6.0/System.IO.Pipelines.xml",
-        "lib/net7.0/System.IO.Pipelines.dll",
-        "lib/net7.0/System.IO.Pipelines.xml",
-        "lib/net8.0/System.IO.Pipelines.dll",
-        "lib/net8.0/System.IO.Pipelines.xml",
+        "lib/netcoreapp3.1/System.IO.Pipelines.dll",
+        "lib/netcoreapp3.1/System.IO.Pipelines.xml",
         "lib/netstandard2.0/System.IO.Pipelines.dll",
         "lib/netstandard2.0/System.IO.Pipelines.xml",
-        "system.io.pipelines.8.0.0.nupkg.sha512",
+        "system.io.pipelines.6.0.3.nupkg.sha512",
         "system.io.pipelines.nuspec",
         "useSharedDesignerContext.txt"
       ]
@@ -3914,36 +3635,6 @@
         "lib/netstandard2.0/System.Memory.Data.xml",
         "system.memory.data.1.0.2.nupkg.sha512",
         "system.memory.data.nuspec"
-      ]
-    },
-    "System.Net.ServerSentEvents/10.0.0-preview.4.25258.110": {
-      "sha512": "5SG8yFN0e6y3VVaCMWSRYdDW15Apzg2LQoYUtl+jFrGb/+RLSMYmIdU9hO1hbHqpU0JD/lfBlCox0FebdAGGOQ==",
-      "type": "package",
-      "path": "system.net.serversentevents/10.0.0-preview.4.25258.110",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "LICENSE.TXT",
-        "PACKAGE.md",
-        "THIRD-PARTY-NOTICES.TXT",
-        "buildTransitive/net461/System.Net.ServerSentEvents.targets",
-        "buildTransitive/net462/_._",
-        "buildTransitive/net8.0/_._",
-        "buildTransitive/netcoreapp2.0/System.Net.ServerSentEvents.targets",
-        "lib/net10.0/System.Net.ServerSentEvents.dll",
-        "lib/net10.0/System.Net.ServerSentEvents.xml",
-        "lib/net462/System.Net.ServerSentEvents.dll",
-        "lib/net462/System.Net.ServerSentEvents.xml",
-        "lib/net8.0/System.Net.ServerSentEvents.dll",
-        "lib/net8.0/System.Net.ServerSentEvents.xml",
-        "lib/net9.0/System.Net.ServerSentEvents.dll",
-        "lib/net9.0/System.Net.ServerSentEvents.xml",
-        "lib/netstandard2.0/System.Net.ServerSentEvents.dll",
-        "lib/netstandard2.0/System.Net.ServerSentEvents.xml",
-        "system.net.serversentevents.10.0.0-preview.4.25258.110.nupkg.sha512",
-        "system.net.serversentevents.nuspec",
-        "useSharedDesignerContext.txt"
       ]
     },
     "System.Numerics.Vectors/4.5.0": {
@@ -4380,7 +4071,6 @@
       "Microsoft.Data.SqlClient >= 5.2.0",
       "Microsoft.EntityFrameworkCore.SqlServer >= 8.0.16",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.16",
-      "ModelContextProtocol >= 0.3.0-preview.4",
       "QRCoder >= 1.6.0"
     ]
   },
@@ -4428,7 +4118,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
       "net8.0": {
@@ -4478,10 +4169,6 @@
             "target": "Package",
             "version": "[8.0.16, )"
           },
-          "ModelContextProtocol": {
-            "target": "Package",
-            "version": "[0.3.0-preview.4, )"
-          },
           "QRCoder": {
             "target": "Package",
             "version": "[1.6.0, )"
@@ -4506,7 +4193,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.102/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

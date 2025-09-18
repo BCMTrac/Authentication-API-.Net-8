@@ -203,32 +203,4 @@ public class AdminAndMoreTests : IClassFixture<TestApplicationFactory>
         refreshResp.Headers.Contains("X-Session-Id").Should().BeTrue();
     }
 
-    [Fact]
-    public async Task Magic_Link_Flow_Works()
-    {
-        var (adminToken, _) = await CreateAdminAndLoginAsync();
-        var authed = _factory.CreateClient();
-        authed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-
-        var client = _factory.CreateClient();
-        var email = NewEmail(); var password = "User$tr0ngP@ss!";
-        await TestHelpers.InviteActivateAndLoginAsync(_factory, authed, email, password);
-
-        (await client.PostAsJsonAsync("/api/v1/authenticate/magic/start", new { email })).EnsureSuccessStatusCode();
-
-        string token;
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var user = await userMgr.FindByEmailAsync(email);
-            token = await userMgr.GenerateUserTokenAsync(user!, TokenOptions.DefaultProvider, AuthenticationAPI.Infrastructure.Security.AuthConstants.TokenProviders.MagicLink);
-        }
-        var verify = await client.PostAsJsonAsync("/api/v1/authenticate/magic/verify", new { email, token });
-        verify.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await verify.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(body);
-        doc.RootElement.GetProperty("token").GetString().Should().NotBeNullOrEmpty();
-    }
-
-
 }

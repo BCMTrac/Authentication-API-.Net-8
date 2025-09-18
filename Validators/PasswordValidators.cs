@@ -12,14 +12,6 @@ public class ChangePasswordValidator : AbstractValidator<ChangePasswordDto>
     }
 }
 
-public class EmailRequestValidator : AbstractValidator<EmailRequestDto>
-{
-    public EmailRequestValidator()
-    {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(254);
-    }
-}
-
 public class ChangeEmailStartValidator : AbstractValidator<ChangeEmailStartDto>
 {
     public ChangeEmailStartValidator()

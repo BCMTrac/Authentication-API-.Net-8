@@ -27,5 +27,5 @@ Thumbs.db
 .gitignore
 
 # .net
-appsettings.Development.json
-appsettings.json
+.Production.json
+.Development.json
