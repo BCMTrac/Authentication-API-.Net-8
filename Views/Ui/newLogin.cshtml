@@ -1,0 +1,258 @@
+@{
+    ViewData["Title"] = "Login";
+    Layout = null; /* For standalone preview via MVC route. In app, use: Layout = "~/Views/Shared/_Layout.cshtml"; */
+}
+@model AuthenticationAPI.Models.ViewModels.LoginViewModel
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>@ViewData["Title"] - BCMTrac</title>
+
+<style>
+/* ============== Reset / Base ============== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f5f5f6;
+  color: #111827;
+}
+
+/* ============== Split Layout ============== */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.left, .right { display: flex; min-height: 100vh; }
+.left {
+  align-items: center; justify-content: center; padding: 32px;
+  background: #ffffff;
+}
+.right {
+  position: relative; overflow: hidden;
+}
+
+/* Background image + orange overlay (image behind overlay) */
+.right::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: url('~/assets/admark.pnp') center/cover no-repeat; /* check extension */
+  filter: saturate(1.05) contrast(1.05);
+}
+.right::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,118,0,0.92), rgba(255,90,0,0.86));
+  mix-blend-mode: multiply;
+}
+
+/* Right content */
+.right-inner {
+  position: relative; z-index: 1; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 100%; padding: 48px 40px;
+  text-align: center;
+}
+.brand-mark {
+  display: inline-flex; align-items: center; gap: 12px; margin-bottom: 10px;
+}
+.brand-mark svg { width: 34px; height: 34px; }
+.brand-title { font-weight: 800; letter-spacing: 0.06em; font-size: 28px; }
+.brand-copy { max-width: 560px; line-height: 1.6; opacity: .98; margin-top: 8px; }
+
+/* ============== Card (left) ============== */
+.card {
+  width: 100%; max-width: 460px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(17,24,39,.08);
+  border: 1px solid #eef0f3;
+  overflow: hidden;
+}
+.card-head { padding: 24px 24px 0 24px; text-align: center; }
+.logo-wrap {
+  display: grid; place-items: center;
+  height: 70px; margin-bottom: 10px;
+}
+.logo-wrap img { height: 44px; width: auto; object-fit: contain; }
+
+.head-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.head-sub   { font-size: 14px; color: #6b7280; }
+
+.form-body { padding: 22px 24px 26px; }
+
+/* Inputs */
+.form-group { margin-bottom: 14px; }
+label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.input {
+  display: flex; align-items: center; gap: 10px;
+  border: 1px solid #e5e7eb; border-radius: 999px;
+  padding: 10px 14px; background: #fff;
+}
+.input:focus-within { border-color: #ff7a1a; box-shadow: 0 0 0 3px rgba(255,122,26,.15); }
+.input svg { width: 22px; height: 22px; flex: 0 0 auto; }
+.input input {
+  border: none; outline: none; width: 100%;
+  font-size: 15px; line-height: 1.4; background: transparent; color: #111827;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 0; cursor: pointer; text-decoration: none; font-weight: 700;
+  transition: transform .04s ease, box-shadow .2s ease, background .2s ease, opacity .2s ease;
+}
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  width: 100%; border-radius: 999px; padding: 12px 18px;
+  background: #ff6a00; color: #fff;
+  box-shadow: 0 8px 16px rgba(255,106,0,.25);
+}
+.btn-primary:hover { background: #ff5a00; }
+
+.btn-ghost {
+  border-radius: 999px; padding: 10px 14px;
+  border: 1px solid #e5e7eb; background: #fff; color: #111827; text-decoration: none;
+}
+.actions { display: grid; gap: 12px; margin-top: 12px; }
+
+/* Aux */
+.aux {
+  margin: 8px 0 2px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; gap: 10px; flex-wrap: wrap;
+}
+.aux a { color: #0a4d9b; text-decoration: none; }
+.aux a:hover { text-decoration: underline; }
+
+/* Divider + Socials */
+.divider {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: 12px; margin: 18px 0 12px; color: #9ca3af; font-size: 13px;
+}
+.divider::before, .divider::after { content: ""; height: 1px; background: #e5e7eb; }
+
+.social-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+}
+.social-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 12px; border-radius: 999px; border: 1px solid #e5e7eb; background: #fff;
+  font-weight: 600; font-size: 14px; color: #111827; text-decoration: none;
+}
+.social-btn svg { width: 18px; height: 18px; }
+
+/* Footer */
+.footer {
+  grid-column: 1 / -1;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 18px; background: #FF7600; color: #fff; font-size: 13px;
+}
+.footer a { color: #fff; text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .right { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="auth-shell">
+  <!-- LEFT: Login card -->
+  <section class="left">
+    <div class="card">
+      <div class="card-head">
+        <div class="logo-wrap">
+          <img src="~/assets/logo2.png" alt="BCMTrac logo" />
+        </div>
+        <div class="head-title">Welcome — Sign in</div>
+        <p class="head-sub">Log in to access BCMTrac. Use your company credentials or single-sign-on.</p>
+      </div>
+
+      <div class="form-body">
+        <form asp-action="LoginPost" asp-controller="Account" method="post" novalidate>
+          @Html.AntiForgeryToken()
+
+          <div class="form-group">
+            <label asp-for="Username">Username</label>
+            <div class="input">
+              <!-- user icon -->
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6Z"
+                      stroke="#9ca3af" stroke-width="1.5" />
+              </svg>
+              <input asp-for="Username" type="text" autocomplete="username" />
+            </div>
+            <span asp-validation-for="Username" class="text-danger" style="font-size:13px;"></span>
+          </div>
+
+          <div class="form-group">
+            <label asp-for="Password">Password</label>
+            <div class="input">
+              <!-- lock icon -->
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M17 10V8a5 5 0 0 0-10 0v2M6 10h12v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z"
+                      stroke="#9ca3af" stroke-width="1.5" />
+              </svg>
+              <input asp-for="Password" type="password" autocomplete="current-password" />
+            </div>
+            <span asp-validation-for="Password" class="text-danger" style="font-size:13px;"></span>
+          </div>
+
+          <div class="aux">
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input type="checkbox" id="remember" name="remember" />
+              <span style="font-weight:500;">Remember me</span>
+            </label>
+            <a asp-action="ForgotPassword" asp-controller="Account">Forgot your password?</a>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Sign in</button>
+            <a asp-action="Index" asp-controller="Home" class="btn btn-ghost">Cancel</a>
+          </div>
+
+          <div class="divider">Or continue with</div>
+
+
+          <div style="margin-top:16px; font-size:12.5px; color:#6b7280; line-height:1.5">
+            <strong>Notes:</strong> Passwords must meet BCMTrac policy. Accounts may be restricted by role and scheme.
+            By signing in you agree to the Website Terms of Use and acknowledge system features/limitations defined by your tenant.
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: Brand / Hero panel -->
+  <aside class="right">
+    <div class="right-inner">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 8c2 0 4 4 5 4s3-4 5-4a4 4 0 1 1 0 8c-2 0-4-4-5-4s-3 4-5 4a4 4 0 1 1 0-8z"
+                stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="brand-title">BCMTRAC</div>
+      </div>
+      <div class="brand-copy">
+        Powerful, role-aware access to your HOA operations. Streamlined approvals, debtor management,
+        maintenance workflows, and rich reporting — all in one secure platform.
+      </div>
+    </div>
+  </aside>
+
+  <footer class="footer">
+    <div>© 2015–2025 BCMTrac. All rights reserved.</div>
+    <div><a href="#">Website Terms of Use</a></div>
+  </footer>
+</div>
+
+@* Include validation scripts when using your shared layout *@
+@* @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); } *@
+</body>
+</html>

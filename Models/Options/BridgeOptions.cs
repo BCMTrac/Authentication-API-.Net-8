@@ -14,7 +14,15 @@ public sealed class BridgeOptions
         "X-Legacy-Session-2",
         "X-Legacy-Session-3"
     };
+    // Explicit legacy cookie names used by the monolith
+    public string AdminBackOfficeCookieName { get; set; } = "AdminBackOffcieCookie"; // note: legacy spelling
+    public string SchemeCookieName { get; set; } = "SchemeCookie";
+    public string AccessRightsCookieName { get; set; } = "UserAccessRights";
+    public string SiteAdminCookieName { get; set; } = "SiteAdminCookie";
+    public string SiteAdminCookieKey { get; set; } = "SiteAdminCookieID";
     // Optional header name to carry the JWT if YARP needs to set a cookie for it
     public string JwtHeaderName { get; set; } = "X-Auth-JWT";
+    // Optional cookie name to carry the JWT if legacy app expects a cookie
+    public string? JwtCookieName { get; set; } = null;
 }
 

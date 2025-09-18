@@ -54,6 +54,8 @@ builder.Services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitO
 builder.Services.Configure<KeyRotationOptions>(configuration.GetSection(KeyRotationOptions.SectionName));
 builder.Services.Configure<BridgeOptions>(
     configuration.GetSection(BridgeOptions.SectionName));
+builder.Services.Configure<LegacyDbOptions>(
+    configuration.GetSection(LegacyDbOptions.SectionName));
 builder.Services.Configure<ThrottleOptions>(
     configuration.GetSection(ThrottleOptions.SectionName));
 
@@ -300,6 +302,7 @@ builder.Services.AddHealthChecks()
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IKeyRingService, KeyRingService>();
 builder.Services.AddScoped<IClientAppService, ClientAppService>();
+builder.Services.AddScoped<ILegacyAccessService, LegacyAccessService>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<ITenantService, TenantService>();

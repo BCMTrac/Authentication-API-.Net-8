@@ -5,6 +5,9 @@ using AuthenticationAPI.Models.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using AuthenticationAPI.Models;
 using AuthenticationAPI.Infrastructure.Filters;
+using AuthenticationAPI.Services;
+using AuthenticationAPI.Models.Options;
+using AuthenticationAPI.Infrastructure.Security;
 
 namespace AuthenticationAPI.Controllers;
 
@@ -15,8 +18,12 @@ public class UiController : Controller
     private readonly IWebHostEnvironment _env;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
-    public UiController(IWebHostEnvironment env, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
-    { _env = env; _signInManager = signInManager; _userManager = userManager; }
+    private readonly ILegacyAccessService _legacy;
+    private readonly BridgeOptions _bridge;
+    private readonly ISessionService _sessions;
+    private readonly IServiceProvider _sp;
+    public UiController(IWebHostEnvironment env, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILegacyAccessService legacy, Microsoft.Extensions.Options.IOptions<BridgeOptions> bridge, ISessionService sessions, IServiceProvider sp)
+    { _env = env; _signInManager = signInManager; _userManager = userManager; _legacy = legacy; _bridge = bridge.Value; _sessions = sessions; _sp = sp; }
 
     [HttpGet("/")]
     public IActionResult Index() => Redirect("/login");
@@ -56,10 +63,12 @@ public class UiController : Controller
 
     [HttpGet("/roles-select")]
     [Authorize]
-    public IActionResult RolesSelect()
+    public async Task<IActionResult> RolesSelect()
     {
         if (!User.Identity?.IsAuthenticated ?? true) return Redirect("/login");
-        var roles = User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray();
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Redirect("/login");
+        var roles = await _legacy.GetRolesForUserAsync(user);
         var vm = new RoleSelectionViewModel { AvailableRoles = roles };        
         return View("~/Views/Ui/Roles-Select.cshtml", vm);
     }
@@ -67,10 +76,12 @@ public class UiController : Controller
     [HttpPost("/roles-select")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public IActionResult RolesSelectPost(RoleSelectionViewModel model)
+    public async Task<IActionResult> RolesSelectPost(RoleSelectionViewModel model)
     {
         if (!User.Identity?.IsAuthenticated ?? true) return Redirect("/login");
-        var roles = User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).Distinct().ToHashSet();
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Redirect("/login");
+        var roles = (await _legacy.GetRolesForUserAsync(user)).ToHashSet();
         if (!ModelState.IsValid || model.SelectedRole == null || !roles.Contains(model.SelectedRole))
         {
             model.AvailableRoles = roles.ToArray();
@@ -78,21 +89,37 @@ public class UiController : Controller
             return View("~/Views/Ui/Roles-Select.cshtml", model);
         }
         HttpContext.Session.SetString(SessionKeys.RoleSelected, model.SelectedRole);
+        if (_bridge.Enabled)
+        {
+            // Use Identity session id if exists; otherwise create a session record to back headers
+            var sidClaim = User.Claims.FirstOrDefault(c => c.Type == AuthConstants.ClaimTypes.SessionId)?.Value;
+            Guid sid;
+            if (!Guid.TryParse(sidClaim, out sid))
+            {
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                var ua = Request.Headers["User-Agent"].ToString();
+                var session = await _sessions.CreateAsync(user, ip, ua);
+                sid = session.Id;
+            }
+            _legacy.EmitLegacyHeaders(Response, _bridge, sid);
+            // Set explicit legacy cookies for session id and clear scheme/access cookies at this stage
+            Response.Cookies.Append(_bridge.AdminBackOfficeCookieName, sid.ToString(), new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+            Response.Cookies.Delete(_bridge.SchemeCookieName);
+            Response.Cookies.Delete(_bridge.AccessRightsCookieName);
+        }
         return Redirect("/schemes-select");
     }
 
     [HttpGet("/schemes-select")]
     [Authorize]
     [StepRequirement(RequireRole = true)]
-    public IActionResult SchemesSelect()
+    public async Task<IActionResult> SchemesSelect()
     {
         var selectedRole = HttpContext.Session.GetString(SessionKeys.RoleSelected);
         if (string.IsNullOrWhiteSpace(selectedRole)) return Redirect("/roles-select");
-        // Placeholder schemes - replace with service call
-        var schemes = new[] {
-            new SchemeItem("1","Example Scheme A","Company"),
-            new SchemeItem("2","Example Scheme B","HOA")
-        };
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Redirect("/login");
+        var schemes = await _legacy.GetSchemesForAsync(user, selectedRole);
         var vm = new SchemeSelectionViewModel { AvailableSchemes = schemes };
         return View("~/Views/Ui/Schemes-Select.cshtml", vm);
     }
@@ -101,12 +128,12 @@ public class UiController : Controller
     [ValidateAntiForgeryToken]
     [Authorize]
     [StepRequirement(RequireRole = true)]
-    public IActionResult SchemesSelectPost(SchemeSelectionViewModel model)
+    public async Task<IActionResult> SchemesSelectPost(SchemeSelectionViewModel model)
     {
-        var schemes = new[] {
-            new SchemeItem("1","Example Scheme A","Company"),
-            new SchemeItem("2","Example Scheme B","HOA")
-        };
+        var selectedRole = HttpContext.Session.GetString(SessionKeys.RoleSelected) ?? string.Empty;
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Redirect("/login");
+        var schemes = await _legacy.GetSchemesForAsync(user, selectedRole);
         if (!ModelState.IsValid || model.SelectedSchemeId == null || !schemes.Any(s => s.Id == model.SelectedSchemeId))
         {
             model.AvailableSchemes = schemes;
@@ -114,6 +141,36 @@ public class UiController : Controller
             return View("~/Views/Ui/Schemes-Select.cshtml", model);
         }
         HttpContext.Session.SetString(SessionKeys.SchemeSelected, model.SelectedSchemeId);
+        // Emit legacy headers and UI JWT with selected role/scheme for YARP if enabled
+        if (_bridge.Enabled)
+        {
+            var sidClaim = User.Claims.FirstOrDefault(c => c.Type == AuthConstants.ClaimTypes.SessionId)?.Value;
+            Guid sid;
+            if (!Guid.TryParse(sidClaim, out sid))
+            {
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                var ua = Request.Headers["User-Agent"].ToString();
+                var session = await _sessions.CreateAsync(user, ip, ua);
+                sid = session.Id;
+            }
+            _legacy.EmitLegacyHeaders(Response, _bridge, sid);
+            // Set AdminBackOffcieCookie to session id
+            Response.Cookies.Append(_bridge.AdminBackOfficeCookieName, sid.ToString(), new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+            // Set SchemeCookie to selected scheme id
+            Response.Cookies.Append(_bridge.SchemeCookieName, model.SelectedSchemeId, new CookieOptions { HttpOnly = false, Secure = true, SameSite = SameSiteMode.None });
+            // Build and set UserAccessRights cookie (serialized rights string)
+            var rights = await _legacy.GetAccessRightsCookieValueAsync(user, selectedRole, model.SelectedSchemeId);
+            Response.Cookies.Append(_bridge.AccessRightsCookieName, rights, new CookieOptions { HttpOnly = false, Secure = true, SameSite = SameSiteMode.None });
+            if (!string.IsNullOrWhiteSpace(_bridge.JwtHeaderName))
+            {
+                var jwt = await _legacy.IssueUiJwtAsync(user, selectedRole, model.SelectedSchemeId, _sp);
+                Response.Headers[_bridge.JwtHeaderName] = jwt;
+                if (!string.IsNullOrWhiteSpace(_bridge.JwtCookieName))
+                {
+                    Response.Cookies.Append(_bridge.JwtCookieName!, jwt, new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+                }
+            }
+        }
         return Redirect("/");
     }
 
@@ -141,6 +198,29 @@ public class UiController : Controller
             return View("~/Views/Ui/SiteAdmin.cshtml", model);
         }
         HttpContext.Session.Clear();
+        // Set SiteAdmin cookie and emit legacy headers/cookies for back-office access
+        if (_bridge.Enabled)
+        {
+            var sidClaim = User.Claims.FirstOrDefault(c => c.Type == AuthConstants.ClaimTypes.SessionId)?.Value;
+            Guid sid;
+            if (!Guid.TryParse(sidClaim, out sid))
+            {
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                var ua = Request.Headers["User-Agent"].ToString();
+                var session = await _sessions.CreateAsync(user, ip, ua);
+                sid = session.Id;
+            }
+            _legacy.EmitLegacyHeaders(Response, _bridge, sid);
+            Response.Cookies.Append(_bridge.AdminBackOfficeCookieName, sid.ToString(), new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+            var saCookie = await _legacy.GetSiteAdminCookieAsync(user);
+            if (!string.IsNullOrWhiteSpace(saCookie))
+            {
+                var cookieVal = string.IsNullOrWhiteSpace(_bridge.SiteAdminCookieKey)
+                    ? saCookie
+                    : $"{_bridge.SiteAdminCookieKey}={saCookie}";
+                Response.Cookies.Append(_bridge.SiteAdminCookieName, cookieVal, new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+            }
+        }
         return Redirect("/roles-select");
     }
 
