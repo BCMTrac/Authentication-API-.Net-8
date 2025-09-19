@@ -89,15 +89,17 @@ public class LegacyAccessService : ILegacyAccessService
     {
         var connStr = ResolveConn();
         if (connStr == null || string.IsNullOrWhiteSpace(_opts.SchemesTable))
-            return new[] { new SchemeItem("1","Example Scheme A","Company") } as IReadOnlyCollection<SchemeItem>;
+            return new[] { new SchemeItem("1","Example Scheme A","Company", "General") } as IReadOnlyCollection<SchemeItem>;
 
         using var conn = new SqlConnection(connStr);
         await conn.OpenAsync();
         var uid = await ResolveLegacyUserIdAsync(conn, user);
+        var categoryCol = !string.IsNullOrWhiteSpace(_opts.SchemeCategoryColumn) ? _opts.SchemeCategoryColumn : _opts.SchemeTypeColumn;
         var sql = $@"SELECT DISTINCT 
                 CAST([{_opts.SchemeIdColumn}] AS nvarchar(100)) AS Id,
                 CAST([{_opts.SchemeNameColumn}] AS nvarchar(200)) AS Name,
-                CAST([{_opts.SchemeTypeColumn}] AS nvarchar(100)) AS Type
+                CAST([{_opts.SchemeTypeColumn}] AS nvarchar(100)) AS Type,
+                CAST([{categoryCol}] AS nvarchar(100)) AS Category
             FROM [{_opts.SchemesTable}]
             WHERE [{_opts.SchemeUserIdColumn}] = @uid AND [{_opts.SchemeRoleColumn}] = @role";
         using var cmd = new SqlCommand(sql, conn);
@@ -108,12 +110,14 @@ public class LegacyAccessService : ILegacyAccessService
         var idOrd = reader.GetOrdinal("Id");
         var nameOrd = reader.GetOrdinal("Name");
         var typeOrd = reader.GetOrdinal("Type");
+        var catOrd = reader.GetOrdinal("Category");
         while (await reader.ReadAsync())
         {
             var id = reader.IsDBNull(idOrd) ? string.Empty : reader.GetString(idOrd);
             var name = reader.IsDBNull(nameOrd) ? string.Empty : reader.GetString(nameOrd);
             var type = reader.IsDBNull(typeOrd) ? string.Empty : reader.GetString(typeOrd);
-            list.Add(new SchemeItem(id, name, type));
+            var category = reader.IsDBNull(catOrd) ? string.Empty : reader.GetString(catOrd);
+            list.Add(new SchemeItem(id, name, type, category));
         }
         return list;
     }

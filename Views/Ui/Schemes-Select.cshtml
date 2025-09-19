@@ -28,7 +28,7 @@
         <div class="scheme-selection">
             <div class="table-header">
                 <div class="scheme-name-col">Scheme BC / HOA / Company Name</div>
-                <div class="entity-type-col">Entity Type</div>
+                <div class="entity-type-col">Category</div>
             </div>
 
             @if (Model.AvailableSchemes != null && Model.AvailableSchemes.Any())
@@ -41,7 +41,7 @@
                          role="button"
                          tabindex="0">
                         <div class="scheme-name">@s.Name</div>
-                        <div class="entity-type">@s.Type</div>
+                        <div class="entity-type">@(!string.IsNullOrWhiteSpace(s.Category) ? s.Category : s.Type)</div>
                     </div>
                 }
             }

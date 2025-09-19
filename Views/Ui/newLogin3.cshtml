@@ -1,55 +1,66 @@
 @{
-    ViewData["Title"] = "Login 3";
-    Layout = null; // standalone
+    ViewData["Title"] = "Login";
+    Layout = null;
 }
 @model AuthenticationAPI.Models.ViewModels.LoginViewModel
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] - BCMTrac</title>
-    <link rel="stylesheet" href="~/css/newLogin3.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>@ViewData["Title"] - BCMTrac</title>
+  <link rel="stylesheet" href="~/css/newLogin3.css" asp-append-version="true" />
 </head>
-<body>
-    <div class="frame">
-        <section class="left">
-            <div class="panel">
-                <div class="welcome">HELLO AGAIN</div>
-                <div class="brand">BCMTRAC</div>
+<body class="page">
+  <main class="shell">
+    <section class="card">
+      <!-- Left: Form -->
+      <div class="left">
+        <h1 class="headline">
+          Welcome back.<br />
+          <span>Sign in to your account</span>
+        </h1>
 
-                <form asp-action="LoginPost" asp-controller="Ui" method="post" novalidate>
-                    @Html.AntiForgeryToken()
-                    <div class="input">
-                        <input asp-for="Username" type="text" placeholder="Your username" autocomplete="username" />
-                    </div>
-                    <div class="input">
-                        <input asp-for="Password" type="password" placeholder="Your password" autocomplete="current-password" />
-                    </div>
+        <form asp-action="LoginPost" asp-controller="Ui" method="post" class="form" novalidate>
+          @Html.AntiForgeryToken()
 
-                    <div class="actions">
-                        <label class="remember"><input asp-for="RememberMe" type="checkbox" /> Stay logged in</label>
-                        <a class="forgot" href="#">Forgot password?</a>
-                    </div>
+          <div class="group">
+            <input asp-for="Username" type="email" placeholder="Enter your email address" autocomplete="username" />
+          </div>
 
-                    <button type="submit" class="btn">ACCESS ACCOUNT</button>
-                    <div class="signup">Don't have access? <a href="#">Request access</a></div>
-                </form>
+          <div class="group">
+            <input asp-for="Password" type="password" placeholder="Password" autocomplete="current-password" />
+          </div>
+
+          <button type="submit" class="btn-primary">Sign in</button>
+
+          <div class="divider"><span>OR</span></div>
+
+          <button type="button" class="btn-outline">Sign in with Google</button>
+
+          <div class="centered-content">
+            <p class="fineprint">
+              By logging in, you agree to our <a href="#">Privacy Policy</a> and <a href="#">Terms & Conditions</a>.
+            </p>
+
+            <div class="links">
+              <a href="#">Lost password?</a>
+              <a href="#">Don’t have an account? Click here to register</a>
             </div>
-        </section>
+          </div>
+        </form>
+      </div>
 
-        <aside class="right">
-            <div class="overlay"></div>
-            <div class="hero">
-                <div class="title">TRUSTED PLATFORM</div>
-                <p class="copy">Join thousands of users who rely on BCMTrac for secure, reliable access to their business applications. Built with enterprise-grade security and user experience in mind.</p>
-            </div>
-            <div class="foot">
-                <div>© 2015–2025 BCMTrac. All rights reserved.</div>
-                <div><a href="#" style="color:#fff">Terms & Conditions</a></div>
-            </div>
-        </aside>
-    </div>
+      <!-- Right: 3D Floating Image -->
+      <div class="right">
+        <div class="stage">
+          <div class="device">
+            <img src="~/assets/admark.png" alt="Product preview" />
+            <div class="glow"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 </body>
 </html>

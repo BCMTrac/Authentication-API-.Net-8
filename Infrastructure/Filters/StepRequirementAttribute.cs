@@ -11,7 +11,7 @@ public class StepRequirementAttribute : ActionFilterAttribute
     public override void OnActionExecuting(ActionExecutingContext context)
     {
         var session = context.HttpContext.Session;
-        if (RequireRole && string.IsNullOrWhiteSpace(session.GetString("RoleSelected")))
+        if (RequireRole && string.IsNullOrWhiteSpace(session.GetString(Controllers.SessionKeys.RoleSelected)))
         {
             context.Result = new RedirectResult("/roles-select");
             return;

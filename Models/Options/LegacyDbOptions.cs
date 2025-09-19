@@ -24,6 +24,7 @@ public sealed class LegacyDbOptions
     public string? SchemeIdColumn { get; set; }
     public string? SchemeNameColumn { get; set; }
     public string? SchemeTypeColumn { get; set; }
+    public string? SchemeCategoryColumn { get; set; }
 
     // Access rights mapping
     public string? AccessRightsTable { get; set; }

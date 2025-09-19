@@ -22,8 +22,10 @@ public class UiController : Controller
     private readonly BridgeOptions _bridge;
     private readonly ISessionService _sessions;
     private readonly IServiceProvider _sp;
-    public UiController(IWebHostEnvironment env, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILegacyAccessService legacy, Microsoft.Extensions.Options.IOptions<BridgeOptions> bridge, ISessionService sessions, IServiceProvider sp)
-    { _env = env; _signInManager = signInManager; _userManager = userManager; _legacy = legacy; _bridge = bridge.Value; _sessions = sessions; _sp = sp; }
+    private readonly ITotpService _totp;
+    private readonly IMfaSecretProtector _protector;
+    public UiController(IWebHostEnvironment env, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILegacyAccessService legacy, Microsoft.Extensions.Options.IOptions<BridgeOptions> bridge, ISessionService sessions, IServiceProvider sp, ITotpService totp, IMfaSecretProtector protector)
+    { _env = env; _signInManager = signInManager; _userManager = userManager; _legacy = legacy; _bridge = bridge.Value; _sessions = sessions; _sp = sp; _totp = totp; _protector = protector; }
 
     [HttpGet("/")]
     public IActionResult Index() => Redirect("/login");
@@ -39,25 +41,101 @@ public class UiController : Controller
     public async Task<IActionResult> LoginPost(LoginViewModel model, string? returnUrl = null)
     {
         if (!ModelState.IsValid) return View("~/Views/Ui/Login.cshtml", model);
-        var user = await _userManager.FindByNameAsync(model.Username) ?? await _userManager.FindByEmailAsync(model.Username);
+        
+        var identifier = model.Username?.Trim();
+        if (string.IsNullOrWhiteSpace(identifier))
+        {
+            ModelState.AddModelError(string.Empty, "Username or email is required.");
+            return View("~/Views/Ui/Login.cshtml", model);
+        }
+        
+        ApplicationUser? user = null;
+        if (identifier.Contains('@'))
+        {
+            user = await _userManager.FindByEmailAsync(identifier);
+        }
+        else
+        {
+            user = await _userManager.FindByNameAsync(identifier);
+        }
+        
         if (user == null)
         {
             ModelState.AddModelError(string.Empty, "Invalid credentials");
             return View("~/Views/Ui/Login.cshtml", model);
         }
+        
+        if (!user.EmailConfirmed)
+        {
+            ModelState.AddModelError(string.Empty, "Email not confirmed");
+            return View("~/Views/Ui/Login.cshtml", model);
+        }
+        
+        var passOk = await _userManager.CheckPasswordAsync(user, model.Password);
+        if (!passOk)
+        {
+            await _userManager.AccessFailedAsync(user);
+            ModelState.AddModelError(string.Empty, "Invalid credentials");
+            return View("~/Views/Ui/Login.cshtml", model);
+        }
+        
         if (await _userManager.IsLockedOutAsync(user))
         {
             ModelState.AddModelError(string.Empty, "Account locked. Try later.");
             return View("~/Views/Ui/Login.cshtml", model);
         }
-        var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: true);
-        if (!result.Succeeded)
+        
+        await _userManager.ResetAccessFailedCountAsync(user);
+
+        // Check if MFA is required
+        var mfaRequired = user.MfaEnabled && !string.IsNullOrWhiteSpace(user.MfaSecret);
+        if (mfaRequired)
         {
-            ModelState.AddModelError(string.Empty, "Invalid credentials");
-            return View("~/Views/Ui/Login.cshtml", model);
+            if (string.IsNullOrWhiteSpace(model.MfaCode))
+            {
+                // Show MFA input
+                ViewData["MfaRequired"] = true;
+                return View("~/Views/Ui/Login.cshtml", model);
+            }
+            
+            // Validate MFA code
+            if (string.IsNullOrWhiteSpace(user.MfaSecret))
+            {
+                ModelState.AddModelError(string.Empty, "MFA not properly configured");
+                return View("~/Views/Ui/Login.cshtml", model);
+            }
+            
+            var secret = _protector.Unprotect(user.MfaSecret);
+            if (string.IsNullOrWhiteSpace(secret))
+            {
+                ModelState.AddModelError(string.Empty, "MFA not properly configured");
+                return View("~/Views/Ui/Login.cshtml", model);
+            }
+            
+            if (!_totp.ValidateCode(secret, model.MfaCode, out var ts))
+            {
+                ModelState.AddModelError("MfaCode", "Invalid MFA code");
+                ViewData["MfaRequired"] = true;
+                return View("~/Views/Ui/Login.cshtml", model);
+            }
+            
+            if (ts <= user.MfaLastTimeStep)
+            {
+                ModelState.AddModelError("MfaCode", "MFA code already used");
+                ViewData["MfaRequired"] = true;
+                return View("~/Views/Ui/Login.cshtml", model);
+            }
+            
+            user.MfaLastTimeStep = ts;
+            await _userManager.UpdateAsync(user);
         }
+
+        // Sign in the user
+        await _signInManager.SignInAsync(user, model.RememberMe);
+        
         HttpContext.Session.Remove(SessionKeys.RoleSelected);
         HttpContext.Session.Remove(SessionKeys.SchemeSelected);
+        
         return Redirect(returnUrl ?? "/roles-select");
     }
 

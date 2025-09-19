@@ -45,6 +45,7 @@ namespace AuthenticationAPI.Controllers
         private readonly BridgeOptions _bridgeOptions;
         private readonly ILogger<AuthenticateController> _logger;
         private readonly IUserAccountService _userAccountService;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
         public AuthenticateController(
             UserManager<ApplicationUser> userManager,
@@ -63,7 +64,8 @@ namespace AuthenticationAPI.Controllers
             ISessionService sessions,
             Microsoft.Extensions.Options.IOptions<BridgeOptions> bridgeOptions,
             ILogger<AuthenticateController> logger,
-            IUserAccountService userAccountService)
+            IUserAccountService userAccountService,
+            SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -82,6 +84,7 @@ namespace AuthenticationAPI.Controllers
             _bridgeOptions = bridgeOptions.Value;
             _logger = logger;
             _userAccountService = userAccountService;
+            _signInManager = signInManager;
         }
 
         private async Task<bool> ValidateMfa(ApplicationUser user, string? mfaCode)
@@ -220,9 +223,17 @@ namespace AuthenticationAPI.Controllers
                 }
                 var mfaOk = await ValidateMfa(user, model.MfaCode);
                 if (!mfaOk) throw new InvalidMfaCodeException();
+                
+                // Sign in with ASP.NET Identity for MVC compatibility
+                await _signInManager.SignInAsync(user, false);
+                
                 var resp = await CreateTokenResponse(user, true);
                 return Ok(resp);
             }
+
+            // Sign in with ASP.NET Identity for MVC compatibility
+            await _signInManager.SignInAsync(user, false);
+
             var tokens = await CreateTokenResponse(user, false);
             return Ok(tokens);
         }

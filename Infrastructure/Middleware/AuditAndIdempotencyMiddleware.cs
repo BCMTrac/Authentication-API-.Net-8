@@ -127,6 +127,7 @@ public class AuditAndIdempotencyMiddleware
         // Audit log
         db.AuditLogs.Add(new AuditLog
         {
+            Action = context.Request.Method,
             UserId = userId,
             UserName = userName,
             Method = context.Request.Method,

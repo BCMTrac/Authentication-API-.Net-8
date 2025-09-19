@@ -10,6 +10,9 @@ public class LoginViewModel
     [Required, DataType(DataType.Password)]
     public string Password { get; set; } = string.Empty;
 
+    [StringLength(6)]
+    public string? MfaCode { get; set; }
+
     public bool RememberMe { get; set; }
 }
 
@@ -38,4 +41,4 @@ public class SchemeSelectionViewModel
     public string? SelectedSchemeId { get; set; }
 }
 
-public record SchemeItem(string Id, string Name, string Type);
+public record SchemeItem(string Id, string Name, string Type, string Category);

@@ -6,41 +6,59 @@
 
 @section Head {
     <link rel="stylesheet" href="@(Url.Content("~/css/login.css"))" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
 }
 
 <div class="container">
     <div class="login-box">
         <div class="logo-header">
             <div class="logo">
-                <img id=logoImg src="~/assets/logo2.png" alt="bcmtrac logo">
+                <img id="logoImg" src="~/assets/logo2.png" alt="bcmtrac logo">
             </div>
             <div class="welcome-text">User Login</div>
         </div>
 
-        <form asp-action="LoginPost" method="post" novalidate>
-            @Html.AntiForgeryToken()
+        <div id="login-form">
+            <form asp-action="LoginPost" asp-controller="Ui" method="post" novalidate>
+                @Html.AntiForgeryToken()
 
-            <div class="form-group">
-                <label asp-for="Username">Username:</label>
-                <input asp-for="Username" type="text" autocomplete="username" />
-                <span asp-validation-for="Username" class="text-danger"></span>
-            </div>
+                <div class="form-group">
+                    <label for="username">Username or Email:</label>
+                    <input asp-for="Username" type="text" autocomplete="username" required />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="Password">Password:</label>
-                <input asp-for="Password" type="password" autocomplete="current-password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input asp-for="Password" type="password" autocomplete="current-password" required />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
 
-            <div class="button-group">
-                <button type="submit" class="btn btn-login">Login</button>
-                <a href="/" class="btn btn-cancel" role="button">Cancel</a>
-            </div>
+                <div class="form-group" id="mfa-group" style="display: none;">
+                    <label for="MfaCode">MFA Code:</label>
+                    <input asp-for="MfaCode" type="text" autocomplete="one-time-code" />
+                    <span asp-validation-for="MfaCode" class="text-danger"></span>
+                </div>
 
-            <div class="forgot-password">
-                Forgot Your Password? - <a asp-action="ForgotPassword" asp-controller="Account">Click Here</a>
-            </div>
-        </form>
+                <div class="form-group">
+                    <input asp-for="RememberMe" type="checkbox" />
+                    <label for="RememberMe">Remember me</label>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" id="login-btn" class="btn btn-login">Login</button>
+                    <a href="/" class="btn btn-cancel" role="button">Cancel</a>
+                </div>
+
+                <div class="validation-summary">
+                    @Html.ValidationSummary()
+                </div>
+            </form>
+        </div>
+
+        <div class="forgot-password">
+            Forgot Your Password? - <a asp-action="ForgotPassword" asp-controller="Account">Click Here</a>
+        </div>
     </div>
 </div>
 
@@ -50,5 +68,14 @@
 </div>
 
 @section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Show MFA field if required
+            if ('@ViewData["MfaRequired"]' === 'True') {
+                $('#mfa-group').show();
+                $('#MfaCode').focus();
+            }
+        });
+    </script>
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
