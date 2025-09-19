@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using AuthenticationAPI.Data;
 using AuthenticationAPI.Models;
 using AuthenticationAPI.Services;
@@ -35,8 +36,21 @@ public class TestApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Set content root to the main project directory (parent of IntegrationTests)
+        var assemblyLocation = typeof(TestApplicationFactory).Assembly.Location;
+        var testProjectDir = Path.GetDirectoryName(assemblyLocation);
+        // Go up from bin\Debug\net8.0 to IntegrationTests, then up to AuthenticationAPI
+        var projectDir = Path.GetFullPath(Path.Combine(testProjectDir!, "..", ".."));
+        builder.UseContentRoot(projectDir);
+
         builder.ConfigureAppConfiguration((ctx, cfg) =>
         {
+            cfg.Sources.Clear();
+            var contentRoot = ctx.HostingEnvironment.ContentRootPath;
+            cfg.AddJsonFile(Path.Combine(contentRoot, "appsettings.json"), optional: true, reloadOnChange: false);
+            cfg.AddJsonFile(Path.Combine(contentRoot, $"appsettings.{ctx.HostingEnvironment.EnvironmentName}.json"), optional: true, reloadOnChange: false);
+            cfg.AddEnvironmentVariables();
+
             var dict = new Dictionary<string, string?>
             {
                 ["Logging:LogLevel:Default"] = "Warning",

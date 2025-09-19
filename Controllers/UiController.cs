@@ -241,6 +241,8 @@ public class UiController : Controller
         // Simple auto-post form to enforce anti-forgery
         return View("~/Views/Ui/Logout.cshtml");
     }
-     
-    
+
+    [HttpGet("/newLogin")]
+    [AllowAnonymous]
+    public IActionResult NewLogin() => View("~/Views/Ui/newLogin.cshtml", new LoginViewModel());
 }

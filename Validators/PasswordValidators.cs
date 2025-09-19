@@ -36,4 +36,3 @@ public class MfaCodeValidator : AbstractValidator<MfaCodeDto>
         RuleFor(x => x.Code).NotEmpty().Matches("^[0-9]{6}$");
     }
 }
-

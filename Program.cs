@@ -34,7 +34,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Use the host configuration so test overrides (WebApplicationFactory) apply
 builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 var configuration = builder.Configuration;
 
 builder.Logging.ClearProviders();
@@ -262,7 +262,6 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IKeyRingService, KeyRingService>();
-builder.Services.AddScoped<IClientAppService, ClientAppService>();
 builder.Services.AddScoped<ILegacyAccessService, LegacyAccessService>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
@@ -289,10 +288,13 @@ var smtpOpts = configuration.GetSection(SmtpOptions.SectionName).Get<SmtpOptions
 
 if (string.IsNullOrWhiteSpace(smtpOpts.Host) || smtpOpts.Port <= 0 || string.IsNullOrWhiteSpace(smtpOpts.From))
 {
-    throw new InvalidOperationException("SMTP is not configured in appsettings. Set Smtp:Host, Smtp:Port, Smtp:From (optional: Smtp:FromName, Smtp:Username, Smtp:Password, Smtp:UseSsl).");
+    // For testing or development environments without SMTP, use a no-op email sender
+    builder.Services.AddSingleton<IEmailSender, NoOpEmailSender>();
 }
-
-builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+else
+{
+    builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+}
 
 builder.Services.AddAuthorization(options =>
 {

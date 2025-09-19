@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <GenerateMvcTestManifest>false</GenerateMvcTestManifest>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
@@ -25,6 +26,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AuthenticationAPI.csproj" />
   </ItemGroup>
-
   
+  <!-- Removed temporary custom MSBuild targets that prevented normal copying behavior. -->
 </Project>

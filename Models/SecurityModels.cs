@@ -18,17 +18,3 @@ public class SigningKey
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
     public DateTime? RetiredUtc { get; set; }
 }
-
-public class ClientApp
-{
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
-    [Required, MaxLength(100)]
-    public string Name { get; set; } = string.Empty;
-    [Required]
-    public string SecretHash { get; set; } = string.Empty; // SHA256 hash of secret
-    [MaxLength(400)]
-    public string AllowedScopes { get; set; } = string.Empty; // space-delimited
-    public bool Active { get; set; } = true;
-    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
-}

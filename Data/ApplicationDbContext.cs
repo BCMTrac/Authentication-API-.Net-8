@@ -13,39 +13,12 @@ namespace AuthenticationAPI.Data
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
         public DbSet<SigningKey> SigningKeys => Set<SigningKey>();
-        public DbSet<ClientApp> ClientApps => Set<ClientApp>();
         public DbSet<UserRecoveryCode> UserRecoveryCodes => Set<UserRecoveryCode>();
         public DbSet<Session> Sessions => Set<Session>();
-        public DbSet<Tenant> Tenants => Set<Tenant>();
-        public DbSet<UserTenant> UserTenants => Set<UserTenant>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-            
-            builder.Entity<Tenant>(b =>
-            {
-                b.HasIndex(t => t.Subdomain).IsUnique();
-                b.Property(t => t.Id).HasMaxLength(128);
-            });
-
-            
-            builder.Entity<UserTenant>(b =>
-            {
-                b.HasKey(ut => ut.Id);
-                b.HasIndex(ut => new { ut.UserId, ut.TenantId }).IsUnique();
-
-                b.HasOne(ut => ut.User)
-                    .WithMany(u => u.UserTenants)
-                    .HasForeignKey(ut => ut.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                b.HasOne(ut => ut.Tenant)
-                    .WithMany(t => t.UserTenants)
-                    .HasForeignKey(ut => ut.TenantId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
 
             
             builder.Entity<ApplicationUser>(b =>
@@ -53,8 +26,6 @@ namespace AuthenticationAPI.Data
                 b.Property(u => u.Id).HasMaxLength(128);
                 b.Property(u => u.NormalizedUserName).HasMaxLength(128);
                 b.Property(u => u.NormalizedEmail).HasMaxLength(128);
-                
-                b.Ignore(u => u.TenantId);
             });
             builder.Entity<IdentityRole>(b =>
             {
@@ -72,9 +43,6 @@ namespace AuthenticationAPI.Data
 
             builder.Entity<SigningKey>()
                 .HasIndex(k => k.Kid).IsUnique();
-
-            builder.Entity<ClientApp>()
-                .HasIndex(c => c.Name).IsUnique();
 
             builder.Entity<UserRecoveryCode>()
                 .HasIndex(rc => new { rc.UserId, rc.CodeHash }).IsUnique();

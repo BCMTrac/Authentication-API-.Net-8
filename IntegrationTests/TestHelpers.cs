@@ -10,21 +10,7 @@ namespace IntegrationTests;
 
 public static class TestHelpers
 {
-    public static async Task<(string token, string refresh)> RegisterConfirmAndLoginAsync(TestApplicationFactory factory, HttpClient client, string email, string username, string password)
-    {
-        var reg = new { Email = email, Username = username, Password = password, TermsAccepted = true };
-        (await client.PostAsJsonAsync("/api/v1/authenticate/register", reg)).EnsureSuccessStatusCode();
-        // Generate confirmation token directly
-        using (var scope = factory.Services.CreateScope())
-        {
-            var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<AuthenticationAPI.Models.ApplicationUser>>();
-            var user = await userMgr.FindByEmailAsync(email);
-            var token = await userMgr.GenerateEmailConfirmationTokenAsync(user!);
-            (await client.PostAsJsonAsync("/api/v1/authenticate/confirm-email", new { email, token })).EnsureSuccessStatusCode();
-        }
-        // Login
-        return await LoginAsync(client, username, password);
-    }
+
 
     public static async Task<(string token, string refresh)> InviteActivateAndLoginAsync(TestApplicationFactory factory, HttpClient client, string email, string password, string[]? roles = null)
     {

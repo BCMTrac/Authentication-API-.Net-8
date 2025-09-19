@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuthenticationAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250917211315_AddAuditLogColumns")]
-    partial class AddAuditLogColumns
+    [Migration("20250918224336_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,9 +54,6 @@ namespace AuthenticationAPI.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<DateTime?>("MarketingOptInUtc")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool>("MfaEnabled")
                         .HasColumnType("bit");
 
@@ -85,9 +82,6 @@ namespace AuthenticationAPI.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("TermsAcceptedUtc")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("TokenVersion")
                         .HasColumnType("int");
@@ -170,40 +164,6 @@ namespace AuthenticationAPI.Migrations
                     b.ToTable("AuditLogs");
                 });
 
-            modelBuilder.Entity("AuthenticationAPI.Models.ClientApp", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("Active")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("AllowedScopes")
-                        .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("SecretHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("ClientApps");
-                });
-
             modelBuilder.Entity("AuthenticationAPI.Models.IdempotencyRecord", b =>
                 {
                     b.Property<string>("Key")
@@ -235,31 +195,6 @@ namespace AuthenticationAPI.Migrations
                     b.HasIndex("CreatedUtc");
 
                     b.ToTable("IdempotencyRecords");
-                });
-
-            modelBuilder.Entity("AuthenticationAPI.Models.PasswordHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Hash")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "CreatedUtc");
-
-                    b.ToTable("PasswordHistory");
                 });
 
             modelBuilder.Entity("AuthenticationAPI.Models.RefreshToken", b =>
@@ -392,40 +327,6 @@ namespace AuthenticationAPI.Migrations
                     b.ToTable("SigningKeys");
                 });
 
-            modelBuilder.Entity("AuthenticationAPI.Models.Tenant", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("MfaRequired")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Plan")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Subdomain")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Subdomain")
-                        .IsUnique();
-
-                    b.ToTable("Tenants");
-                });
-
             modelBuilder.Entity("AuthenticationAPI.Models.UserRecoveryCode", b =>
                 {
                     b.Property<int>("Id")
@@ -458,33 +359,6 @@ namespace AuthenticationAPI.Migrations
                         .IsUnique();
 
                     b.ToTable("UserRecoveryCodes");
-                });
-
-            modelBuilder.Entity("AuthenticationAPI.Models.UserTenant", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(128)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("UserId", "TenantId")
-                        .IsUnique();
-
-                    b.ToTable("UserTenants");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -650,25 +524,6 @@ namespace AuthenticationAPI.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AuthenticationAPI.Models.UserTenant", b =>
-                {
-                    b.HasOne("AuthenticationAPI.Models.Tenant", "Tenant")
-                        .WithMany("UserTenants")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AuthenticationAPI.Models.ApplicationUser", "User")
-                        .WithMany("UserTenants")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -718,16 +573,6 @@ namespace AuthenticationAPI.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("AuthenticationAPI.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("UserTenants");
-                });
-
-            modelBuilder.Entity("AuthenticationAPI.Models.Tenant", b =>
-                {
-                    b.Navigation("UserTenants");
                 });
 #pragma warning restore 612, 618
         }

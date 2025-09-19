@@ -26,6 +26,3 @@ Thumbs.db
 .github
 .gitignore
 
-# .net
-.Production.json
-.Development.json
