@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Login 3";
     Layout = null; // standalone
 }
 @model AuthenticationAPI.Models.ViewModels.LoginViewModel
@@ -10,31 +10,31 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - BCMTrac</title>
-    <link rel="stylesheet" href="~/css/newLogin.css" />
+    <link rel="stylesheet" href="~/css/newLogin3.css" />
 </head>
 <body>
     <div class="frame">
         <section class="left">
             <div class="panel">
-                <div class="welcome">WELCOME TO</div>
+                <div class="welcome">HELLO AGAIN</div>
                 <div class="brand">BCMTRAC</div>
 
                 <form asp-action="LoginPost" asp-controller="Ui" method="post" novalidate>
                     @Html.AntiForgeryToken()
                     <div class="input">
-                        <input asp-for="Username" type="text" placeholder="Username" autocomplete="username" />
+                        <input asp-for="Username" type="text" placeholder="Your username" autocomplete="username" />
                     </div>
                     <div class="input">
-                        <input asp-for="Password" type="password" placeholder="Password" autocomplete="current-password" />
+                        <input asp-for="Password" type="password" placeholder="Your password" autocomplete="current-password" />
                     </div>
 
                     <div class="actions">
-                        <label class="remember"><input asp-for="RememberMe" type="checkbox" /> Remember me</label>
+                        <label class="remember"><input asp-for="RememberMe" type="checkbox" /> Stay logged in</label>
                         <a class="forgot" href="#">Forgot password?</a>
                     </div>
 
-                    <button type="submit" class="btn">SIGN IN</button>
-                    <div class="signup">Don’t have an account? <a href="#">Sign Up Now</a></div>
+                    <button type="submit" class="btn">ACCESS ACCOUNT</button>
+                    <div class="signup">Don't have access? <a href="#">Request access</a></div>
                 </form>
             </div>
         </section>
@@ -42,12 +42,12 @@
         <aside class="right">
             <div class="overlay"></div>
             <div class="hero">
-                <div class="title">INFINITY</div>
-                <p class="copy">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam nec neque tortor. Proin efficitur leo vel ex aliquam ullamcorper aenean et pretium ligula.</p>
+                <div class="title">TRUSTED PLATFORM</div>
+                <p class="copy">Join thousands of users who rely on BCMTrac for secure, reliable access to their business applications. Built with enterprise-grade security and user experience in mind.</p>
             </div>
             <div class="foot">
                 <div>© 2015–2025 BCMTrac. All rights reserved.</div>
-                <div><a href="#" style="color:#fff">Website Terms of Use</a></div>
+                <div><a href="#" style="color:#fff">Terms & Conditions</a></div>
             </div>
         </aside>
     </div>

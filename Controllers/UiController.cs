@@ -245,4 +245,12 @@ public class UiController : Controller
     [HttpGet("/newLogin")]
     [AllowAnonymous]
     public IActionResult NewLogin() => View("~/Views/Ui/newLogin.cshtml", new LoginViewModel());
+
+    [HttpGet("/newLogin2")]
+    [AllowAnonymous]
+    public IActionResult NewLogin2() => View("~/Views/Ui/newLogin2.cshtml", new LoginViewModel());
+
+    [HttpGet("/newLogin3")]
+    [AllowAnonymous]
+    public IActionResult NewLogin3() => View("~/Views/Ui/newLogin3.cshtml", new LoginViewModel());
 }

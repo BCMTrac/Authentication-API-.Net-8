@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Login 2";
+    Layout = null; // standalone
+}
+@model AuthenticationAPI.Models.ViewModels.LoginViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - BCMTrac</title>
+    <link rel="stylesheet" href="~/css/newLogin2.css" />
+</head>
+<body>
+    <div class="frame">
+        <aside class="right">
+            <div class="overlay"></div>
+            <div class="hero">
+                <div class="title">SECURE ACCESS</div>
+                <p class="copy">Experience seamless authentication with advanced security features. Your data is protected with industry-leading encryption and multi-factor authentication options.</p>
+            </div>
+            <div class="foot">
+                <div>© 2015–2025 BCMTrac. All rights reserved.</div>
+                <div><a href="#" style="color:#fff">Privacy Policy</a></div>
+            </div>
+        </aside>
+
+        <section class="left">
+            <div class="panel">
+                <div class="welcome">WELCOME BACK TO</div>
+                <div class="brand">BCMTRAC</div>
+
+                <form asp-action="LoginPost" asp-controller="Ui" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+                    <div class="input">
+                        <input asp-for="Username" type="text" placeholder="Enter your username" autocomplete="username" />
+                    </div>
+                    <div class="input">
+                        <input asp-for="Password" type="password" placeholder="Enter your password" autocomplete="current-password" />
+                    </div>
+
+                    <div class="actions">
+                        <label class="remember"><input asp-for="RememberMe" type="checkbox" /> Keep me signed in</label>
+                        <a class="forgot" href="#">Reset password</a>
+                    </div>
+
+                    <button type="submit" class="btn">LOG IN</button>
+                    <div class="signup">New to BCMTrac? <a href="#">Create account</a></div>
+                </form>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
