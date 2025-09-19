@@ -28,11 +28,3 @@ public class ChangeEmailConfirmValidator : AbstractValidator<ChangeEmailConfirmD
         RuleFor(x => x.Token).NotEmpty().MaximumLength(2048);
     }
 }
-
-public class MfaCodeValidator : AbstractValidator<MfaCodeDto>
-{
-    public MfaCodeValidator()
-    {
-        RuleFor(x => x.Code).NotEmpty().Matches("^[0-9]{6}$");
-    }
-}

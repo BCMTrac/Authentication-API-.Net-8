@@ -26,6 +26,4 @@
   <ItemGroup>
     <ProjectReference Include="..\AuthenticationAPI.csproj" />
   </ItemGroup>
-  
-  <!-- Removed temporary custom MSBuild targets that prevented normal copying behavior. -->
 </Project>
